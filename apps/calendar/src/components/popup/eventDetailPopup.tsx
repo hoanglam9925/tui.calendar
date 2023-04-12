@@ -155,38 +155,39 @@ export function EventDetailPopup() {
   };
 
   return createPortal(
-    <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
-      <div className={classNames.detailContainer}>
-        <EventDetailSectionHeader event={event} />
-        <EventDetailSectionDetail event={event} />
-        {!isReadOnly && (
-          <div className={classNames.sectionButton}>
-            <button type="button" className={classNames.editButton} onClick={onClickEditButton}>
-              <span className={classNames.editIcon} />
-              <span className={classNames.content}>
-                <Template template="popupEdit" as="span" />
-              </span>
-            </button>
-            <div className={classNames.verticalLine} />
-            <button type="button" className={classNames.deleteButton} onClick={onClickDeleteButton}>
-              <span className={classNames.deleteIcon} />
-              <span className={classNames.content}>
-                <Template template="popupDelete" as="span" />
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
-      <div
-        className={classNames.topLine}
-        style={{ backgroundColor: calendarColor.backgroundColor }}
-      />
-      <div className={popupArrowClassName}>
-        <div className={classNames.border} style={{ top: arrowTop }}>
-          <div className={classNames.fill} />
-        </div>
-      </div>
-    </div>,
+    <div>ádsadasdasdasd</div>
+    // <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
+    //   <div className={classNames.detailContainer}>
+    //     <EventDetailSectionHeader event={event} />
+    //     <EventDetailSectionDetail event={event} />
+    //     {!isReadOnly && (
+    //       <div className={classNames.sectionButton}>
+    //         <button type="button" className={classNames.editButton} onClick={onClickEditButton}>
+    //           <span className={classNames.editIcon} />
+    //           <span className={classNames.content}>
+    //             <Template template="popupEdit" as="span" />
+    //           </span>
+    //         </button>
+    //         <div className={classNames.verticalLine} />
+    //         <button type="button" className={classNames.deleteButton} onClick={onClickDeleteButton}>
+    //           <span className={classNames.deleteIcon} />
+    //           <span className={classNames.content}>
+    //             <Template template="popupDelete" as="span" />
+    //           </span>
+    //         </button>
+    //       </div>
+    //     )}
+    //   </div>
+    //   <div
+    //     className={classNames.topLine}
+    //     style={{ backgroundColor: calendarColor.backgroundColor }}
+    //   />
+    //   <div className={popupArrowClassName}>
+    //     <div className={classNames.border} style={{ top: arrowTop }}>
+    //       <div className={classNames.fill} />
+    //     </div>
+    //   </div>
+    // </div>,
     detailPopupSlot
   );
 }

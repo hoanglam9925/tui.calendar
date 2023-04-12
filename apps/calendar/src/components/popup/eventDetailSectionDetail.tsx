@@ -28,58 +28,57 @@ export function EventDetailSectionDetail({ event }: Props) {
   const calendar = useCalendarById(calendarId);
 
   return (
-    <div>sdffdggkm;lmsdfm</div>
-    // <div className={classNames.sectionDetail}>
-    //   {location && (
-    //     <div className={classNames.detailItem}>
-    //       <span className={classNames.locationIcon} />
-    //       <span className={classNames.content}>
-    //         <Template template="popupDetailLocation" param={event} as="span" />
-    //       </span>
-    //     </div>
-    //   )}
-    //   {recurrenceRule && (
-    //     <div className={classNames.detailItem}>
-    //       <span className={classNames.repeatIcon} />
-    //       <span className={classNames.content}>
-    //         <Template template="popupDetailRecurrenceRule" param={event} as="span" />
-    //       </span>
-    //     </div>
-    //   )}
-    //   {attendees && (
-    //     <div className={classNames.detailItemIndent}>
-    //       <span className={classNames.userIcon} />
-    //       <span className={classNames.content}>
-    //         <Template template="popupDetailAttendees" param={event} as="span" />
-    //       </span>
-    //     </div>
-    //   )}
-    //   {state && (
-    //     <div className={classNames.detailItem}>
-    //       <span className={classNames.stateIcon} />
-    //       <span className={classNames.content}>
-    //         <Template template="popupDetailState" param={event} as="span" />
-    //       </span>
-    //     </div>
-    //   )}
-    //   {calendar && (
-    //     <div className={classNames.detailItem}>
-    //       <span
-    //         className={classNames.calendarDotIcon}
-    //         style={{
-    //           backgroundColor: calendar?.backgroundColor ?? '',
-    //         }}
-    //       />
-    //       <span className={classNames.content}>{calendar?.name ?? ''}</span>
-    //     </div>
-    //   )}
-    //   {body && (
-    //     <div className={classNames.detailItemSeparate}>
-    //       <span className={classNames.content}>
-    //         <Template template="popupDetailBody" param={event} as="span" />
-    //       </span>
-    //     </div>
-    //   )}
-    // </div>
+    <div className={classNames.sectionDetail}>
+      {location && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.locationIcon} />
+          <span className={classNames.content}>
+            <Template template="popupDetailLocation" param={event} as="span" />
+          </span>
+        </div>
+      )}
+      {recurrenceRule && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.repeatIcon} />
+          <span className={classNames.content}>
+            <Template template="popupDetailRecurrenceRule" param={event} as="span" />
+          </span>
+        </div>
+      )}
+      {attendees && (
+        <div className={classNames.detailItemIndent}>
+          <span className={classNames.userIcon} />
+          <span className={classNames.content}>
+            <Template template="popupDetailAttendees" param={event} as="span" />
+          </span>
+        </div>
+      )}
+      {state && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.stateIcon} />
+          <span className={classNames.content}>
+            <Template template="popupDetailState" param={event} as="span" />
+          </span>
+        </div>
+      )}
+      {calendar && (
+        <div className={classNames.detailItem}>
+          <span
+            className={classNames.calendarDotIcon}
+            style={{
+              backgroundColor: calendar?.backgroundColor ?? '',
+            }}
+          />
+          <span className={classNames.content}>{calendar?.name ?? ''}</span>
+        </div>
+      )}
+      {body && (
+        <div className={classNames.detailItemSeparate}>
+          <span className={classNames.content}>
+            <Template template="popupDetailBody" param={event} as="span" />
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
