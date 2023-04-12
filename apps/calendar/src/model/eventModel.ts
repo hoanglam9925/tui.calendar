@@ -66,6 +66,8 @@ export default class EventModel implements Omit<EventObjectWithDefaultValues, '_
 
   raw: any = null;
 
+  userData?: any;
+
   /**
    * whether the event includes multiple dates
    */

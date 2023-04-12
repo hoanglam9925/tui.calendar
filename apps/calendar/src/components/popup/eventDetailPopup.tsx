@@ -15,6 +15,8 @@ import { isLeftOutOfLayout, isTopOutOfLayout } from '@src/helpers/popup';
 import { useCalendarColor } from '@src/hooks/calendar/useCalendarColor';
 import { optionsSelector } from '@src/selectors';
 import { eventDetailPopupParamSelector } from '@src/selectors/popup';
+import { allOptionSelector } from '@src/selectors/options';
+
 import TZDate from '@src/time/date';
 import { isNil } from '@src/utils/type';
 
@@ -69,6 +71,9 @@ function calculatePopupArrowPosition(eventRect: Rect, layoutRect: Rect, popupRec
 export function EventDetailPopup() {
   const { useFormPopup } = useStore(optionsSelector);
   const popupParams = useStore(eventDetailPopupParamSelector);
+  const options = useStore(allOptionSelector);
+  console.log({options});
+  
   const { event, eventRect } = popupParams ?? {};
 
   const { showFormPopup, hideDetailPopup } = useDispatch('popup');
@@ -153,41 +158,42 @@ export function EventDetailPopup() {
     eventBus.fire('beforeDeleteEvent', event.toEventObject());
     hideDetailPopup();
   };
+  // console.log({zxczxcad: useStore()});
 
   return createPortal(
-    <div>ádsadasdasdasd</div>,
-    // <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
-    //   <div className={classNames.detailContainer}>
-    //     <EventDetailSectionHeader event={event} />
-    //     <EventDetailSectionDetail event={event} />
-    //     {!isReadOnly && (
-    //       <div className={classNames.sectionButton}>
-    //         <button type="button" className={classNames.editButton} onClick={onClickEditButton}>
-    //           <span className={classNames.editIcon} />
-    //           <span className={classNames.content}>
-    //             <Template template="popupEdit" as="span" />
-    //           </span>
-    //         </button>
-    //         <div className={classNames.verticalLine} />
-    //         <button type="button" className={classNames.deleteButton} onClick={onClickDeleteButton}>
-    //           <span className={classNames.deleteIcon} />
-    //           <span className={classNames.content}>
-    //             <Template template="popupDelete" as="span" />
-    //           </span>
-    //         </button>
-    //       </div>
-    //     )}
-    //   </div>
-    //   <div
-    //     className={classNames.topLine}
-    //     style={{ backgroundColor: calendarColor.backgroundColor }}
-    //   />
-    //   <div className={popupArrowClassName}>
-    //     <div className={classNames.border} style={{ top: arrowTop }}>
-    //       <div className={classNames.fill} />
-    //     </div>
-    //   </div>
-    // </div>,
+    <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
+      <div className={classNames.detailContainer}>
+        {/* {props.onRenderEventDetailPopup(event)} */}
+        <EventDetailSectionHeader event={event} />
+        <EventDetailSectionDetail event={event} />
+        {!isReadOnly && (
+          <div className={classNames.sectionButton}>
+            <button type="button" className={classNames.editButton} onClick={onClickEditButton}>
+              <span className={classNames.editIcon} />
+              <span className={classNames.content}>
+                <Template template="popupEdit" as="span" />
+              </span>
+            </button>
+            <div className={classNames.verticalLine} />
+            <button type="button" className={classNames.deleteButton} onClick={onClickDeleteButton}>
+              <span className={classNames.deleteIcon} />
+              <span className={classNames.content}>
+                <Template template="popupDelete" as="span" />
+              </span>
+            </button>
+          </div>
+        )}
+      </div>
+      <div
+        className={classNames.topLine}
+        style={{ backgroundColor: calendarColor.backgroundColor }}
+      />
+      <div className={popupArrowClassName}>
+        <div className={classNames.border} style={{ top: arrowTop }}>
+          <div className={classNames.fill} />
+        </div>
+      </div>
+    </div>,
     detailPopupSlot
   );
 }

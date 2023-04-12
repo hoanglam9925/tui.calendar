@@ -22,6 +22,11 @@ const classNames = {
   calendarDotIcon: cls('icon', 'calendar-dot'),
 };
 
+const fakeData = {
+  title: 'Canberra Active Ageing Committee Carnival',
+  category: 'Stay connected with the CPFV Community',
+  image: 'https://backend-stag.s3.ap-southeast-1.amazonaws.com/collab_event/99/test.jpg'
+}
 // eslint-disable-next-line complexity
 export function EventDetailSectionDetail({ event }: Props) {
   const { location, recurrenceRule, attendees, state, calendarId, body } = event;
@@ -29,7 +34,34 @@ export function EventDetailSectionDetail({ event }: Props) {
 
   return (
     <div className={classNames.sectionDetail}>
-      {location && (
+      {fakeData?.title && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.locationIcon} />
+          <span className={classNames.content}>
+            Title: {fakeData?.title}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+      {fakeData?.category && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.locationIcon} />
+          <span className={classNames.content}>
+            Category: {fakeData?.category}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+      {fakeData?.image && (
+        <div className={classNames.detailItem}>
+          {/* <span className={classNames.locationIcon} /> */}
+          <span className={classNames.content}>
+            <img style={{maxWidth: '70px', aspectRatio: 1}} src={fakeData?.image} />
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+      {/* {location && (
         <div className={classNames.detailItem}>
           <span className={classNames.locationIcon} />
           <span className={classNames.content}>
@@ -78,7 +110,7 @@ export function EventDetailSectionDetail({ event }: Props) {
             <Template template="popupDetailBody" param={event} as="span" />
           </span>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

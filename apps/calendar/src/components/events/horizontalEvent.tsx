@@ -193,6 +193,8 @@ export function HorizontalEvent({
 
       const isClick = draggingState <= DraggingState.INIT;
       if (isClick && useDetailPopup && eventContainerRef.current) {
+        console.log(uiModel);
+        
         showDetailPopup(
           {
             event: uiModel.model,

@@ -46,7 +46,7 @@ export function Month() {
     ...cellStyleInfo,
     date: dateMatrix[0][index],
   }));
-
+  
   return (
     <Layout className={cls('month')}>
       <GridHeader
