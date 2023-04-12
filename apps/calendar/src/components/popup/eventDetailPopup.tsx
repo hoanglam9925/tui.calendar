@@ -155,7 +155,7 @@ export function EventDetailPopup() {
   };
 
   return createPortal(
-    <div>ádsadasdasdasd</div>
+    <div>ádsadasdasdasd</div>,
     // <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
     //   <div className={classNames.detailContainer}>
     //     <EventDetailSectionHeader event={event} />
