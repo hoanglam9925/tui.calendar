@@ -7745,7 +7745,7 @@ const templates = {
       className: classNames2
     }), /* @__PURE__ */ h$3("span", {
       style: {
-        backgroundColor: model.backgroundColor
+        background: model.backgroundColor
       }
     }, stripTags(model.title)));
   },
@@ -10814,13 +10814,13 @@ function HorizontalEvent({
   }, /* @__PURE__ */ h$3("div", {
     className: classNames$k.eventBody,
     style: __spreadProps(__spreadValues({}, eventItemStyle), {
-      backgroundColor: isDotEvent ? null : eventItemStyle.backgroundColor,
+      background: isDotEvent ? null : eventItemStyle.backgroundColor,
       borderLeft: isDotEvent ? null : eventItemStyle.borderLeft
     }),
     onMouseDown: handleMoveStart
   }, isDotEvent ? /* @__PURE__ */ h$3("span", {
     className: classNames$k.eventDot,
-    style: { backgroundColor: eventItemStyle.backgroundColor }
+    style: { background: eventItemStyle.backgroundColor }
   }) : null, /* @__PURE__ */ h$3("span", {
     className: classNames$k.eventTitle
   }, /* @__PURE__ */ h$3(Template, {
@@ -11380,6 +11380,7 @@ const classNames$j = {
   calendarDotIcon: cls("icon", "calendar-dot")
 };
 function EventDetailSectionDetail({ event, userData }) {
+  var _a;
   const { location: location2, recurrenceRule, attendees, state, calendarId, body } = event;
   useCalendarById(calendarId);
   const eventId = event == null ? void 0 : event.id;
@@ -11403,37 +11404,43 @@ function EventDetailSectionDetail({ event, userData }) {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$j.content
-  }, "Description: ", currentUserData == null ? void 0 : currentUserData.description)), (currentUserData == null ? void 0 : currentUserData.attendance_type) && /* @__PURE__ */ h$3("div", {
+  }, /* @__PURE__ */ h$3("b", null, "Description:"), " ", currentUserData == null ? void 0 : currentUserData.description)), (currentUserData == null ? void 0 : currentUserData.category_relation) && /* @__PURE__ */ h$3("div", {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$j.stateIcon
   }), /* @__PURE__ */ h$3("span", {
     className: classNames$j.content
-  }, "Attendance Type: ", currentUserData == null ? void 0 : currentUserData.attendance_type)), (currentUserData == null ? void 0 : currentUserData.attendance_point) && /* @__PURE__ */ h$3("div", {
+  }, /* @__PURE__ */ h$3("b", null, "Category:"), " ", (_a = currentUserData == null ? void 0 : currentUserData.category_relation) == null ? void 0 : _a.title)), (currentUserData == null ? void 0 : currentUserData.attendance_type) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ h$3("span", {
+    className: classNames$j.stateIcon
+  }), /* @__PURE__ */ h$3("span", {
+    className: classNames$j.content
+  }, /* @__PURE__ */ h$3("b", null, "Attendance Type:"), " ", currentUserData == null ? void 0 : currentUserData.attendance_type)), (currentUserData == null ? void 0 : currentUserData.attendance_point) && /* @__PURE__ */ h$3("div", {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$j.repeatIcon
   }), /* @__PURE__ */ h$3("span", {
     className: classNames$j.content
-  }, "Attendance Point: ", currentUserData == null ? void 0 : currentUserData.attendance_point)), (currentUserData == null ? void 0 : currentUserData.slots_total) && /* @__PURE__ */ h$3("div", {
+  }, /* @__PURE__ */ h$3("b", null, "Attendance Point:"), " ", currentUserData == null ? void 0 : currentUserData.attendance_point)), (currentUserData == null ? void 0 : currentUserData.slots_total) && /* @__PURE__ */ h$3("div", {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$j.repeatIcon
   }), /* @__PURE__ */ h$3("span", {
     className: classNames$j.content
-  }, "Slots Total: ", currentUserData == null ? void 0 : currentUserData.slots_total)), (currentUserData == null ? void 0 : currentUserData.slots_remain) && /* @__PURE__ */ h$3("div", {
+  }, /* @__PURE__ */ h$3("b", null, "Slots Total:"), " ", currentUserData == null ? void 0 : currentUserData.slots_total)), (currentUserData == null ? void 0 : currentUserData.slots_remain) && /* @__PURE__ */ h$3("div", {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$j.repeatIcon
   }), /* @__PURE__ */ h$3("span", {
     className: classNames$j.content
-  }, "Slots Remain: ", currentUserData == null ? void 0 : currentUserData.slots_remain)), (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ h$3("div", {
+  }, /* @__PURE__ */ h$3("b", null, "Slots Remain:"), " ", currentUserData == null ? void 0 : currentUserData.slots_remain)), (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ h$3("div", {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$j.calendarDotIcon
   }), /* @__PURE__ */ h$3("span", {
     className: classNames$j.content
-  }, "Register By: ", currentUserData == null ? void 0 : currentUserData.register_by_timestamp)));
+  }, /* @__PURE__ */ h$3("b", null, "Register By:"), " ", currentUserData == null ? void 0 : currentUserData.register_by_timestamp)));
 }
 const classNames$i = {
   sectionHeader: cls("popup-section", "section-header"),
@@ -11676,7 +11683,7 @@ function EventDetailPopup() {
     as: "span"
   }))))), /* @__PURE__ */ h$3("div", {
     className: classNames$h.topLine,
-    style: { backgroundColor: calendarColor.backgroundColor }
+    style: { background: calendarColor.backgroundColor }
   }), /* @__PURE__ */ h$3("div", {
     className: popupArrowClassName
   }, /* @__PURE__ */ h$3("div", {

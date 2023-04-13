@@ -33,7 +33,6 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
     return false;
   });
   
-  console.log({currentUserData});
   return (
     <div className={classNames.sectionDetail} style={{maxHeight: '1000px', overflow: "auto"}} >
       {currentUserData?.image_file && (
@@ -46,16 +45,26 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
       {currentUserData?.description && (
         <div className={classNames.detailItem}>
           <span className={classNames.content}>
-            Description: {currentUserData?.description}
+          <b>Description:</b> {currentUserData?.description}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
       )}
+      {currentUserData?.category_relation && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.stateIcon} />
+          <span className={classNames.content}>
+            <b>Category:</b> {currentUserData?.category_relation?.title}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+
       {currentUserData?.attendance_type && (
         <div className={classNames.detailItem}>
           <span className={classNames.stateIcon} />
           <span className={classNames.content}>
-            Attendance Type: {currentUserData?.attendance_type}
+          <b>Attendance Type:</b> {currentUserData?.attendance_type}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
@@ -64,7 +73,7 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
         <div className={classNames.detailItem}>
           <span className={classNames.repeatIcon} />
           <span className={classNames.content}>
-            Attendance Point: {currentUserData?.attendance_point}
+          <b>Attendance Point:</b> {currentUserData?.attendance_point}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
@@ -73,7 +82,7 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
         <div className={classNames.detailItem}>
           <span className={classNames.repeatIcon} />
           <span className={classNames.content}>
-            Slots Total: {currentUserData?.slots_total}
+          <b>Slots Total:</b> {currentUserData?.slots_total}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
@@ -82,7 +91,7 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
         <div className={classNames.detailItem}>
           <span className={classNames.repeatIcon} />
           <span className={classNames.content}>
-            Slots Remain: {currentUserData?.slots_remain}
+          <b>Slots Remain:</b> {currentUserData?.slots_remain}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
@@ -91,7 +100,7 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
         <div className={classNames.detailItem}>
           <span className={classNames.calendarDotIcon} />
           <span className={classNames.content}>
-            Register By: {currentUserData?.register_by_timestamp}
+          <b>Register By:</b> {currentUserData?.register_by_timestamp}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>

@@ -184,7 +184,7 @@ export function EventDetailPopup() {
       </div>
       <div
         className={classNames.topLine}
-        style={{ backgroundColor: calendarColor.backgroundColor }}
+        style={{ background: calendarColor.backgroundColor }}
       />
       <div className={popupArrowClassName}>
         <div className={classNames.border} style={{ top: arrowTop }}>

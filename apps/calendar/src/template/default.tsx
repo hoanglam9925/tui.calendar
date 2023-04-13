@@ -29,7 +29,7 @@ export const templates: Template = {
         <span className={classNames} />
         <span
           style={{
-            backgroundColor: model.backgroundColor,
+            background: model.backgroundColor,
           }}
         >
           {stripTags(model.title)}

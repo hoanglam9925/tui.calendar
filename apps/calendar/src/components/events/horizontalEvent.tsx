@@ -263,7 +263,7 @@ export function HorizontalEvent({
         className={classNames.eventBody}
         style={{
           ...eventItemStyle,
-          backgroundColor: isDotEvent ? null : eventItemStyle.backgroundColor,
+          background: isDotEvent ? null : eventItemStyle.backgroundColor,
           borderLeft: isDotEvent ? null : eventItemStyle.borderLeft,
         }}
         onMouseDown={handleMoveStart}
@@ -271,7 +271,7 @@ export function HorizontalEvent({
         {isDotEvent ? (
           <span
             className={classNames.eventDot}
-            style={{ backgroundColor: eventItemStyle.backgroundColor }}
+            style={{ background: eventItemStyle.backgroundColor }}
           />
         ) : null}
         <span className={classNames.eventTitle}>

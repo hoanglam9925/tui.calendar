@@ -15182,7 +15182,7 @@ var templates = {
       className: classNames
     }), h("span", {
       style: {
-        backgroundColor: model.backgroundColor
+        background: model.backgroundColor
       }
     }, stripTags(model.title)));
   },
@@ -18570,14 +18570,14 @@ function HorizontalEvent(_ref4) {
   }, h("div", {
     className: classNames.eventBody,
     style: horizontalEvent_objectSpread(horizontalEvent_objectSpread({}, eventItemStyle), {}, {
-      backgroundColor: isDotEvent ? null : eventItemStyle.backgroundColor,
+      background: isDotEvent ? null : eventItemStyle.backgroundColor,
       borderLeft: isDotEvent ? null : eventItemStyle.borderLeft
     }),
     onMouseDown: handleMoveStart
   }, isDotEvent ? h("span", {
     className: classNames.eventDot,
     style: {
-      backgroundColor: eventItemStyle.backgroundColor
+      background: eventItemStyle.backgroundColor
     }
   }) : null, h("span", {
     className: classNames.eventTitle
@@ -19792,6 +19792,8 @@ var eventDetailSectionDetail_classNames = {
 }; // eslint-disable-next-line complexity
 
 function EventDetailSectionDetail(_ref) {
+  var _currentUserData$cate;
+
   var event = _ref.event,
       userData = _ref.userData;
   var location = event.location,
@@ -19831,37 +19833,43 @@ function EventDetailSectionDetail(_ref) {
     className: eventDetailSectionDetail_classNames.detailItem
   }, h("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, "Description: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type) && h("div", {
+  }, h("b", null, "Description:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.category_relation) && h("div", {
     className: eventDetailSectionDetail_classNames.detailItem
   }, h("span", {
     className: eventDetailSectionDetail_classNames.stateIcon
   }), h("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, "Attendance Type: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point) && h("div", {
+  }, h("b", null, "Category:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : (_currentUserData$cate = currentUserData.category_relation) === null || _currentUserData$cate === void 0 ? void 0 : _currentUserData$cate.title)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type) && h("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, h("span", {
+    className: eventDetailSectionDetail_classNames.stateIcon
+  }), h("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, h("b", null, "Attendance Type:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point) && h("div", {
     className: eventDetailSectionDetail_classNames.detailItem
   }, h("span", {
     className: eventDetailSectionDetail_classNames.repeatIcon
   }), h("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, "Attendance Point: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total) && h("div", {
+  }, h("b", null, "Attendance Point:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total) && h("div", {
     className: eventDetailSectionDetail_classNames.detailItem
   }, h("span", {
     className: eventDetailSectionDetail_classNames.repeatIcon
   }), h("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, "Slots Total: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain) && h("div", {
+  }, h("b", null, "Slots Total:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain) && h("div", {
     className: eventDetailSectionDetail_classNames.detailItem
   }, h("span", {
     className: eventDetailSectionDetail_classNames.repeatIcon
   }), h("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, "Slots Remain: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp) && h("div", {
+  }, h("b", null, "Slots Remain:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp) && h("div", {
     className: eventDetailSectionDetail_classNames.detailItem
   }, h("span", {
     className: eventDetailSectionDetail_classNames.calendarDotIcon
   }), h("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, "Register By: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp)));
+  }, h("b", null, "Register By:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp)));
 }
 ;// CONCATENATED MODULE: ./src/components/popup/eventDetailSectionHeader.tsx
 
@@ -20264,7 +20272,7 @@ function EventDetailPopup() {
   }))))), h("div", {
     className: eventDetailPopup_classNames.topLine,
     style: {
-      backgroundColor: calendarColor.backgroundColor
+      background: calendarColor.backgroundColor
     }
   }), h("div", {
     className: popupArrowClassName
