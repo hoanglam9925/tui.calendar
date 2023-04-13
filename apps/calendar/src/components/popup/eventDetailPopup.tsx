@@ -71,8 +71,7 @@ function calculatePopupArrowPosition(eventRect: Rect, layoutRect: Rect, popupRec
 export function EventDetailPopup() {
   const { useFormPopup } = useStore(optionsSelector);
   const popupParams = useStore(eventDetailPopupParamSelector);
-  const options = useStore(allOptionSelector);
-  console.log({options});
+  const options = useStore(optionsSelector);
   
   const { event, eventRect } = popupParams ?? {};
 
@@ -158,14 +157,13 @@ export function EventDetailPopup() {
     eventBus.fire('beforeDeleteEvent', event.toEventObject());
     hideDetailPopup();
   };
-  // console.log({zxczxcad: useStore()});
+  const userData = options?.allOptions?.userData || null;
 
   return createPortal(
     <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
       <div className={classNames.detailContainer}>
-        {/* {props.onRenderEventDetailPopup(event)} */}
         <EventDetailSectionHeader event={event} />
-        <EventDetailSectionDetail event={event} />
+        <EventDetailSectionDetail event={event} userData={userData} />
         {!isReadOnly && (
           <div className={classNames.sectionButton}>
             <button type="button" className={classNames.editButton} onClick={onClickEditButton}>

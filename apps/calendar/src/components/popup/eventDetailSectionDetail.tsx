@@ -7,6 +7,7 @@ import type EventModel from '@src/model/eventModel';
 
 interface Props {
   event: EventModel;
+  userData: any;
 }
 
 const classNames = {
@@ -22,45 +23,80 @@ const classNames = {
   calendarDotIcon: cls('icon', 'calendar-dot'),
 };
 
-const fakeData = {
-  title: 'Canberra Active Ageing Committee Carnival',
-  category: 'Stay connected with the CPFV Community',
-  image: 'https://backend-stag.s3.ap-southeast-1.amazonaws.com/collab_event/99/test.jpg'
-}
 // eslint-disable-next-line complexity
-export function EventDetailSectionDetail({ event }: Props) {
+export function EventDetailSectionDetail({ event, userData }: Props) {
   const { location, recurrenceRule, attendees, state, calendarId, body } = event;
   const calendar = useCalendarById(calendarId);
-
+  const eventId = event?.id;
+  const currentUserData = userData.find((user: any) => {
+    if(user?.id == eventId) return true; 
+    return false;
+  });
+  
+  console.log({currentUserData});
   return (
-    <div className={classNames.sectionDetail}>
-      {fakeData?.title && (
+    <div className={classNames.sectionDetail} style={{maxHeight: '1000px', overflow: "auto"}} >
+      {currentUserData?.image_file && (
         <div className={classNames.detailItem}>
-          <span className={classNames.locationIcon} />
           <span className={classNames.content}>
-            Title: {fakeData?.title}
+            <img style={{maxWidth: '100%', aspectRatio: 1, marginTop: "10px", marginBottom: "10px"}} src={currentUserData?.image_file} />
+          </span>
+        </div>
+      )}
+      {currentUserData?.description && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.content}>
+            Description: {currentUserData?.description}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
       )}
-      {fakeData?.category && (
+      {currentUserData?.attendance_type && (
         <div className={classNames.detailItem}>
-          <span className={classNames.locationIcon} />
+          <span className={classNames.stateIcon} />
           <span className={classNames.content}>
-            Category: {fakeData?.category}
+            Attendance Type: {currentUserData?.attendance_type}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
       )}
-      {fakeData?.image && (
+      {currentUserData?.attendance_point && (
         <div className={classNames.detailItem}>
-          {/* <span className={classNames.locationIcon} /> */}
+          <span className={classNames.repeatIcon} />
           <span className={classNames.content}>
-            <img style={{maxWidth: '70px', aspectRatio: 1}} src={fakeData?.image} />
+            Attendance Point: {currentUserData?.attendance_point}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
       )}
+      {currentUserData?.slots_total && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.repeatIcon} />
+          <span className={classNames.content}>
+            Slots Total: {currentUserData?.slots_total}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+      {currentUserData?.slots_remain && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.repeatIcon} />
+          <span className={classNames.content}>
+            Slots Remain: {currentUserData?.slots_remain}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+      {currentUserData?.register_by_timestamp && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.calendarDotIcon} />
+          <span className={classNames.content}>
+            Register By: {currentUserData?.register_by_timestamp}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+      
       {/* {location && (
         <div className={classNames.detailItem}>
           <span className={classNames.locationIcon} />

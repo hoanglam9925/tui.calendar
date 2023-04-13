@@ -311,6 +311,9 @@ export function App({ view }: { view: ViewType }) {
         onClickTimezonesCollapseBtn={onClickTimezonesCollapseBtn}
         onBeforeUpdateEvent={onBeforeUpdateEvent}
         onBeforeCreateEvent={onBeforeCreateEvent}
+        onRenderEventDetailPopup={()=> {
+          return <div>abc213</div>
+        }}
       />
     </div>
   );

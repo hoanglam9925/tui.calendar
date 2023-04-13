@@ -14956,7 +14956,8 @@ function createOptionsSlice() {
       gridSelection: initializeGridSelectionOptions(options.gridSelection),
       usageStatistics: (_options$usageStatist = options.usageStatistics) !== null && _options$usageStatist !== void 0 ? _options$usageStatist : true,
       eventFilter: (_options$eventFilter = options.eventFilter) !== null && _options$eventFilter !== void 0 ? _options$eventFilter : initialEventFilter,
-      timezone: initializeTimezoneOptions(options.timezone)
+      timezone: initializeTimezoneOptions(options.timezone),
+      allOptions: options
     }
   };
 }
@@ -18507,7 +18508,7 @@ function HorizontalEvent(_ref4) {
       var isClick = draggingState <= DraggingState.INIT;
 
       if (isClick && useDetailPopup && eventContainerRef.current) {
-        console.log(uiModel);
+        // console.log(uiModel);
         showDetailPopup({
           event: uiModel.model,
           eventRect: eventContainerRef.current.getBoundingClientRect()
@@ -19773,6 +19774,10 @@ var es_array_fill = __webpack_require__(2656);
 
 
 
+
+
+
+
 var eventDetailSectionDetail_classNames = {
   detailItem: cls('detail-item'),
   detailItemIndent: cls('detail-item', 'detail-item-indent'),
@@ -19784,15 +19789,11 @@ var eventDetailSectionDetail_classNames = {
   userIcon: cls('icon', 'ic-user-b'),
   stateIcon: cls('icon', 'ic-state-b'),
   calendarDotIcon: cls('icon', 'calendar-dot')
-};
-var fakeData = {
-  title: 'Canberra Active Ageing Committee Carnival',
-  category: 'Stay connected with the CPFV Community',
-  image: 'https://backend-stag.s3.ap-southeast-1.amazonaws.com/collab_event/99/test.jpg'
 }; // eslint-disable-next-line complexity
 
 function EventDetailSectionDetail(_ref) {
-  var event = _ref.event;
+  var event = _ref.event,
+      userData = _ref.userData;
   var location = event.location,
       recurrenceRule = event.recurrenceRule,
       attendees = event.attendees,
@@ -19800,31 +19801,67 @@ function EventDetailSectionDetail(_ref) {
       calendarId = event.calendarId,
       body = event.body;
   var calendar = useCalendarById(calendarId);
+  var eventId = event === null || event === void 0 ? void 0 : event.id;
+  var currentUserData = userData.find(function (user) {
+    if ((user === null || user === void 0 ? void 0 : user.id) == eventId) return true;
+    return false;
+  });
+  console.log({
+    currentUserData: currentUserData
+  });
   return h("div", {
-    className: eventDetailSectionDetail_classNames.sectionDetail
-  }, (fakeData === null || fakeData === void 0 ? void 0 : fakeData.title) && h("div", {
-    className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.locationIcon
-  }), h("span", {
-    className: eventDetailSectionDetail_classNames.content
-  }, "Title: ", fakeData === null || fakeData === void 0 ? void 0 : fakeData.title)), (fakeData === null || fakeData === void 0 ? void 0 : fakeData.category) && h("div", {
-    className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.locationIcon
-  }), h("span", {
-    className: eventDetailSectionDetail_classNames.content
-  }, "Category: ", fakeData === null || fakeData === void 0 ? void 0 : fakeData.category)), (fakeData === null || fakeData === void 0 ? void 0 : fakeData.image) && h("div", {
+    className: eventDetailSectionDetail_classNames.sectionDetail,
+    style: {
+      maxHeight: '1000px',
+      overflow: "auto"
+    }
+  }, (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.image_file) && h("div", {
     className: eventDetailSectionDetail_classNames.detailItem
   }, h("span", {
     className: eventDetailSectionDetail_classNames.content
   }, h("img", {
     style: {
-      maxWidth: '70px',
-      aspectRatio: 1
+      maxWidth: '100%',
+      aspectRatio: 1,
+      marginTop: "10px",
+      marginBottom: "10px"
     },
-    src: fakeData === null || fakeData === void 0 ? void 0 : fakeData.image
-  }))));
+    src: currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.image_file
+  }))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description) && h("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, h("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, "Description: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type) && h("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, h("span", {
+    className: eventDetailSectionDetail_classNames.stateIcon
+  }), h("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, "Attendance Type: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point) && h("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, h("span", {
+    className: eventDetailSectionDetail_classNames.repeatIcon
+  }), h("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, "Attendance Point: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total) && h("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, h("span", {
+    className: eventDetailSectionDetail_classNames.repeatIcon
+  }), h("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, "Slots Total: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain) && h("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, h("span", {
+    className: eventDetailSectionDetail_classNames.repeatIcon
+  }), h("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, "Slots Remain: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp) && h("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, h("span", {
+    className: eventDetailSectionDetail_classNames.calendarDotIcon
+  }), h("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, "Register By: ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp)));
 }
 ;// CONCATENATED MODULE: ./src/components/popup/eventDetailSectionHeader.tsx
 
@@ -19981,28 +20018,6 @@ var eventDetailPopupParamSelector = function eventDetailPopupParamSelector(state
 var seeMorePopupParamSelector = function seeMorePopupParamSelector(state) {
   return state.popup[PopupType.SeeMore];
 };
-;// CONCATENATED MODULE: ./src/selectors/options.ts
-var monthVisibleEventCountSelector = function monthVisibleEventCountSelector(state) {
-  var _state$options$month$;
-
-  return (_state$options$month$ = state.options.month.visibleEventCount) !== null && _state$options$month$ !== void 0 ? _state$options$month$ : 6;
-};
-var showNowIndicatorOptionSelector = function showNowIndicatorOptionSelector(state) {
-  return state.options.week.showNowIndicator;
-};
-var showTimezoneCollapseButtonOptionSelector = function showTimezoneCollapseButtonOptionSelector(state) {
-  var _state$options$week$s;
-
-  return (_state$options$week$s = state.options.week.showTimezoneCollapseButton) !== null && _state$options$week$s !== void 0 ? _state$options$week$s : false;
-};
-var timezonesCollapsedOptionSelector = function timezonesCollapsedOptionSelector(state) {
-  var _state$options$week$t;
-
-  return (_state$options$week$t = state.options.week.timezonesCollapsed) !== null && _state$options$week$t !== void 0 ? _state$options$week$t : false;
-};
-var allOptionSelector = function allOptionSelector(state) {
-  return state;
-};
 ;// CONCATENATED MODULE: ./src/components/popup/eventDetailPopup.tsx
 
 
@@ -20030,7 +20045,6 @@ function eventDetailPopup_arrayLikeToArray(arr, len) { if (len == null || len > 
 function eventDetailPopup_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function eventDetailPopup_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -20092,14 +20106,13 @@ function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
 }
 
 function EventDetailPopup() {
+  var _options$allOptions;
+
   var _useStore = useStore(optionsSelector),
       useFormPopup = _useStore.useFormPopup;
 
   var popupParams = useStore(eventDetailPopupParamSelector);
-  var options = useStore(allOptionSelector);
-  console.log({
-    options: options
-  });
+  var options = useStore(optionsSelector);
 
   var _ref = popupParams !== null && popupParams !== void 0 ? popupParams : {},
       event = _ref.event,
@@ -20207,9 +20220,9 @@ function EventDetailPopup() {
   var onClickDeleteButton = function onClickDeleteButton() {
     eventBus.fire('beforeDeleteEvent', event.toEventObject());
     hideDetailPopup();
-  }; // console.log({zxczxcad: useStore()});
+  };
 
-
+  var userData = (options === null || options === void 0 ? void 0 : (_options$allOptions = options.allOptions) === null || _options$allOptions === void 0 ? void 0 : _options$allOptions.userData) || null;
   return compat_module_V(h("div", {
     role: "dialog",
     className: eventDetailPopup_classNames.popupContainer,
@@ -20220,7 +20233,8 @@ function EventDetailPopup() {
   }, h(EventDetailSectionHeader, {
     event: event
   }), h(EventDetailSectionDetail, {
-    event: event
+    event: event,
+    userData: userData
   }), !isReadOnly && h("div", {
     className: eventDetailPopup_classNames.sectionButton
   }, h("button", {
@@ -23049,6 +23063,28 @@ function NowIndicatorLabel(_ref) {
     as: "span"
   }));
 }
+;// CONCATENATED MODULE: ./src/selectors/options.ts
+var monthVisibleEventCountSelector = function monthVisibleEventCountSelector(state) {
+  var _state$options$month$;
+
+  return (_state$options$month$ = state.options.month.visibleEventCount) !== null && _state$options$month$ !== void 0 ? _state$options$month$ : 6;
+};
+var showNowIndicatorOptionSelector = function showNowIndicatorOptionSelector(state) {
+  return state.options.week.showNowIndicator;
+};
+var showTimezoneCollapseButtonOptionSelector = function showTimezoneCollapseButtonOptionSelector(state) {
+  var _state$options$week$s;
+
+  return (_state$options$week$s = state.options.week.showTimezoneCollapseButton) !== null && _state$options$week$s !== void 0 ? _state$options$week$s : false;
+};
+var timezonesCollapsedOptionSelector = function timezonesCollapsedOptionSelector(state) {
+  var _state$options$week$t;
+
+  return (_state$options$week$t = state.options.week.timezonesCollapsed) !== null && _state$options$week$t !== void 0 ? _state$options$week$t : false;
+};
+var allOptionSelector = function allOptionSelector(state) {
+  return state;
+};
 ;// CONCATENATED MODULE: ./src/components/timeGrid/timeColumn.tsx
 function _toArray(arr) { return timeColumn_arrayWithHoles(arr) || timeColumn_iterableToArray(arr) || timeColumn_unsupportedIterableToArray(arr) || timeColumn_nonIterableRest(); }
 

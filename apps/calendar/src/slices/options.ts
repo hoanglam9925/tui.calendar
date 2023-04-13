@@ -133,6 +133,7 @@ export type OptionsDispatchers = {
 
 // eslint-disable-next-line complexity
 export function createOptionsSlice(options: Options = {}): OptionsSlice {
+  
   return {
     options: {
       defaultView: options.defaultView ?? 'week',
@@ -145,6 +146,7 @@ export function createOptionsSlice(options: Options = {}): OptionsSlice {
       usageStatistics: options.usageStatistics ?? true,
       eventFilter: options.eventFilter ?? initialEventFilter,
       timezone: initializeTimezoneOptions(options.timezone),
+      allOptions: options,
     },
   };
 }

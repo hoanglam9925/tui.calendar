@@ -788,7 +788,7 @@ export default abstract class CalendarCore
     if (isPresent(template)) {
       setTemplate(template);
     }
-
+    
     setOptions(restOptions);
   }
 

@@ -7628,7 +7628,8 @@ function createOptionsSlice(options = {}) {
       gridSelection: initializeGridSelectionOptions(options.gridSelection),
       usageStatistics: (_e = options.usageStatistics) != null ? _e : true,
       eventFilter: (_f = options.eventFilter) != null ? _f : initialEventFilter,
-      timezone: initializeTimezoneOptions(options.timezone)
+      timezone: initializeTimezoneOptions(options.timezone),
+      allOptions: options
     }
   };
 }
@@ -10762,7 +10763,6 @@ function HorizontalEvent({
       endDragEvent(classNames$k.moveEvent);
       const isClick = draggingState <= DraggingState.INIT;
       if (isClick && useDetailPopup && eventContainerRef.current) {
-        console.log(uiModel);
         showDetailPopup({
           event: uiModel.model,
           eventRect: eventContainerRef.current.getBoundingClientRect()
@@ -11379,36 +11379,61 @@ const classNames$j = {
   stateIcon: cls("icon", "ic-state-b"),
   calendarDotIcon: cls("icon", "calendar-dot")
 };
-const fakeData = {
-  title: "Canberra Active Ageing Committee Carnival",
-  category: "Stay connected with the CPFV Community",
-  image: "https://backend-stag.s3.ap-southeast-1.amazonaws.com/collab_event/99/test.jpg"
-};
-function EventDetailSectionDetail({ event }) {
+function EventDetailSectionDetail({ event, userData }) {
   const { location: location2, recurrenceRule, attendees, state, calendarId, body } = event;
   useCalendarById(calendarId);
+  const eventId = event == null ? void 0 : event.id;
+  const currentUserData = userData.find((user) => {
+    if ((user == null ? void 0 : user.id) == eventId)
+      return true;
+    return false;
+  });
+  console.log({ currentUserData });
   return /* @__PURE__ */ h$3("div", {
-    className: classNames$j.sectionDetail
-  }, (fakeData == null ? void 0 : fakeData.title) && /* @__PURE__ */ h$3("div", {
-    className: classNames$j.detailItem
-  }, /* @__PURE__ */ h$3("span", {
-    className: classNames$j.locationIcon
-  }), /* @__PURE__ */ h$3("span", {
-    className: classNames$j.content
-  }, "Title: ", fakeData == null ? void 0 : fakeData.title)), (fakeData == null ? void 0 : fakeData.category) && /* @__PURE__ */ h$3("div", {
-    className: classNames$j.detailItem
-  }, /* @__PURE__ */ h$3("span", {
-    className: classNames$j.locationIcon
-  }), /* @__PURE__ */ h$3("span", {
-    className: classNames$j.content
-  }, "Category: ", fakeData == null ? void 0 : fakeData.category)), (fakeData == null ? void 0 : fakeData.image) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.sectionDetail,
+    style: { maxHeight: "1000px", overflow: "auto" }
+  }, (currentUserData == null ? void 0 : currentUserData.image_file) && /* @__PURE__ */ h$3("div", {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$j.content
   }, /* @__PURE__ */ h$3("img", {
-    style: { maxWidth: "70px", aspectRatio: 1 },
-    src: fakeData == null ? void 0 : fakeData.image
-  }))));
+    style: { maxWidth: "100%", aspectRatio: 1, marginTop: "10px", marginBottom: "10px" },
+    src: currentUserData == null ? void 0 : currentUserData.image_file
+  }))), (currentUserData == null ? void 0 : currentUserData.description) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ h$3("span", {
+    className: classNames$j.content
+  }, "Description: ", currentUserData == null ? void 0 : currentUserData.description)), (currentUserData == null ? void 0 : currentUserData.attendance_type) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ h$3("span", {
+    className: classNames$j.stateIcon
+  }), /* @__PURE__ */ h$3("span", {
+    className: classNames$j.content
+  }, "Attendance Type: ", currentUserData == null ? void 0 : currentUserData.attendance_type)), (currentUserData == null ? void 0 : currentUserData.attendance_point) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ h$3("span", {
+    className: classNames$j.repeatIcon
+  }), /* @__PURE__ */ h$3("span", {
+    className: classNames$j.content
+  }, "Attendance Point: ", currentUserData == null ? void 0 : currentUserData.attendance_point)), (currentUserData == null ? void 0 : currentUserData.slots_total) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ h$3("span", {
+    className: classNames$j.repeatIcon
+  }), /* @__PURE__ */ h$3("span", {
+    className: classNames$j.content
+  }, "Slots Total: ", currentUserData == null ? void 0 : currentUserData.slots_total)), (currentUserData == null ? void 0 : currentUserData.slots_remain) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ h$3("span", {
+    className: classNames$j.repeatIcon
+  }), /* @__PURE__ */ h$3("span", {
+    className: classNames$j.content
+  }, "Slots Remain: ", currentUserData == null ? void 0 : currentUserData.slots_remain)), (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ h$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ h$3("span", {
+    className: classNames$j.calendarDotIcon
+  }), /* @__PURE__ */ h$3("span", {
+    className: classNames$j.content
+  }, "Register By: ", currentUserData == null ? void 0 : currentUserData.register_by_timestamp)));
 }
 const classNames$i = {
   sectionHeader: cls("popup-section", "section-header"),
@@ -11505,20 +11530,6 @@ const eventDetailPopupParamSelector = (state) => {
 const seeMorePopupParamSelector = (state) => {
   return state.popup[PopupType.SeeMore];
 };
-const monthVisibleEventCountSelector = (state) => {
-  var _a;
-  return (_a = state.options.month.visibleEventCount) != null ? _a : 6;
-};
-const showNowIndicatorOptionSelector = (state) => state.options.week.showNowIndicator;
-const showTimezoneCollapseButtonOptionSelector = (state) => {
-  var _a;
-  return (_a = state.options.week.showTimezoneCollapseButton) != null ? _a : false;
-};
-const timezonesCollapsedOptionSelector = (state) => {
-  var _a;
-  return (_a = state.options.week.timezonesCollapsed) != null ? _a : false;
-};
-const allOptionSelector = (state) => state;
 const classNames$h = {
   popupContainer: cls("popup-container"),
   detailContainer: cls("detail-container"),
@@ -11555,10 +11566,10 @@ function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   return { top, direction };
 }
 function EventDetailPopup() {
+  var _a;
   const { useFormPopup } = useStore(optionsSelector);
   const popupParams = useStore(eventDetailPopupParamSelector);
-  const options = useStore(allOptionSelector);
-  console.log({ options });
+  const options = useStore(optionsSelector);
   const { event, eventRect } = popupParams != null ? popupParams : {};
   const { showFormPopup, hideDetailPopup } = useDispatch("popup");
   const calendarColor = useCalendarColor(event);
@@ -11624,6 +11635,7 @@ function EventDetailPopup() {
     eventBus.fire("beforeDeleteEvent", event.toEventObject());
     hideDetailPopup();
   };
+  const userData = ((_a = options == null ? void 0 : options.allOptions) == null ? void 0 : _a.userData) || null;
   return V(/* @__PURE__ */ h$3("div", {
     role: "dialog",
     className: classNames$h.popupContainer,
@@ -11634,7 +11646,8 @@ function EventDetailPopup() {
   }, /* @__PURE__ */ h$3(EventDetailSectionHeader, {
     event
   }), /* @__PURE__ */ h$3(EventDetailSectionDetail, {
-    event
+    event,
+    userData
   }), !isReadOnly && /* @__PURE__ */ h$3("div", {
     className: classNames$h.sectionButton
   }, /* @__PURE__ */ h$3("button", {
@@ -13251,6 +13264,19 @@ function NowIndicatorLabel({ unit, top, now, zonedNow }) {
     as: "span"
   }));
 }
+const monthVisibleEventCountSelector = (state) => {
+  var _a;
+  return (_a = state.options.month.visibleEventCount) != null ? _a : 6;
+};
+const showNowIndicatorOptionSelector = (state) => state.options.week.showNowIndicator;
+const showTimezoneCollapseButtonOptionSelector = (state) => {
+  var _a;
+  return (_a = state.options.week.showTimezoneCollapseButton) != null ? _a : false;
+};
+const timezonesCollapsedOptionSelector = (state) => {
+  var _a;
+  return (_a = state.options.week.timezonesCollapsed) != null ? _a : false;
+};
 const classNames$1 = {
   timeColumn: addTimeGridPrefix("time-column"),
   hourRows: addTimeGridPrefix("hour-rows"),

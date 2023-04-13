@@ -28,7 +28,10 @@ FixedEvents.args = {
   options: {
     defaultView: 'month',
     useFormPopup: true,
-    useDetailPopup: false,
+    useDetailPopup: true,
+    onRenderEventDetailPopup: ()=> {
+      return <div>abc</div>
+    }
   },
   onInit: (cal) => {
     cal.setDate(MOCK_MONTH_VIEW_BASE_DATE);
