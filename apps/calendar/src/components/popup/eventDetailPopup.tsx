@@ -16,9 +16,10 @@ import { useCalendarColor } from '@src/hooks/calendar/useCalendarColor';
 import { optionsSelector } from '@src/selectors';
 import { eventDetailPopupParamSelector } from '@src/selectors/popup';
 import { allOptionSelector } from '@src/selectors/options';
-
 import TZDate from '@src/time/date';
 import { isNil } from '@src/utils/type';
+import swal from 'sweetalert';
+
 
 import type { StyleProp } from '@t/components/common';
 import type { Rect } from '@t/store';
@@ -153,27 +154,60 @@ export function EventDetailPopup() {
     }
   };
 
-  const onClickDeleteButton = () => {
-    eventBus.fire('beforeDeleteEvent', event.toEventObject());
+  const onClickDeleteButton = (url: any, token: any) => {
+    
+    const formdata = new FormData();
+    formdata.append("_token", token);
+
+    swal({
+		  title: "Warning",
+		  text: "Are you sure you want to delete this item?",
+		  icon: "warning",
+		  buttons: ["Cancel", "Delete"],
+		  dangerMode: true,
+		}).then((value) => {
+			if (value) {
+        fetch(url, {
+          method: 'DELETE',
+          body: formdata,
+          headers: {
+            'X-CSRF-TOKEN': token,
+          },
+        }).then((resp) => {
+          eventBus.fire('beforeDeleteEvent', event.toEventObject());
+        });
+      }		
+    });
+
     hideDetailPopup();
   };
+  
   const userData = options?.allOptions?.userData || null;
+  const token = options?.allOptions?.token;
+  const backpackUrl = options?.allOptions?.backpackUrl;
+
+
+  const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
+  const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
 
   return createPortal(
     <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
       <div className={classNames.detailContainer}>
         <EventDetailSectionHeader event={event} />
-        <EventDetailSectionDetail event={event} userData={userData} />
+        <EventDetailSectionDetail event={event} userData={userData} backpackUrl={backpackUrl} />
         {!isReadOnly && (
           <div className={classNames.sectionButton}>
-            <button type="button" className={classNames.editButton} onClick={onClickEditButton}>
-              <span className={classNames.editIcon} />
-              <span className={classNames.content}>
-                <Template template="popupEdit" as="span" />
-              </span>
-            </button>
+            <a href={editUrl}>
+              <button type="button" className={classNames.editButton} onClick={onClickEditButton}>
+                <span className={classNames.editIcon} />
+                <span className={classNames.content}>
+                  <Template template="popupEdit" as="span" />
+                </span>
+              </button>
+            </a>
+            
             <div className={classNames.verticalLine} />
-            <button type="button" className={classNames.deleteButton} onClick={onClickDeleteButton}>
+            <button type="button" className={classNames.deleteButton} onClick={() => onClickDeleteButton(deleteURl, token)}>
               <span className={classNames.deleteIcon} />
               <span className={classNames.content}>
                 <Template template="popupDelete" as="span" />

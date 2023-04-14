@@ -31,7 +31,7 @@ var __objRest = (source, exclude) => {
 };
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Thu Apr 13 2023
+ * @version 2.1.3 | Fri Apr 14 2023
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -792,6 +792,9 @@ an.createDraft.bind(an);
 an.finishDraft.bind(an);
 var produce = fn;
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
+function getDefaultExportFromCjs(x2) {
+  return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
+}
 function isUndefined$3(obj) {
   return obj === void 0;
 }
@@ -6348,7 +6351,6 @@ function EventDetailSectionDetail({ event, userData }) {
       return true;
     return false;
   });
-  console.log({ currentUserData });
   return /* @__PURE__ */ h$3("div", {
     className: classNames$j.sectionDetail,
     style: { maxHeight: "1000px", overflow: "auto" }
@@ -6496,6 +6498,1069 @@ const eventDetailPopupParamSelector = (state) => {
 const seeMorePopupParamSelector = (state) => {
   return state.popup[PopupType.SeeMore];
 };
+var sweetalert_min = { exports: {} };
+(function(module, exports) {
+  !function(t2, e2) {
+    module.exports = e2();
+  }(commonjsGlobal, function() {
+    return function(t2) {
+      function e2(o2) {
+        if (n2[o2])
+          return n2[o2].exports;
+        var r2 = n2[o2] = { i: o2, l: false, exports: {} };
+        return t2[o2].call(r2.exports, r2, r2.exports, e2), r2.l = true, r2.exports;
+      }
+      var n2 = {};
+      return e2.m = t2, e2.c = n2, e2.d = function(t3, n3, o2) {
+        e2.o(t3, n3) || Object.defineProperty(t3, n3, { configurable: false, enumerable: true, get: o2 });
+      }, e2.n = function(t3) {
+        var n3 = t3 && t3.__esModule ? function() {
+          return t3.default;
+        } : function() {
+          return t3;
+        };
+        return e2.d(n3, "a", n3), n3;
+      }, e2.o = function(t3, e3) {
+        return Object.prototype.hasOwnProperty.call(t3, e3);
+      }, e2.p = "", e2(e2.s = 8);
+    }([function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = "swal-button";
+      e2.CLASS_NAMES = { MODAL: "swal-modal", OVERLAY: "swal-overlay", SHOW_MODAL: "swal-overlay--show-modal", MODAL_TITLE: "swal-title", MODAL_TEXT: "swal-text", ICON: "swal-icon", ICON_CUSTOM: "swal-icon--custom", CONTENT: "swal-content", FOOTER: "swal-footer", BUTTON_CONTAINER: "swal-button-container", BUTTON: o2, CONFIRM_BUTTON: o2 + "--confirm", CANCEL_BUTTON: o2 + "--cancel", DANGER_BUTTON: o2 + "--danger", BUTTON_LOADING: o2 + "--loading", BUTTON_LOADER: o2 + "__loader" }, e2.default = e2.CLASS_NAMES;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true }), e2.getNode = function(t3) {
+        var e3 = "." + t3;
+        return document.querySelector(e3);
+      }, e2.stringToNode = function(t3) {
+        var e3 = document.createElement("div");
+        return e3.innerHTML = t3.trim(), e3.firstChild;
+      }, e2.insertAfter = function(t3, e3) {
+        var n3 = e3.nextSibling;
+        e3.parentNode.insertBefore(t3, n3);
+      }, e2.removeNode = function(t3) {
+        t3.parentElement.removeChild(t3);
+      }, e2.throwErr = function(t3) {
+        throw t3 = t3.replace(/ +(?= )/g, ""), "SweetAlert: " + (t3 = t3.trim());
+      }, e2.isPlainObject = function(t3) {
+        if (Object.prototype.toString.call(t3) !== "[object Object]")
+          return false;
+        var e3 = Object.getPrototypeOf(t3);
+        return e3 === null || e3 === Object.prototype;
+      }, e2.ordinalSuffixOf = function(t3) {
+        var e3 = t3 % 10, n3 = t3 % 100;
+        return e3 === 1 && n3 !== 11 ? t3 + "st" : e3 === 2 && n3 !== 12 ? t3 + "nd" : e3 === 3 && n3 !== 13 ? t3 + "rd" : t3 + "th";
+      };
+    }, function(t2, e2, n2) {
+      function o2(t3) {
+        for (var n3 in t3)
+          e2.hasOwnProperty(n3) || (e2[n3] = t3[n3]);
+      }
+      Object.defineProperty(e2, "__esModule", { value: true }), o2(n2(25));
+      var r2 = n2(26);
+      e2.overlayMarkup = r2.default, o2(n2(27)), o2(n2(28)), o2(n2(29));
+      var i2 = n2(0), a2 = i2.default.MODAL_TITLE, s2 = i2.default.MODAL_TEXT, c2 = i2.default.ICON, l2 = i2.default.FOOTER;
+      e2.iconMarkup = '\n  <div class="' + c2 + '"></div>', e2.titleMarkup = '\n  <div class="' + a2 + '"></div>\n', e2.textMarkup = '\n  <div class="' + s2 + '"></div>', e2.footerMarkup = '\n  <div class="' + l2 + '"></div>\n';
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1);
+      e2.CONFIRM_KEY = "confirm", e2.CANCEL_KEY = "cancel";
+      var r2 = { visible: true, text: null, value: null, className: "", closeModal: true }, i2 = Object.assign({}, r2, { visible: false, text: "Cancel", value: null }), a2 = Object.assign({}, r2, { text: "OK", value: true });
+      e2.defaultButtonList = { cancel: i2, confirm: a2 };
+      var s2 = function(t3) {
+        switch (t3) {
+          case e2.CONFIRM_KEY:
+            return a2;
+          case e2.CANCEL_KEY:
+            return i2;
+          default:
+            var n3 = t3.charAt(0).toUpperCase() + t3.slice(1);
+            return Object.assign({}, r2, { text: n3, value: t3 });
+        }
+      }, c2 = function(t3, e3) {
+        var n3 = s2(t3);
+        return e3 === true ? Object.assign({}, n3, { visible: true }) : typeof e3 == "string" ? Object.assign({}, n3, { visible: true, text: e3 }) : o2.isPlainObject(e3) ? Object.assign({ visible: true }, n3, e3) : Object.assign({}, n3, { visible: false });
+      }, l2 = function(t3) {
+        for (var e3 = {}, n3 = 0, o3 = Object.keys(t3); n3 < o3.length; n3++) {
+          var r3 = o3[n3], a3 = t3[r3], s3 = c2(r3, a3);
+          e3[r3] = s3;
+        }
+        return e3.cancel || (e3.cancel = i2), e3;
+      }, u2 = function(t3) {
+        var n3 = {};
+        switch (t3.length) {
+          case 1:
+            n3[e2.CANCEL_KEY] = Object.assign({}, i2, { visible: false });
+            break;
+          case 2:
+            n3[e2.CANCEL_KEY] = c2(e2.CANCEL_KEY, t3[0]), n3[e2.CONFIRM_KEY] = c2(e2.CONFIRM_KEY, t3[1]);
+            break;
+          default:
+            o2.throwErr("Invalid number of 'buttons' in array (" + t3.length + ").\n      If you want more than 2 buttons, you need to use an object!");
+        }
+        return n3;
+      };
+      e2.getButtonListOpts = function(t3) {
+        var n3 = e2.defaultButtonList;
+        return typeof t3 == "string" ? n3[e2.CONFIRM_KEY] = c2(e2.CONFIRM_KEY, t3) : Array.isArray(t3) ? n3 = u2(t3) : o2.isPlainObject(t3) ? n3 = l2(t3) : t3 === true ? n3 = u2([true, true]) : t3 === false ? n3 = u2([false, false]) : t3 === void 0 && (n3 = e2.defaultButtonList), n3;
+      };
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1), r2 = n2(2), i2 = n2(0), a2 = i2.default.MODAL, s2 = i2.default.OVERLAY, c2 = n2(30), l2 = n2(31), u2 = n2(32), f2 = n2(33);
+      e2.injectElIntoModal = function(t3) {
+        var e3 = o2.getNode(a2), n3 = o2.stringToNode(t3);
+        return e3.appendChild(n3), n3;
+      };
+      var d2 = function(t3) {
+        t3.className = a2, t3.textContent = "";
+      }, p2 = function(t3, e3) {
+        d2(t3);
+        var n3 = e3.className;
+        n3 && t3.classList.add(n3);
+      };
+      e2.initModalContent = function(t3) {
+        var e3 = o2.getNode(a2);
+        p2(e3, t3), c2.default(t3.icon), l2.initTitle(t3.title), l2.initText(t3.text), f2.default(t3.content), u2.default(t3.buttons, t3.dangerMode);
+      };
+      var m2 = function() {
+        var t3 = o2.getNode(s2), e3 = o2.stringToNode(r2.modalMarkup);
+        t3.appendChild(e3);
+      };
+      e2.default = m2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(3), r2 = { isOpen: false, promise: null, actions: {}, timer: null }, i2 = Object.assign({}, r2);
+      e2.resetState = function() {
+        i2 = Object.assign({}, r2);
+      }, e2.setActionValue = function(t3) {
+        if (typeof t3 == "string")
+          return a2(o2.CONFIRM_KEY, t3);
+        for (var e3 in t3)
+          a2(e3, t3[e3]);
+      };
+      var a2 = function(t3, e3) {
+        i2.actions[t3] || (i2.actions[t3] = {}), Object.assign(i2.actions[t3], { value: e3 });
+      };
+      e2.setActionOptionsFor = function(t3, e3) {
+        var n3 = (e3 === void 0 ? {} : e3).closeModal, o3 = n3 === void 0 || n3;
+        Object.assign(i2.actions[t3], { closeModal: o3 });
+      }, e2.default = i2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1), r2 = n2(3), i2 = n2(0), a2 = i2.default.OVERLAY, s2 = i2.default.SHOW_MODAL, c2 = i2.default.BUTTON, l2 = i2.default.BUTTON_LOADING, u2 = n2(5);
+      e2.openModal = function() {
+        o2.getNode(a2).classList.add(s2), u2.default.isOpen = true;
+      };
+      var f2 = function() {
+        o2.getNode(a2).classList.remove(s2), u2.default.isOpen = false;
+      };
+      e2.onAction = function(t3) {
+        t3 === void 0 && (t3 = r2.CANCEL_KEY);
+        var e3 = u2.default.actions[t3], n3 = e3.value;
+        if (e3.closeModal === false) {
+          var i3 = c2 + "--" + t3;
+          o2.getNode(i3).classList.add(l2);
+        } else
+          f2();
+        u2.default.promise.resolve(n3);
+      }, e2.getState = function() {
+        var t3 = Object.assign({}, u2.default);
+        return delete t3.promise, delete t3.timer, t3;
+      }, e2.stopLoading = function() {
+        for (var t3 = document.querySelectorAll("." + c2), e3 = 0; e3 < t3.length; e3++) {
+          t3[e3].classList.remove(l2);
+        }
+      };
+    }, function(t2, e2) {
+      var n2;
+      n2 = function() {
+        return this;
+      }();
+      try {
+        n2 = n2 || Function("return this")() || (0, eval)("this");
+      } catch (t3) {
+        typeof window == "object" && (n2 = window);
+      }
+      t2.exports = n2;
+    }, function(t2, e2, n2) {
+      (function(e3) {
+        t2.exports = e3.sweetAlert = n2(9);
+      }).call(e2, n2(7));
+    }, function(t2, e2, n2) {
+      (function(e3) {
+        t2.exports = e3.swal = n2(10);
+      }).call(e2, n2(7));
+    }, function(t2, e2, n2) {
+      typeof window != "undefined" && n2(11), n2(16);
+      var o2 = n2(23).default;
+      t2.exports = o2;
+    }, function(t2, e2, n2) {
+      var o2 = n2(12);
+      typeof o2 == "string" && (o2 = [[t2.i, o2, ""]]);
+      var r2 = { insertAt: "top" };
+      r2.transform = void 0;
+      n2(14)(o2, r2);
+      o2.locals && (t2.exports = o2.locals);
+    }, function(t2, e2, n2) {
+      e2 = t2.exports = n2(13)(void 0), e2.push([t2.i, '.swal-icon--error{border-color:#f27474;-webkit-animation:animateErrorIcon .5s;animation:animateErrorIcon .5s}.swal-icon--error__x-mark{position:relative;display:block;-webkit-animation:animateXMark .5s;animation:animateXMark .5s}.swal-icon--error__line{position:absolute;height:5px;width:47px;background-color:#f27474;display:block;top:37px;border-radius:2px}.swal-icon--error__line--left{-webkit-transform:rotate(45deg);transform:rotate(45deg);left:17px}.swal-icon--error__line--right{-webkit-transform:rotate(-45deg);transform:rotate(-45deg);right:16px}@-webkit-keyframes animateErrorIcon{0%{-webkit-transform:rotateX(100deg);transform:rotateX(100deg);opacity:0}to{-webkit-transform:rotateX(0deg);transform:rotateX(0deg);opacity:1}}@keyframes animateErrorIcon{0%{-webkit-transform:rotateX(100deg);transform:rotateX(100deg);opacity:0}to{-webkit-transform:rotateX(0deg);transform:rotateX(0deg);opacity:1}}@-webkit-keyframes animateXMark{0%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}50%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}80%{-webkit-transform:scale(1.15);transform:scale(1.15);margin-top:-6px}to{-webkit-transform:scale(1);transform:scale(1);margin-top:0;opacity:1}}@keyframes animateXMark{0%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}50%{-webkit-transform:scale(.4);transform:scale(.4);margin-top:26px;opacity:0}80%{-webkit-transform:scale(1.15);transform:scale(1.15);margin-top:-6px}to{-webkit-transform:scale(1);transform:scale(1);margin-top:0;opacity:1}}.swal-icon--warning{border-color:#f8bb86;-webkit-animation:pulseWarning .75s infinite alternate;animation:pulseWarning .75s infinite alternate}.swal-icon--warning__body{width:5px;height:47px;top:10px;border-radius:2px;margin-left:-2px}.swal-icon--warning__body,.swal-icon--warning__dot{position:absolute;left:50%;background-color:#f8bb86}.swal-icon--warning__dot{width:7px;height:7px;border-radius:50%;margin-left:-4px;bottom:-11px}@-webkit-keyframes pulseWarning{0%{border-color:#f8d486}to{border-color:#f8bb86}}@keyframes pulseWarning{0%{border-color:#f8d486}to{border-color:#f8bb86}}.swal-icon--success{border-color:#a5dc86}.swal-icon--success:after,.swal-icon--success:before{content:"";border-radius:50%;position:absolute;width:60px;height:120px;background:#fff;-webkit-transform:rotate(45deg);transform:rotate(45deg)}.swal-icon--success:before{border-radius:120px 0 0 120px;top:-7px;left:-33px;-webkit-transform:rotate(-45deg);transform:rotate(-45deg);-webkit-transform-origin:60px 60px;transform-origin:60px 60px}.swal-icon--success:after{border-radius:0 120px 120px 0;top:-11px;left:30px;-webkit-transform:rotate(-45deg);transform:rotate(-45deg);-webkit-transform-origin:0 60px;transform-origin:0 60px;-webkit-animation:rotatePlaceholder 4.25s ease-in;animation:rotatePlaceholder 4.25s ease-in}.swal-icon--success__ring{width:80px;height:80px;border:4px solid hsla(98,55%,69%,.2);border-radius:50%;box-sizing:content-box;position:absolute;left:-4px;top:-4px;z-index:2}.swal-icon--success__hide-corners{width:5px;height:90px;background-color:#fff;padding:1px;position:absolute;left:28px;top:8px;z-index:1;-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}.swal-icon--success__line{height:5px;background-color:#a5dc86;display:block;border-radius:2px;position:absolute;z-index:2}.swal-icon--success__line--tip{width:25px;left:14px;top:46px;-webkit-transform:rotate(45deg);transform:rotate(45deg);-webkit-animation:animateSuccessTip .75s;animation:animateSuccessTip .75s}.swal-icon--success__line--long{width:47px;right:8px;top:38px;-webkit-transform:rotate(-45deg);transform:rotate(-45deg);-webkit-animation:animateSuccessLong .75s;animation:animateSuccessLong .75s}@-webkit-keyframes rotatePlaceholder{0%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}5%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}12%{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}to{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}}@keyframes rotatePlaceholder{0%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}5%{-webkit-transform:rotate(-45deg);transform:rotate(-45deg)}12%{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}to{-webkit-transform:rotate(-405deg);transform:rotate(-405deg)}}@-webkit-keyframes animateSuccessTip{0%{width:0;left:1px;top:19px}54%{width:0;left:1px;top:19px}70%{width:50px;left:-8px;top:37px}84%{width:17px;left:21px;top:48px}to{width:25px;left:14px;top:45px}}@keyframes animateSuccessTip{0%{width:0;left:1px;top:19px}54%{width:0;left:1px;top:19px}70%{width:50px;left:-8px;top:37px}84%{width:17px;left:21px;top:48px}to{width:25px;left:14px;top:45px}}@-webkit-keyframes animateSuccessLong{0%{width:0;right:46px;top:54px}65%{width:0;right:46px;top:54px}84%{width:55px;right:0;top:35px}to{width:47px;right:8px;top:38px}}@keyframes animateSuccessLong{0%{width:0;right:46px;top:54px}65%{width:0;right:46px;top:54px}84%{width:55px;right:0;top:35px}to{width:47px;right:8px;top:38px}}.swal-icon--info{border-color:#c9dae1}.swal-icon--info:before{width:5px;height:29px;bottom:17px;border-radius:2px;margin-left:-2px}.swal-icon--info:after,.swal-icon--info:before{content:"";position:absolute;left:50%;background-color:#c9dae1}.swal-icon--info:after{width:7px;height:7px;border-radius:50%;margin-left:-3px;top:19px}.swal-icon{width:80px;height:80px;border-width:4px;border-style:solid;border-radius:50%;padding:0;position:relative;box-sizing:content-box;margin:20px auto}.swal-icon:first-child{margin-top:32px}.swal-icon--custom{width:auto;height:auto;max-width:100%;border:none;border-radius:0}.swal-icon img{max-width:100%;max-height:100%}.swal-title{color:rgba(0,0,0,.65);font-weight:600;text-transform:none;position:relative;display:block;padding:13px 16px;font-size:27px;line-height:normal;text-align:center;margin-bottom:0}.swal-title:first-child{margin-top:26px}.swal-title:not(:first-child){padding-bottom:0}.swal-title:not(:last-child){margin-bottom:13px}.swal-text{font-size:16px;position:relative;float:none;line-height:normal;vertical-align:top;text-align:left;display:inline-block;margin:0;padding:0 10px;font-weight:400;color:rgba(0,0,0,.64);max-width:calc(100% - 20px);overflow-wrap:break-word;box-sizing:border-box}.swal-text:first-child{margin-top:45px}.swal-text:last-child{margin-bottom:45px}.swal-footer{text-align:right;padding-top:13px;margin-top:13px;padding:13px 16px;border-radius:inherit;border-top-left-radius:0;border-top-right-radius:0}.swal-button-container{margin:5px;display:inline-block;position:relative}.swal-button{background-color:#7cd1f9;color:#fff;border:none;box-shadow:none;border-radius:5px;font-weight:600;font-size:14px;padding:10px 24px;margin:0;cursor:pointer}.swal-button:not([disabled]):hover{background-color:#78cbf2}.swal-button:active{background-color:#70bce0}.swal-button:focus{outline:none;box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(43,114,165,.29)}.swal-button[disabled]{opacity:.5;cursor:default}.swal-button::-moz-focus-inner{border:0}.swal-button--cancel{color:#555;background-color:#efefef}.swal-button--cancel:not([disabled]):hover{background-color:#e8e8e8}.swal-button--cancel:active{background-color:#d7d7d7}.swal-button--cancel:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(116,136,150,.29)}.swal-button--danger{background-color:#e64942}.swal-button--danger:not([disabled]):hover{background-color:#df4740}.swal-button--danger:active{background-color:#cf423b}.swal-button--danger:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(165,43,43,.29)}.swal-content{padding:0 20px;margin-top:20px;font-size:medium}.swal-content:last-child{margin-bottom:20px}.swal-content__input,.swal-content__textarea{-webkit-appearance:none;background-color:#fff;border:none;font-size:14px;display:block;box-sizing:border-box;width:100%;border:1px solid rgba(0,0,0,.14);padding:10px 13px;border-radius:2px;transition:border-color .2s}.swal-content__input:focus,.swal-content__textarea:focus{outline:none;border-color:#6db8ff}.swal-content__textarea{resize:vertical}.swal-button--loading{color:transparent}.swal-button--loading~.swal-button__loader{opacity:1}.swal-button__loader{position:absolute;height:auto;width:43px;z-index:2;left:50%;top:50%;-webkit-transform:translateX(-50%) translateY(-50%);transform:translateX(-50%) translateY(-50%);text-align:center;pointer-events:none;opacity:0}.swal-button__loader div{display:inline-block;float:none;vertical-align:baseline;width:9px;height:9px;padding:0;border:none;margin:2px;opacity:.4;border-radius:7px;background-color:hsla(0,0%,100%,.9);transition:background .2s;-webkit-animation:swal-loading-anim 1s infinite;animation:swal-loading-anim 1s infinite}.swal-button__loader div:nth-child(3n+2){-webkit-animation-delay:.15s;animation-delay:.15s}.swal-button__loader div:nth-child(3n+3){-webkit-animation-delay:.3s;animation-delay:.3s}@-webkit-keyframes swal-loading-anim{0%{opacity:.4}20%{opacity:.4}50%{opacity:1}to{opacity:.4}}@keyframes swal-loading-anim{0%{opacity:.4}20%{opacity:.4}50%{opacity:1}to{opacity:.4}}.swal-overlay{position:fixed;top:0;bottom:0;left:0;right:0;text-align:center;font-size:0;overflow-y:auto;background-color:rgba(0,0,0,.4);z-index:10000;pointer-events:none;opacity:0;transition:opacity .3s}.swal-overlay:before{content:" ";display:inline-block;vertical-align:middle;height:100%}.swal-overlay--show-modal{opacity:1;pointer-events:auto}.swal-overlay--show-modal .swal-modal{opacity:1;pointer-events:auto;box-sizing:border-box;-webkit-animation:showSweetAlert .3s;animation:showSweetAlert .3s;will-change:transform}.swal-modal{width:478px;opacity:0;pointer-events:none;background-color:#fff;text-align:center;border-radius:5px;position:static;margin:20px auto;display:inline-block;vertical-align:middle;-webkit-transform:scale(1);transform:scale(1);-webkit-transform-origin:50% 50%;transform-origin:50% 50%;z-index:10001;transition:opacity .2s,-webkit-transform .3s;transition:transform .3s,opacity .2s;transition:transform .3s,opacity .2s,-webkit-transform .3s}@media (max-width:500px){.swal-modal{width:calc(100% - 20px)}}@-webkit-keyframes showSweetAlert{0%{-webkit-transform:scale(1);transform:scale(1)}1%{-webkit-transform:scale(.5);transform:scale(.5)}45%{-webkit-transform:scale(1.05);transform:scale(1.05)}80%{-webkit-transform:scale(.95);transform:scale(.95)}to{-webkit-transform:scale(1);transform:scale(1)}}@keyframes showSweetAlert{0%{-webkit-transform:scale(1);transform:scale(1)}1%{-webkit-transform:scale(.5);transform:scale(.5)}45%{-webkit-transform:scale(1.05);transform:scale(1.05)}80%{-webkit-transform:scale(.95);transform:scale(.95)}to{-webkit-transform:scale(1);transform:scale(1)}}', ""]);
+    }, function(t2, e2) {
+      function n2(t3, e3) {
+        var n3 = t3[1] || "", r2 = t3[3];
+        if (!r2)
+          return n3;
+        if (e3 && typeof btoa == "function") {
+          var i2 = o2(r2);
+          return [n3].concat(r2.sources.map(function(t4) {
+            return "/*# sourceURL=" + r2.sourceRoot + t4 + " */";
+          })).concat([i2]).join("\n");
+        }
+        return [n3].join("\n");
+      }
+      function o2(t3) {
+        return "/*# sourceMappingURL=data:application/json;charset=utf-8;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(t3)))) + " */";
+      }
+      t2.exports = function(t3) {
+        var e3 = [];
+        return e3.toString = function() {
+          return this.map(function(e4) {
+            var o3 = n2(e4, t3);
+            return e4[2] ? "@media " + e4[2] + "{" + o3 + "}" : o3;
+          }).join("");
+        }, e3.i = function(t4, n3) {
+          typeof t4 == "string" && (t4 = [[null, t4, ""]]);
+          for (var o3 = {}, r2 = 0; r2 < this.length; r2++) {
+            var i2 = this[r2][0];
+            typeof i2 == "number" && (o3[i2] = true);
+          }
+          for (r2 = 0; r2 < t4.length; r2++) {
+            var a2 = t4[r2];
+            typeof a2[0] == "number" && o3[a2[0]] || (n3 && !a2[2] ? a2[2] = n3 : n3 && (a2[2] = "(" + a2[2] + ") and (" + n3 + ")"), e3.push(a2));
+          }
+        }, e3;
+      };
+    }, function(t2, e2, n2) {
+      function o2(t3, e3) {
+        for (var n3 = 0; n3 < t3.length; n3++) {
+          var o3 = t3[n3], r3 = m2[o3.id];
+          if (r3) {
+            r3.refs++;
+            for (var i3 = 0; i3 < r3.parts.length; i3++)
+              r3.parts[i3](o3.parts[i3]);
+            for (; i3 < o3.parts.length; i3++)
+              r3.parts.push(u2(o3.parts[i3], e3));
+          } else {
+            for (var a3 = [], i3 = 0; i3 < o3.parts.length; i3++)
+              a3.push(u2(o3.parts[i3], e3));
+            m2[o3.id] = { id: o3.id, refs: 1, parts: a3 };
+          }
+        }
+      }
+      function r2(t3, e3) {
+        for (var n3 = [], o3 = {}, r3 = 0; r3 < t3.length; r3++) {
+          var i3 = t3[r3], a3 = e3.base ? i3[0] + e3.base : i3[0], s3 = i3[1], c3 = i3[2], l3 = i3[3], u3 = { css: s3, media: c3, sourceMap: l3 };
+          o3[a3] ? o3[a3].parts.push(u3) : n3.push(o3[a3] = { id: a3, parts: [u3] });
+        }
+        return n3;
+      }
+      function i2(t3, e3) {
+        var n3 = v2(t3.insertInto);
+        if (!n3)
+          throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+        var o3 = w2[w2.length - 1];
+        if (t3.insertAt === "top")
+          o3 ? o3.nextSibling ? n3.insertBefore(e3, o3.nextSibling) : n3.appendChild(e3) : n3.insertBefore(e3, n3.firstChild), w2.push(e3);
+        else {
+          if (t3.insertAt !== "bottom")
+            throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+          n3.appendChild(e3);
+        }
+      }
+      function a2(t3) {
+        if (t3.parentNode === null)
+          return false;
+        t3.parentNode.removeChild(t3);
+        var e3 = w2.indexOf(t3);
+        e3 >= 0 && w2.splice(e3, 1);
+      }
+      function s2(t3) {
+        var e3 = document.createElement("style");
+        return t3.attrs.type = "text/css", l2(e3, t3.attrs), i2(t3, e3), e3;
+      }
+      function c2(t3) {
+        var e3 = document.createElement("link");
+        return t3.attrs.type = "text/css", t3.attrs.rel = "stylesheet", l2(e3, t3.attrs), i2(t3, e3), e3;
+      }
+      function l2(t3, e3) {
+        Object.keys(e3).forEach(function(n3) {
+          t3.setAttribute(n3, e3[n3]);
+        });
+      }
+      function u2(t3, e3) {
+        var n3, o3, r3, i3;
+        if (e3.transform && t3.css) {
+          if (!(i3 = e3.transform(t3.css)))
+            return function() {
+            };
+          t3.css = i3;
+        }
+        if (e3.singleton) {
+          var l3 = h2++;
+          n3 = g2 || (g2 = s2(e3)), o3 = f2.bind(null, n3, l3, false), r3 = f2.bind(null, n3, l3, true);
+        } else
+          t3.sourceMap && typeof URL == "function" && typeof URL.createObjectURL == "function" && typeof URL.revokeObjectURL == "function" && typeof Blob == "function" && typeof btoa == "function" ? (n3 = c2(e3), o3 = p2.bind(null, n3, e3), r3 = function() {
+            a2(n3), n3.href && URL.revokeObjectURL(n3.href);
+          }) : (n3 = s2(e3), o3 = d2.bind(null, n3), r3 = function() {
+            a2(n3);
+          });
+        return o3(t3), function(e4) {
+          if (e4) {
+            if (e4.css === t3.css && e4.media === t3.media && e4.sourceMap === t3.sourceMap)
+              return;
+            o3(t3 = e4);
+          } else
+            r3();
+        };
+      }
+      function f2(t3, e3, n3, o3) {
+        var r3 = n3 ? "" : o3.css;
+        if (t3.styleSheet)
+          t3.styleSheet.cssText = x2(e3, r3);
+        else {
+          var i3 = document.createTextNode(r3), a3 = t3.childNodes;
+          a3[e3] && t3.removeChild(a3[e3]), a3.length ? t3.insertBefore(i3, a3[e3]) : t3.appendChild(i3);
+        }
+      }
+      function d2(t3, e3) {
+        var n3 = e3.css, o3 = e3.media;
+        if (o3 && t3.setAttribute("media", o3), t3.styleSheet)
+          t3.styleSheet.cssText = n3;
+        else {
+          for (; t3.firstChild; )
+            t3.removeChild(t3.firstChild);
+          t3.appendChild(document.createTextNode(n3));
+        }
+      }
+      function p2(t3, e3, n3) {
+        var o3 = n3.css, r3 = n3.sourceMap, i3 = e3.convertToAbsoluteUrls === void 0 && r3;
+        (e3.convertToAbsoluteUrls || i3) && (o3 = y2(o3)), r3 && (o3 += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(r3)))) + " */");
+        var a3 = new Blob([o3], { type: "text/css" }), s3 = t3.href;
+        t3.href = URL.createObjectURL(a3), s3 && URL.revokeObjectURL(s3);
+      }
+      var m2 = {}, b2 = function(t3) {
+        var e3;
+        return function() {
+          return e3 === void 0 && (e3 = t3.apply(this, arguments)), e3;
+        };
+      }(function() {
+        return window && document && document.all && !window.atob;
+      }), v2 = function(t3) {
+        var e3 = {};
+        return function(n3) {
+          return e3[n3] === void 0 && (e3[n3] = t3.call(this, n3)), e3[n3];
+        };
+      }(function(t3) {
+        return document.querySelector(t3);
+      }), g2 = null, h2 = 0, w2 = [], y2 = n2(15);
+      t2.exports = function(t3, e3) {
+        if (typeof DEBUG != "undefined" && DEBUG && typeof document != "object")
+          throw new Error("The style-loader cannot be used in a non-browser environment");
+        e3 = e3 || {}, e3.attrs = typeof e3.attrs == "object" ? e3.attrs : {}, e3.singleton || (e3.singleton = b2()), e3.insertInto || (e3.insertInto = "head"), e3.insertAt || (e3.insertAt = "bottom");
+        var n3 = r2(t3, e3);
+        return o2(n3, e3), function(t4) {
+          for (var i3 = [], a3 = 0; a3 < n3.length; a3++) {
+            var s3 = n3[a3], c3 = m2[s3.id];
+            c3.refs--, i3.push(c3);
+          }
+          if (t4) {
+            o2(r2(t4, e3), e3);
+          }
+          for (var a3 = 0; a3 < i3.length; a3++) {
+            var c3 = i3[a3];
+            if (c3.refs === 0) {
+              for (var l3 = 0; l3 < c3.parts.length; l3++)
+                c3.parts[l3]();
+              delete m2[c3.id];
+            }
+          }
+        };
+      };
+      var x2 = function() {
+        var t3 = [];
+        return function(e3, n3) {
+          return t3[e3] = n3, t3.filter(Boolean).join("\n");
+        };
+      }();
+    }, function(t2, e2) {
+      t2.exports = function(t3) {
+        var e3 = typeof window != "undefined" && window.location;
+        if (!e3)
+          throw new Error("fixUrls requires window.location");
+        if (!t3 || typeof t3 != "string")
+          return t3;
+        var n2 = e3.protocol + "//" + e3.host, o2 = n2 + e3.pathname.replace(/\/[^\/]*$/, "/");
+        return t3.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(t4, e4) {
+          var r2 = e4.trim().replace(/^"(.*)"$/, function(t5, e5) {
+            return e5;
+          }).replace(/^'(.*)'$/, function(t5, e5) {
+            return e5;
+          });
+          if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(r2))
+            return t4;
+          var i2;
+          return i2 = r2.indexOf("//") === 0 ? r2 : r2.indexOf("/") === 0 ? n2 + r2 : o2 + r2.replace(/^\.\//, ""), "url(" + JSON.stringify(i2) + ")";
+        });
+      };
+    }, function(t2, e2, n2) {
+      var o2 = n2(17);
+      typeof window == "undefined" || window.Promise || (window.Promise = o2), n2(21), String.prototype.includes || (String.prototype.includes = function(t3, e3) {
+        return typeof e3 != "number" && (e3 = 0), !(e3 + t3.length > this.length) && this.indexOf(t3, e3) !== -1;
+      }), Array.prototype.includes || Object.defineProperty(Array.prototype, "includes", { value: function(t3, e3) {
+        if (this == null)
+          throw new TypeError('"this" is null or not defined');
+        var n3 = Object(this), o3 = n3.length >>> 0;
+        if (o3 === 0)
+          return false;
+        for (var r2 = 0 | e3, i2 = Math.max(r2 >= 0 ? r2 : o3 - Math.abs(r2), 0); i2 < o3; ) {
+          if (function(t4, e4) {
+            return t4 === e4 || typeof t4 == "number" && typeof e4 == "number" && isNaN(t4) && isNaN(e4);
+          }(n3[i2], t3))
+            return true;
+          i2++;
+        }
+        return false;
+      } }), typeof window != "undefined" && function(t3) {
+        t3.forEach(function(t4) {
+          t4.hasOwnProperty("remove") || Object.defineProperty(t4, "remove", { configurable: true, enumerable: true, writable: true, value: function() {
+            this.parentNode.removeChild(this);
+          } });
+        });
+      }([Element.prototype, CharacterData.prototype, DocumentType.prototype]);
+    }, function(t2, e2, n2) {
+      (function(e3) {
+        !function(n3) {
+          function o2() {
+          }
+          function r2(t3, e4) {
+            return function() {
+              t3.apply(e4, arguments);
+            };
+          }
+          function i2(t3) {
+            if (typeof this != "object")
+              throw new TypeError("Promises must be constructed via new");
+            if (typeof t3 != "function")
+              throw new TypeError("not a function");
+            this._state = 0, this._handled = false, this._value = void 0, this._deferreds = [], f2(t3, this);
+          }
+          function a2(t3, e4) {
+            for (; t3._state === 3; )
+              t3 = t3._value;
+            if (t3._state === 0)
+              return void t3._deferreds.push(e4);
+            t3._handled = true, i2._immediateFn(function() {
+              var n4 = t3._state === 1 ? e4.onFulfilled : e4.onRejected;
+              if (n4 === null)
+                return void (t3._state === 1 ? s2 : c2)(e4.promise, t3._value);
+              var o3;
+              try {
+                o3 = n4(t3._value);
+              } catch (t4) {
+                return void c2(e4.promise, t4);
+              }
+              s2(e4.promise, o3);
+            });
+          }
+          function s2(t3, e4) {
+            try {
+              if (e4 === t3)
+                throw new TypeError("A promise cannot be resolved with itself.");
+              if (e4 && (typeof e4 == "object" || typeof e4 == "function")) {
+                var n4 = e4.then;
+                if (e4 instanceof i2)
+                  return t3._state = 3, t3._value = e4, void l2(t3);
+                if (typeof n4 == "function")
+                  return void f2(r2(n4, e4), t3);
+              }
+              t3._state = 1, t3._value = e4, l2(t3);
+            } catch (e5) {
+              c2(t3, e5);
+            }
+          }
+          function c2(t3, e4) {
+            t3._state = 2, t3._value = e4, l2(t3);
+          }
+          function l2(t3) {
+            t3._state === 2 && t3._deferreds.length === 0 && i2._immediateFn(function() {
+              t3._handled || i2._unhandledRejectionFn(t3._value);
+            });
+            for (var e4 = 0, n4 = t3._deferreds.length; e4 < n4; e4++)
+              a2(t3, t3._deferreds[e4]);
+            t3._deferreds = null;
+          }
+          function u2(t3, e4, n4) {
+            this.onFulfilled = typeof t3 == "function" ? t3 : null, this.onRejected = typeof e4 == "function" ? e4 : null, this.promise = n4;
+          }
+          function f2(t3, e4) {
+            var n4 = false;
+            try {
+              t3(function(t4) {
+                n4 || (n4 = true, s2(e4, t4));
+              }, function(t4) {
+                n4 || (n4 = true, c2(e4, t4));
+              });
+            } catch (t4) {
+              if (n4)
+                return;
+              n4 = true, c2(e4, t4);
+            }
+          }
+          var d2 = setTimeout;
+          i2.prototype.catch = function(t3) {
+            return this.then(null, t3);
+          }, i2.prototype.then = function(t3, e4) {
+            var n4 = new this.constructor(o2);
+            return a2(this, new u2(t3, e4, n4)), n4;
+          }, i2.all = function(t3) {
+            var e4 = Array.prototype.slice.call(t3);
+            return new i2(function(t4, n4) {
+              function o3(i4, a3) {
+                try {
+                  if (a3 && (typeof a3 == "object" || typeof a3 == "function")) {
+                    var s3 = a3.then;
+                    if (typeof s3 == "function")
+                      return void s3.call(a3, function(t5) {
+                        o3(i4, t5);
+                      }, n4);
+                  }
+                  e4[i4] = a3, --r3 == 0 && t4(e4);
+                } catch (t5) {
+                  n4(t5);
+                }
+              }
+              if (e4.length === 0)
+                return t4([]);
+              for (var r3 = e4.length, i3 = 0; i3 < e4.length; i3++)
+                o3(i3, e4[i3]);
+            });
+          }, i2.resolve = function(t3) {
+            return t3 && typeof t3 == "object" && t3.constructor === i2 ? t3 : new i2(function(e4) {
+              e4(t3);
+            });
+          }, i2.reject = function(t3) {
+            return new i2(function(e4, n4) {
+              n4(t3);
+            });
+          }, i2.race = function(t3) {
+            return new i2(function(e4, n4) {
+              for (var o3 = 0, r3 = t3.length; o3 < r3; o3++)
+                t3[o3].then(e4, n4);
+            });
+          }, i2._immediateFn = typeof e3 == "function" && function(t3) {
+            e3(t3);
+          } || function(t3) {
+            d2(t3, 0);
+          }, i2._unhandledRejectionFn = function(t3) {
+            typeof console != "undefined" && console && console.warn("Possible Unhandled Promise Rejection:", t3);
+          }, i2._setImmediateFn = function(t3) {
+            i2._immediateFn = t3;
+          }, i2._setUnhandledRejectionFn = function(t3) {
+            i2._unhandledRejectionFn = t3;
+          }, t2 !== void 0 && t2.exports ? t2.exports = i2 : n3.Promise || (n3.Promise = i2);
+        }(this);
+      }).call(e2, n2(18).setImmediate);
+    }, function(t2, e2, n2) {
+      function o2(t3, e3) {
+        this._id = t3, this._clearFn = e3;
+      }
+      var r2 = Function.prototype.apply;
+      e2.setTimeout = function() {
+        return new o2(r2.call(setTimeout, window, arguments), clearTimeout);
+      }, e2.setInterval = function() {
+        return new o2(r2.call(setInterval, window, arguments), clearInterval);
+      }, e2.clearTimeout = e2.clearInterval = function(t3) {
+        t3 && t3.close();
+      }, o2.prototype.unref = o2.prototype.ref = function() {
+      }, o2.prototype.close = function() {
+        this._clearFn.call(window, this._id);
+      }, e2.enroll = function(t3, e3) {
+        clearTimeout(t3._idleTimeoutId), t3._idleTimeout = e3;
+      }, e2.unenroll = function(t3) {
+        clearTimeout(t3._idleTimeoutId), t3._idleTimeout = -1;
+      }, e2._unrefActive = e2.active = function(t3) {
+        clearTimeout(t3._idleTimeoutId);
+        var e3 = t3._idleTimeout;
+        e3 >= 0 && (t3._idleTimeoutId = setTimeout(function() {
+          t3._onTimeout && t3._onTimeout();
+        }, e3));
+      }, n2(19), e2.setImmediate = setImmediate, e2.clearImmediate = clearImmediate;
+    }, function(t2, e2, n2) {
+      (function(t3, e3) {
+        !function(t4, n3) {
+          function o2(t5) {
+            typeof t5 != "function" && (t5 = new Function("" + t5));
+            for (var e4 = new Array(arguments.length - 1), n4 = 0; n4 < e4.length; n4++)
+              e4[n4] = arguments[n4 + 1];
+            var o3 = { callback: t5, args: e4 };
+            return l2[c2] = o3, s2(c2), c2++;
+          }
+          function r2(t5) {
+            delete l2[t5];
+          }
+          function i2(t5) {
+            var e4 = t5.callback, o3 = t5.args;
+            switch (o3.length) {
+              case 0:
+                e4();
+                break;
+              case 1:
+                e4(o3[0]);
+                break;
+              case 2:
+                e4(o3[0], o3[1]);
+                break;
+              case 3:
+                e4(o3[0], o3[1], o3[2]);
+                break;
+              default:
+                e4.apply(n3, o3);
+            }
+          }
+          function a2(t5) {
+            if (u2)
+              setTimeout(a2, 0, t5);
+            else {
+              var e4 = l2[t5];
+              if (e4) {
+                u2 = true;
+                try {
+                  i2(e4);
+                } finally {
+                  r2(t5), u2 = false;
+                }
+              }
+            }
+          }
+          if (!t4.setImmediate) {
+            var s2, c2 = 1, l2 = {}, u2 = false, f2 = t4.document, d2 = Object.getPrototypeOf && Object.getPrototypeOf(t4);
+            d2 = d2 && d2.setTimeout ? d2 : t4, {}.toString.call(t4.process) === "[object process]" ? function() {
+              s2 = function(t5) {
+                e3.nextTick(function() {
+                  a2(t5);
+                });
+              };
+            }() : function() {
+              if (t4.postMessage && !t4.importScripts) {
+                var e4 = true, n4 = t4.onmessage;
+                return t4.onmessage = function() {
+                  e4 = false;
+                }, t4.postMessage("", "*"), t4.onmessage = n4, e4;
+              }
+            }() ? function() {
+              var e4 = "setImmediate$" + Math.random() + "$", n4 = function(n5) {
+                n5.source === t4 && typeof n5.data == "string" && n5.data.indexOf(e4) === 0 && a2(+n5.data.slice(e4.length));
+              };
+              t4.addEventListener ? t4.addEventListener("message", n4, false) : t4.attachEvent("onmessage", n4), s2 = function(n5) {
+                t4.postMessage(e4 + n5, "*");
+              };
+            }() : t4.MessageChannel ? function() {
+              var t5 = new MessageChannel();
+              t5.port1.onmessage = function(t6) {
+                a2(t6.data);
+              }, s2 = function(e4) {
+                t5.port2.postMessage(e4);
+              };
+            }() : f2 && "onreadystatechange" in f2.createElement("script") ? function() {
+              var t5 = f2.documentElement;
+              s2 = function(e4) {
+                var n4 = f2.createElement("script");
+                n4.onreadystatechange = function() {
+                  a2(e4), n4.onreadystatechange = null, t5.removeChild(n4), n4 = null;
+                }, t5.appendChild(n4);
+              };
+            }() : function() {
+              s2 = function(t5) {
+                setTimeout(a2, 0, t5);
+              };
+            }(), d2.setImmediate = o2, d2.clearImmediate = r2;
+          }
+        }(typeof self == "undefined" ? t3 === void 0 ? this : t3 : self);
+      }).call(e2, n2(7), n2(20));
+    }, function(t2, e2) {
+      function n2() {
+        throw new Error("setTimeout has not been defined");
+      }
+      function o2() {
+        throw new Error("clearTimeout has not been defined");
+      }
+      function r2(t3) {
+        if (u2 === setTimeout)
+          return setTimeout(t3, 0);
+        if ((u2 === n2 || !u2) && setTimeout)
+          return u2 = setTimeout, setTimeout(t3, 0);
+        try {
+          return u2(t3, 0);
+        } catch (e3) {
+          try {
+            return u2.call(null, t3, 0);
+          } catch (e4) {
+            return u2.call(this, t3, 0);
+          }
+        }
+      }
+      function i2(t3) {
+        if (f2 === clearTimeout)
+          return clearTimeout(t3);
+        if ((f2 === o2 || !f2) && clearTimeout)
+          return f2 = clearTimeout, clearTimeout(t3);
+        try {
+          return f2(t3);
+        } catch (e3) {
+          try {
+            return f2.call(null, t3);
+          } catch (e4) {
+            return f2.call(this, t3);
+          }
+        }
+      }
+      function a2() {
+        b2 && p2 && (b2 = false, p2.length ? m2 = p2.concat(m2) : v2 = -1, m2.length && s2());
+      }
+      function s2() {
+        if (!b2) {
+          var t3 = r2(a2);
+          b2 = true;
+          for (var e3 = m2.length; e3; ) {
+            for (p2 = m2, m2 = []; ++v2 < e3; )
+              p2 && p2[v2].run();
+            v2 = -1, e3 = m2.length;
+          }
+          p2 = null, b2 = false, i2(t3);
+        }
+      }
+      function c2(t3, e3) {
+        this.fun = t3, this.array = e3;
+      }
+      function l2() {
+      }
+      var u2, f2, d2 = t2.exports = {};
+      !function() {
+        try {
+          u2 = typeof setTimeout == "function" ? setTimeout : n2;
+        } catch (t3) {
+          u2 = n2;
+        }
+        try {
+          f2 = typeof clearTimeout == "function" ? clearTimeout : o2;
+        } catch (t3) {
+          f2 = o2;
+        }
+      }();
+      var p2, m2 = [], b2 = false, v2 = -1;
+      d2.nextTick = function(t3) {
+        var e3 = new Array(arguments.length - 1);
+        if (arguments.length > 1)
+          for (var n3 = 1; n3 < arguments.length; n3++)
+            e3[n3 - 1] = arguments[n3];
+        m2.push(new c2(t3, e3)), m2.length !== 1 || b2 || r2(s2);
+      }, c2.prototype.run = function() {
+        this.fun.apply(null, this.array);
+      }, d2.title = "browser", d2.browser = true, d2.env = {}, d2.argv = [], d2.version = "", d2.versions = {}, d2.on = l2, d2.addListener = l2, d2.once = l2, d2.off = l2, d2.removeListener = l2, d2.removeAllListeners = l2, d2.emit = l2, d2.prependListener = l2, d2.prependOnceListener = l2, d2.listeners = function(t3) {
+        return [];
+      }, d2.binding = function(t3) {
+        throw new Error("process.binding is not supported");
+      }, d2.cwd = function() {
+        return "/";
+      }, d2.chdir = function(t3) {
+        throw new Error("process.chdir is not supported");
+      }, d2.umask = function() {
+        return 0;
+      };
+    }, function(t2, e2, n2) {
+      n2(22).polyfill();
+    }, function(t2, e2, n2) {
+      function o2(t3, e3) {
+        if (t3 === void 0 || t3 === null)
+          throw new TypeError("Cannot convert first argument to object");
+        for (var n3 = Object(t3), o3 = 1; o3 < arguments.length; o3++) {
+          var r3 = arguments[o3];
+          if (r3 !== void 0 && r3 !== null)
+            for (var i2 = Object.keys(Object(r3)), a2 = 0, s2 = i2.length; a2 < s2; a2++) {
+              var c2 = i2[a2], l2 = Object.getOwnPropertyDescriptor(r3, c2);
+              l2 !== void 0 && l2.enumerable && (n3[c2] = r3[c2]);
+            }
+        }
+        return n3;
+      }
+      function r2() {
+        Object.assign || Object.defineProperty(Object, "assign", { enumerable: false, configurable: true, writable: true, value: o2 });
+      }
+      t2.exports = { assign: o2, polyfill: r2 };
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(24), r2 = n2(6), i2 = n2(5), a2 = n2(36), s2 = function() {
+        for (var t3 = [], e3 = 0; e3 < arguments.length; e3++)
+          t3[e3] = arguments[e3];
+        if (typeof window != "undefined") {
+          var n3 = a2.getOpts.apply(void 0, t3);
+          return new Promise(function(t4, e4) {
+            i2.default.promise = { resolve: t4, reject: e4 }, o2.default(n3), setTimeout(function() {
+              r2.openModal();
+            });
+          });
+        }
+      };
+      s2.close = r2.onAction, s2.getState = r2.getState, s2.setActionValue = i2.setActionValue, s2.stopLoading = r2.stopLoading, s2.setDefaults = a2.setDefaults, e2.default = s2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1), r2 = n2(0), i2 = r2.default.MODAL, a2 = n2(4), s2 = n2(34), c2 = n2(35), l2 = n2(1);
+      e2.init = function(t3) {
+        o2.getNode(i2) || (document.body || l2.throwErr("You can only use SweetAlert AFTER the DOM has loaded!"), s2.default(), a2.default()), a2.initModalContent(t3), c2.default(t3);
+      }, e2.default = e2.init;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(0), r2 = o2.default.MODAL;
+      e2.modalMarkup = '\n  <div class="' + r2 + '" role="dialog" aria-modal="true"></div>', e2.default = e2.modalMarkup;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(0), r2 = o2.default.OVERLAY, i2 = '<div \n    class="' + r2 + '"\n    tabIndex="-1">\n  </div>';
+      e2.default = i2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(0), r2 = o2.default.ICON;
+      e2.errorIconMarkup = function() {
+        var t3 = r2 + "--error", e3 = t3 + "__line";
+        return '\n    <div class="' + t3 + '__x-mark">\n      <span class="' + e3 + " " + e3 + '--left"></span>\n      <span class="' + e3 + " " + e3 + '--right"></span>\n    </div>\n  ';
+      }, e2.warningIconMarkup = function() {
+        var t3 = r2 + "--warning";
+        return '\n    <span class="' + t3 + '__body">\n      <span class="' + t3 + '__dot"></span>\n    </span>\n  ';
+      }, e2.successIconMarkup = function() {
+        var t3 = r2 + "--success";
+        return '\n    <span class="' + t3 + "__line " + t3 + '__line--long"></span>\n    <span class="' + t3 + "__line " + t3 + '__line--tip"></span>\n\n    <div class="' + t3 + '__ring"></div>\n    <div class="' + t3 + '__hide-corners"></div>\n  ';
+      };
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(0), r2 = o2.default.CONTENT;
+      e2.contentMarkup = '\n  <div class="' + r2 + '">\n\n  </div>\n';
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(0), r2 = o2.default.BUTTON_CONTAINER, i2 = o2.default.BUTTON, a2 = o2.default.BUTTON_LOADER;
+      e2.buttonMarkup = '\n  <div class="' + r2 + '">\n\n    <button\n      class="' + i2 + '"\n    ></button>\n\n    <div class="' + a2 + '">\n      <div></div>\n      <div></div>\n      <div></div>\n    </div>\n\n  </div>\n';
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(4), r2 = n2(2), i2 = n2(0), a2 = i2.default.ICON, s2 = i2.default.ICON_CUSTOM, c2 = ["error", "warning", "success", "info"], l2 = { error: r2.errorIconMarkup(), warning: r2.warningIconMarkup(), success: r2.successIconMarkup() }, u2 = function(t3, e3) {
+        var n3 = a2 + "--" + t3;
+        e3.classList.add(n3);
+        var o3 = l2[t3];
+        o3 && (e3.innerHTML = o3);
+      }, f2 = function(t3, e3) {
+        e3.classList.add(s2);
+        var n3 = document.createElement("img");
+        n3.src = t3, e3.appendChild(n3);
+      }, d2 = function(t3) {
+        if (t3) {
+          var e3 = o2.injectElIntoModal(r2.iconMarkup);
+          c2.includes(t3) ? u2(t3, e3) : f2(t3, e3);
+        }
+      };
+      e2.default = d2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(2), r2 = n2(4), i2 = function(t3) {
+        navigator.userAgent.includes("AppleWebKit") && (t3.style.display = "none", t3.offsetHeight, t3.style.display = "");
+      };
+      e2.initTitle = function(t3) {
+        if (t3) {
+          var e3 = r2.injectElIntoModal(o2.titleMarkup);
+          e3.textContent = t3, i2(e3);
+        }
+      }, e2.initText = function(t3) {
+        if (t3) {
+          var e3 = document.createDocumentFragment();
+          t3.split("\n").forEach(function(t4, n4, o3) {
+            e3.appendChild(document.createTextNode(t4)), n4 < o3.length - 1 && e3.appendChild(document.createElement("br"));
+          });
+          var n3 = r2.injectElIntoModal(o2.textMarkup);
+          n3.appendChild(e3), i2(n3);
+        }
+      };
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1), r2 = n2(4), i2 = n2(0), a2 = i2.default.BUTTON, s2 = i2.default.DANGER_BUTTON, c2 = n2(3), l2 = n2(2), u2 = n2(6), f2 = n2(5), d2 = function(t3, e3, n3) {
+        var r3 = e3.text, i3 = e3.value, d3 = e3.className, p3 = e3.closeModal, m2 = o2.stringToNode(l2.buttonMarkup), b2 = m2.querySelector("." + a2), v2 = a2 + "--" + t3;
+        if (b2.classList.add(v2), d3) {
+          (Array.isArray(d3) ? d3 : d3.split(" ")).filter(function(t4) {
+            return t4.length > 0;
+          }).forEach(function(t4) {
+            b2.classList.add(t4);
+          });
+        }
+        n3 && t3 === c2.CONFIRM_KEY && b2.classList.add(s2), b2.textContent = r3;
+        var g2 = {};
+        return g2[t3] = i3, f2.setActionValue(g2), f2.setActionOptionsFor(t3, { closeModal: p3 }), b2.addEventListener("click", function() {
+          return u2.onAction(t3);
+        }), m2;
+      }, p2 = function(t3, e3) {
+        var n3 = r2.injectElIntoModal(l2.footerMarkup);
+        for (var o3 in t3) {
+          var i3 = t3[o3], a3 = d2(o3, i3, e3);
+          i3.visible && n3.appendChild(a3);
+        }
+        n3.children.length === 0 && n3.remove();
+      };
+      e2.default = p2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(3), r2 = n2(4), i2 = n2(2), a2 = n2(5), s2 = n2(6), c2 = n2(0), l2 = c2.default.CONTENT, u2 = function(t3) {
+        t3.addEventListener("input", function(t4) {
+          var e3 = t4.target, n3 = e3.value;
+          a2.setActionValue(n3);
+        }), t3.addEventListener("keyup", function(t4) {
+          if (t4.key === "Enter")
+            return s2.onAction(o2.CONFIRM_KEY);
+        }), setTimeout(function() {
+          t3.focus(), a2.setActionValue("");
+        }, 0);
+      }, f2 = function(t3, e3, n3) {
+        var o3 = document.createElement(e3), r3 = l2 + "__" + e3;
+        o3.classList.add(r3);
+        for (var i3 in n3) {
+          var a3 = n3[i3];
+          o3[i3] = a3;
+        }
+        e3 === "input" && u2(o3), t3.appendChild(o3);
+      }, d2 = function(t3) {
+        if (t3) {
+          var e3 = r2.injectElIntoModal(i2.contentMarkup), n3 = t3.element, o3 = t3.attributes;
+          typeof n3 == "string" ? f2(e3, n3, o3) : e3.appendChild(n3);
+        }
+      };
+      e2.default = d2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1), r2 = n2(2), i2 = function() {
+        var t3 = o2.stringToNode(r2.overlayMarkup);
+        document.body.appendChild(t3);
+      };
+      e2.default = i2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(5), r2 = n2(6), i2 = n2(1), a2 = n2(3), s2 = n2(0), c2 = s2.default.MODAL, l2 = s2.default.BUTTON, u2 = s2.default.OVERLAY, f2 = function(t3) {
+        t3.preventDefault(), v2();
+      }, d2 = function(t3) {
+        t3.preventDefault(), g2();
+      }, p2 = function(t3) {
+        if (o2.default.isOpen)
+          switch (t3.key) {
+            case "Escape":
+              return r2.onAction(a2.CANCEL_KEY);
+          }
+      }, m2 = function(t3) {
+        if (o2.default.isOpen)
+          switch (t3.key) {
+            case "Tab":
+              return f2(t3);
+          }
+      }, b2 = function(t3) {
+        if (o2.default.isOpen)
+          return t3.key === "Tab" && t3.shiftKey ? d2(t3) : void 0;
+      }, v2 = function() {
+        var t3 = i2.getNode(l2);
+        t3 && (t3.tabIndex = 0, t3.focus());
+      }, g2 = function() {
+        var t3 = i2.getNode(c2), e3 = t3.querySelectorAll("." + l2), n3 = e3.length - 1, o3 = e3[n3];
+        o3 && o3.focus();
+      }, h2 = function(t3) {
+        t3[t3.length - 1].addEventListener("keydown", m2);
+      }, w2 = function(t3) {
+        t3[0].addEventListener("keydown", b2);
+      }, y2 = function() {
+        var t3 = i2.getNode(c2), e3 = t3.querySelectorAll("." + l2);
+        e3.length && (h2(e3), w2(e3));
+      }, x2 = function(t3) {
+        if (i2.getNode(u2) === t3.target)
+          return r2.onAction(a2.CANCEL_KEY);
+      }, _2 = function(t3) {
+        var e3 = i2.getNode(u2);
+        e3.removeEventListener("click", x2), t3 && e3.addEventListener("click", x2);
+      }, k2 = function(t3) {
+        o2.default.timer && clearTimeout(o2.default.timer), t3 && (o2.default.timer = window.setTimeout(function() {
+          return r2.onAction(a2.CANCEL_KEY);
+        }, t3));
+      }, O2 = function(t3) {
+        t3.closeOnEsc ? document.addEventListener("keyup", p2) : document.removeEventListener("keyup", p2), t3.dangerMode ? v2() : g2(), y2(), _2(t3.closeOnClickOutside), k2(t3.timer);
+      };
+      e2.default = O2;
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1), r2 = n2(3), i2 = n2(37), a2 = n2(38), s2 = { title: null, text: null, icon: null, buttons: r2.defaultButtonList, content: null, className: null, closeOnClickOutside: true, closeOnEsc: true, dangerMode: false, timer: null }, c2 = Object.assign({}, s2);
+      e2.setDefaults = function(t3) {
+        c2 = Object.assign({}, s2, t3);
+      };
+      var l2 = function(t3) {
+        var e3 = t3 && t3.button, n3 = t3 && t3.buttons;
+        return e3 !== void 0 && n3 !== void 0 && o2.throwErr("Cannot set both 'button' and 'buttons' options!"), e3 !== void 0 ? { confirm: e3 } : n3;
+      }, u2 = function(t3) {
+        return o2.ordinalSuffixOf(t3 + 1);
+      }, f2 = function(t3, e3) {
+        o2.throwErr(u2(e3) + " argument ('" + t3 + "') is invalid");
+      }, d2 = function(t3, e3) {
+        var n3 = t3 + 1, r3 = e3[n3];
+        o2.isPlainObject(r3) || r3 === void 0 || o2.throwErr("Expected " + u2(n3) + " argument ('" + r3 + "') to be a plain object");
+      }, p2 = function(t3, e3) {
+        var n3 = t3 + 1, r3 = e3[n3];
+        r3 !== void 0 && o2.throwErr("Unexpected " + u2(n3) + " argument (" + r3 + ")");
+      }, m2 = function(t3, e3, n3, r3) {
+        var i3 = typeof e3, a3 = i3 === "string", s3 = e3 instanceof Element;
+        if (a3) {
+          if (n3 === 0)
+            return { text: e3 };
+          if (n3 === 1)
+            return { text: e3, title: r3[0] };
+          if (n3 === 2)
+            return d2(n3, r3), { icon: e3 };
+          f2(e3, n3);
+        } else {
+          if (s3 && n3 === 0)
+            return d2(n3, r3), { content: e3 };
+          if (o2.isPlainObject(e3))
+            return p2(n3, r3), e3;
+          f2(e3, n3);
+        }
+      };
+      e2.getOpts = function() {
+        for (var t3 = [], e3 = 0; e3 < arguments.length; e3++)
+          t3[e3] = arguments[e3];
+        var n3 = {};
+        t3.forEach(function(e4, o4) {
+          var r3 = m2(0, e4, o4, t3);
+          Object.assign(n3, r3);
+        });
+        var o3 = l2(n3);
+        n3.buttons = r2.getButtonListOpts(o3), delete n3.button, n3.content = i2.getContentOpts(n3.content);
+        var u3 = Object.assign({}, s2, c2, n3);
+        return Object.keys(u3).forEach(function(t4) {
+          a2.DEPRECATED_OPTS[t4] && a2.logDeprecation(t4);
+        }), u3;
+      };
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true });
+      var o2 = n2(1), r2 = { element: "input", attributes: { placeholder: "" } };
+      e2.getContentOpts = function(t3) {
+        var e3 = {};
+        return o2.isPlainObject(t3) ? Object.assign(e3, t3) : t3 instanceof Element ? { element: t3 } : t3 === "input" ? r2 : null;
+      };
+    }, function(t2, e2, n2) {
+      Object.defineProperty(e2, "__esModule", { value: true }), e2.logDeprecation = function(t3) {
+        var n3 = e2.DEPRECATED_OPTS[t3], o2 = n3.onlyRename, r2 = n3.replacement, i2 = n3.subOption, a2 = n3.link, s2 = o2 ? "renamed" : "deprecated", c2 = 'SweetAlert warning: "' + t3 + '" option has been ' + s2 + ".";
+        if (r2) {
+          c2 += " Please use" + (i2 ? ' "' + i2 + '" in ' : " ") + '"' + r2 + '" instead.';
+        }
+        var l2 = "https://sweetalert.js.org";
+        c2 += a2 ? " More details: " + l2 + a2 : " More details: " + l2 + "/guides/#upgrading-from-1x", console.warn(c2);
+      }, e2.DEPRECATED_OPTS = { type: { replacement: "icon", link: "/docs/#icon" }, imageUrl: { replacement: "icon", link: "/docs/#icon" }, customClass: { replacement: "className", onlyRename: true, link: "/docs/#classname" }, imageSize: {}, showCancelButton: { replacement: "buttons", link: "/docs/#buttons" }, showConfirmButton: { replacement: "button", link: "/docs/#button" }, confirmButtonText: { replacement: "button", link: "/docs/#button" }, confirmButtonColor: {}, cancelButtonText: { replacement: "buttons", link: "/docs/#buttons" }, closeOnConfirm: { replacement: "button", subOption: "closeModal", link: "/docs/#button" }, closeOnCancel: { replacement: "buttons", subOption: "closeModal", link: "/docs/#buttons" }, showLoaderOnConfirm: { replacement: "buttons" }, animation: {}, inputType: { replacement: "content", link: "/docs/#content" }, inputValue: { replacement: "content", link: "/docs/#content" }, inputPlaceholder: { replacement: "content", link: "/docs/#content" }, html: { replacement: "content", link: "/docs/#content" }, allowEscapeKey: { replacement: "closeOnEsc", onlyRename: true, link: "/docs/#closeonesc" }, allowClickOutside: { replacement: "closeOnClickOutside", onlyRename: true, link: "/docs/#closeonclickoutside" } };
+    }]);
+  });
+})(sweetalert_min);
+var swal = /* @__PURE__ */ getDefaultExportFromCjs(sweetalert_min.exports);
 const classNames$h = {
   popupContainer: cls("popup-container"),
   detailContainer: cls("detail-container"),
@@ -6532,7 +7597,7 @@ function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   return { top, direction };
 }
 function EventDetailPopup() {
-  var _a;
+  var _a, _b, _c;
   const { useFormPopup } = useStore(optionsSelector);
   const popupParams = useStore(eventDetailPopupParamSelector);
   const options = useStore(optionsSelector);
@@ -6597,11 +7662,35 @@ function EventDetailPopup() {
       eventBus.fire("beforeUpdateEvent", { event: event.toEventObject(), changes: {} });
     }
   };
-  const onClickDeleteButton = () => {
-    eventBus.fire("beforeDeleteEvent", event.toEventObject());
+  const onClickDeleteButton = (url, token2) => {
+    const formdata = new FormData();
+    formdata.append("_token", token2);
+    swal({
+      title: "Warning",
+      text: "Are you sure you want to delete this item?",
+      icon: "warning",
+      buttons: ["Cancel", "Delete"],
+      dangerMode: true
+    }).then((value) => {
+      if (value) {
+        fetch(url, {
+          method: "DELETE",
+          body: formdata,
+          headers: {
+            "X-CSRF-TOKEN": token2
+          }
+        }).then((resp) => {
+          eventBus.fire("beforeDeleteEvent", event.toEventObject());
+        });
+      }
+    });
     hideDetailPopup();
   };
   const userData = ((_a = options == null ? void 0 : options.allOptions) == null ? void 0 : _a.userData) || null;
+  const token = (_b = options == null ? void 0 : options.allOptions) == null ? void 0 : _b.token;
+  const backpackUrl = (_c = options == null ? void 0 : options.allOptions) == null ? void 0 : _c.backpackUrl;
+  const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
+  const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
   return V(/* @__PURE__ */ h$3("div", {
     role: "dialog",
     className: classNames$h.popupContainer,
@@ -6613,9 +7702,12 @@ function EventDetailPopup() {
     event
   }), /* @__PURE__ */ h$3(EventDetailSectionDetail, {
     event,
-    userData
+    userData,
+    backpackUrl
   }), !isReadOnly && /* @__PURE__ */ h$3("div", {
     className: classNames$h.sectionButton
+  }, /* @__PURE__ */ h$3("a", {
+    href: editUrl
   }, /* @__PURE__ */ h$3("button", {
     type: "button",
     className: classNames$h.editButton,
@@ -6627,12 +7719,12 @@ function EventDetailPopup() {
   }, /* @__PURE__ */ h$3(Template, {
     template: "popupEdit",
     as: "span"
-  }))), /* @__PURE__ */ h$3("div", {
+  })))), /* @__PURE__ */ h$3("div", {
     className: classNames$h.verticalLine
   }), /* @__PURE__ */ h$3("button", {
     type: "button",
     className: classNames$h.deleteButton,
-    onClick: onClickDeleteButton
+    onClick: () => onClickDeleteButton(deleteURl, token)
   }, /* @__PURE__ */ h$3("span", {
     className: classNames$h.deleteIcon
   }), /* @__PURE__ */ h$3("span", {

@@ -75,6 +75,7 @@
     "libs/*"
   ],
   "dependencies": {
+    "sweetalert": "^2.1.2",
     "tui-code-snippet": "^2.3.3"
   }
 }

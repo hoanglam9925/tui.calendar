@@ -8,6 +8,7 @@ import type EventModel from '@src/model/eventModel';
 interface Props {
   event: EventModel;
   userData: any;
+  backpackUrl: any;
 }
 
 const classNames = {
