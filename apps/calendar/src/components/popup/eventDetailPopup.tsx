@@ -186,7 +186,6 @@ export function EventDetailPopup() {
   const token = options?.allOptions?.token;
   const backpackUrl = options?.allOptions?.backpackUrl;
 
-
   const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
   const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
 

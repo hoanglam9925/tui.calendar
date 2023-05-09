@@ -36,18 +36,17 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
   
   return (
     <div className={classNames.sectionDetail} style={{maxHeight: '1000px', overflow: "auto"}} >
+      {currentUserData?.qr_code && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.content}>
+            <img style={{maxWidth: '50%', aspectRatio: 1, margin: 'auto', display: 'block', marginTop: "10px", marginBottom: "10px"}} src={currentUserData?.qr_code} />
+          </span>
+        </div>
+      )}
       {currentUserData?.image_file && (
         <div className={classNames.detailItem}>
           <span className={classNames.content}>
             <img style={{maxWidth: '100%', aspectRatio: 1, marginTop: "10px", marginBottom: "10px"}} src={currentUserData?.image_file} />
-          </span>
-        </div>
-      )}
-      {currentUserData?.description && (
-        <div className={classNames.detailItem}>
-          <span className={classNames.content}>
-          <b>Description:</b> {currentUserData?.description}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
       )}
@@ -97,11 +96,29 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
           </span>
         </div>
       )}
+      {currentUserData?.registration_count >= 0 && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.repeatIcon} />
+          <span className={classNames.content}>
+          <b>Registration Count:</b> {currentUserData?.registration_count}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
       {currentUserData?.register_by_timestamp && (
         <div className={classNames.detailItem}>
           <span className={classNames.calendarDotIcon} />
           <span className={classNames.content}>
           <b>Register By:</b> {currentUserData?.register_by_timestamp}
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
+
+      {currentUserData?.description && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.content}>
+          <b>Description:</b> {currentUserData?.description}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>

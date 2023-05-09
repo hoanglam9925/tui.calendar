@@ -5070,7 +5070,7 @@
   }
   /*!
    * TOAST UI Calendar 2nd Edition
-   * @version 2.1.3 | Fri Apr 14 2023
+   * @version 2.1.3 | Wed Apr 19 2023
    * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
    * @license MIT
    */
@@ -21217,7 +21217,21 @@
                 maxHeight: "1000px",
                 overflow: "auto"
               }
-            }, (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.image_file) && h("div", {
+            }, (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.qr_code) && h("div", {
+              className: eventDetailSectionDetail_classNames.detailItem
+            }, h("span", {
+              className: eventDetailSectionDetail_classNames.content
+            }, h("img", {
+              style: {
+                maxWidth: "50%",
+                aspectRatio: 1,
+                margin: "auto",
+                display: "block",
+                marginTop: "10px",
+                marginBottom: "10px"
+              },
+              src: currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.qr_code
+            }))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.image_file) && h("div", {
               className: eventDetailSectionDetail_classNames.detailItem
             }, h("span", {
               className: eventDetailSectionDetail_classNames.content
@@ -21263,7 +21277,13 @@
               className: eventDetailSectionDetail_classNames.repeatIcon
             }), h("span", {
               className: eventDetailSectionDetail_classNames.content
-            }, h("b", null, "Slots Remain:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp) && h("div", {
+            }, h("b", null, "Slots Remain:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.registration_count) >= 0 && h("div", {
+              className: eventDetailSectionDetail_classNames.detailItem
+            }, h("span", {
+              className: eventDetailSectionDetail_classNames.repeatIcon
+            }), h("span", {
+              className: eventDetailSectionDetail_classNames.content
+            }, h("b", null, "Registration Count:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.registration_count)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp) && h("div", {
               className: eventDetailSectionDetail_classNames.detailItem
             }, h("span", {
               className: eventDetailSectionDetail_classNames.calendarDotIcon
@@ -21609,6 +21629,9 @@
             var userData = (options === null || options === void 0 ? void 0 : (_options$allOptions = options.allOptions) === null || _options$allOptions === void 0 ? void 0 : _options$allOptions.userData) || null;
             var token = options === null || options === void 0 ? void 0 : (_options$allOptions2 = options.allOptions) === null || _options$allOptions2 === void 0 ? void 0 : _options$allOptions2.token;
             var backpackUrl = options === null || options === void 0 ? void 0 : (_options$allOptions3 = options.allOptions) === null || _options$allOptions3 === void 0 ? void 0 : _options$allOptions3.backpackUrl;
+            console.log({
+              options
+            });
             var editUrl = "".concat(backpackUrl, "/collab-event/").concat(event.id, "/edit");
             var deleteURl = "".concat(backpackUrl, "/collab-event/").concat(event.id);
             return compat_module_V(h("div", {

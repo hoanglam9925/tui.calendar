@@ -11402,7 +11402,14 @@
     return /* @__PURE__ */ h$3("div", {
       className: classNames$j.sectionDetail,
       style: { maxHeight: "1000px", overflow: "auto" }
-    }, (currentUserData == null ? void 0 : currentUserData.image_file) && /* @__PURE__ */ h$3("div", {
+    }, (currentUserData == null ? void 0 : currentUserData.qr_code) && /* @__PURE__ */ h$3("div", {
+      className: classNames$j.detailItem
+    }, /* @__PURE__ */ h$3("span", {
+      className: classNames$j.content
+    }, /* @__PURE__ */ h$3("img", {
+      style: { maxWidth: "50%", aspectRatio: 1, margin: "auto", display: "block", marginTop: "10px", marginBottom: "10px" },
+      src: currentUserData == null ? void 0 : currentUserData.qr_code
+    }))), (currentUserData == null ? void 0 : currentUserData.image_file) && /* @__PURE__ */ h$3("div", {
       className: classNames$j.detailItem
     }, /* @__PURE__ */ h$3("span", {
       className: classNames$j.content
@@ -11443,7 +11450,13 @@
       className: classNames$j.repeatIcon
     }), /* @__PURE__ */ h$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Slots Remain:"), " ", currentUserData == null ? void 0 : currentUserData.slots_remain)), (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ h$3("b", null, "Slots Remain:"), " ", currentUserData == null ? void 0 : currentUserData.slots_remain)), (currentUserData == null ? void 0 : currentUserData.registration_count) >= 0 && /* @__PURE__ */ h$3("div", {
+      className: classNames$j.detailItem
+    }, /* @__PURE__ */ h$3("span", {
+      className: classNames$j.repeatIcon
+    }), /* @__PURE__ */ h$3("span", {
+      className: classNames$j.content
+    }, /* @__PURE__ */ h$3("b", null, "Registration Count:"), " ", currentUserData == null ? void 0 : currentUserData.registration_count)), (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ h$3("div", {
       className: classNames$j.detailItem
     }, /* @__PURE__ */ h$3("span", {
       className: classNames$j.calendarDotIcon
@@ -12737,6 +12750,7 @@
     const userData = ((_a = options == null ? void 0 : options.allOptions) == null ? void 0 : _a.userData) || null;
     const token = (_b = options == null ? void 0 : options.allOptions) == null ? void 0 : _b.token;
     const backpackUrl = (_c = options == null ? void 0 : options.allOptions) == null ? void 0 : _c.backpackUrl;
+    console.log({ options });
     const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
     const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
     return V(/* @__PURE__ */ h$3("div", {
