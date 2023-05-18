@@ -41,30 +41,34 @@ const classNames = {
 
 function calculatePopupPosition(eventRect: Rect, layoutRect: Rect, popupRect: Rect) {
   let top = eventRect.top + eventRect.height / 2 - popupRect.height / 2;
-  let left = eventRect.left + eventRect.width;
+  let left = eventRect.left + eventRect.width - 225;
 
   if (isTopOutOfLayout(top, layoutRect, popupRect)) {
     top = layoutRect.top + layoutRect.height - popupRect.height;
   }
 
-  if (isLeftOutOfLayout(left, layoutRect, popupRect)) {
+  const outLeftLayout = isLeftOutOfLayout(left, layoutRect, popupRect);
+  if (outLeftLayout) {
     left = eventRect.left - popupRect.width;
   }
 
   return [
-    Math.max(top, layoutRect.top) + window.scrollY,
-    Math.max(left, layoutRect.left) + window.scrollX,
+    Math.max(top, layoutRect.top) + window.scrollY - 110,
+    // Math.max(left, layoutRect.left) + window.scrollX - 225,
+    Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 250 : 25),
   ];
 }
 
 function calculatePopupArrowPosition(eventRect: Rect, layoutRect: Rect, popupRect: Rect) {
-  const top = eventRect.top + eventRect.height / 2 + window.scrollY;
+  let top = eventRect.top + eventRect.height / 2 + window.scrollY;
   const popupLeft = eventRect.left + eventRect.width;
 
   const isOutOfLayout = popupLeft + popupRect.width > layoutRect.left + layoutRect.width;
   const direction = isOutOfLayout
     ? DetailPopupArrowDirection.right
     : DetailPopupArrowDirection.left;
+
+  top = top - 110;
 
   return { top, direction };
 }

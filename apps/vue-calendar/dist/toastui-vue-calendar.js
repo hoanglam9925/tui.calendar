@@ -13,8 +13,7 @@
   var tuiTimePicker = { exports: {} };
   /*!
    * TOAST UI Time Picker
-   * @version 2.1.4
-   * @author NHN FE Development Lab <dl_javascript@nhn.com>
+   * @version 2.1.6
    * @license MIT
    */
   (function(module2, exports2) {
@@ -309,7 +308,11 @@
             if (helperCount) {
               throw Error(helperKeyword + " needs {{/" + helperKeyword + "}} expression.");
             }
-            sourcesToEnd[startBlockIndex] = executeBlockHelper(sourcesToEnd[startBlockIndex].split(" ").slice(1), extractSourcesInsideBlock(sourcesToEnd, startBlockIndex, endBlockIndex), context);
+            sourcesToEnd[startBlockIndex] = executeBlockHelper(
+              sourcesToEnd[startBlockIndex].split(" ").slice(1),
+              extractSourcesInsideBlock(sourcesToEnd, startBlockIndex, endBlockIndex),
+              context
+            );
             return sourcesToEnd;
           }
           function handleExpression(exps, context) {
@@ -913,394 +916,410 @@
           var END_NUMBER_OF_HOUR = 23;
           var END_NUMBER_OF_HOUR_WITH_MERIDIEM = 12;
           var mergeDefaultOptions = function(options) {
-            return extend2({
-              language: "en",
-              initialHour: 0,
-              initialMinute: 0,
-              showMeridiem: true,
-              inputType: "selectbox",
-              hourStep: 1,
-              minuteStep: 1,
-              meridiemPosition: "right",
-              format: "h:m",
-              disabledHours: [],
-              disabledMinutes: {},
-              usageStatistics: true
-            }, options);
+            return extend2(
+              {
+                language: "en",
+                initialHour: 0,
+                initialMinute: 0,
+                showMeridiem: true,
+                inputType: "selectbox",
+                hourStep: 1,
+                minuteStep: 1,
+                meridiemPosition: "right",
+                format: "h:m",
+                disabledHours: [],
+                disabledMinutes: {},
+                usageStatistics: true
+              },
+              options
+            );
           };
-          var TimePicker = defineClass({
-            static: {
-              localeTexts
-            },
-            init: function(container, options) {
-              options = mergeDefaultOptions(options);
-              this.id = util.getUniqueId();
-              this.container = isHTMLNode(container) ? container : document.querySelector(container);
-              this.element = null;
-              this.meridiemElement = null;
-              this.amEl = null;
-              this.pmEl = null;
-              this.showMeridiem = options.showMeridiem;
-              this.meridiemPosition = options.meridiemPosition;
-              this.hourInput = null;
-              this.minuteInput = null;
-              this.hour = options.initialHour;
-              this.minute = options.initialMinute;
-              this.hourStep = options.hourStep;
-              this.minuteStep = options.minuteStep;
-              this.disabledHours = options.disabledHours;
-              this.disabledMinutes = options.disabledMinutes;
-              this.inputType = options.inputType;
-              this.localeText = localeTexts[options.language];
-              this.format = this.getValidTimeFormat(options.format);
-              this.render();
-              this.setEvents();
-              if (options.usageStatistics) {
-                util.sendHostName();
-              }
-            },
-            setEvents: function() {
-              this.hourInput.on("change", this.onChangeTimeInput, this);
-              this.minuteInput.on("change", this.onChangeTimeInput, this);
-              if (this.showMeridiem) {
-                if (this.inputType === INPUT_TYPE_SELECTBOX) {
-                  on2(this.meridiemElement.querySelector("select"), "change", this.onChangeMeridiem, this);
-                } else if (this.inputType === INPUT_TYPE_SPINBOX) {
-                  on2(this.meridiemElement, "click", this.onChangeMeridiem, this);
+          var TimePicker = defineClass(
+            {
+              static: {
+                localeTexts
+              },
+              init: function(container, options) {
+                options = mergeDefaultOptions(options);
+                this.id = util.getUniqueId();
+                this.container = isHTMLNode(container) ? container : document.querySelector(container);
+                this.element = null;
+                this.meridiemElement = null;
+                this.amEl = null;
+                this.pmEl = null;
+                this.showMeridiem = options.showMeridiem;
+                this.meridiemPosition = options.meridiemPosition;
+                this.hourInput = null;
+                this.minuteInput = null;
+                this.hour = options.initialHour;
+                this.minute = options.initialMinute;
+                this.hourStep = options.hourStep;
+                this.minuteStep = options.minuteStep;
+                this.disabledHours = options.disabledHours;
+                this.disabledMinutes = options.disabledMinutes;
+                this.inputType = options.inputType;
+                this.localeText = localeTexts[options.language];
+                this.format = this.getValidTimeFormat(options.format);
+                this.render();
+                this.setEvents();
+                if (options.usageStatistics) {
+                  util.sendHostName();
                 }
-              }
-            },
-            removeEvents: function() {
-              this.off();
-              this.hourInput.destroy();
-              this.minuteInput.destroy();
-              if (this.showMeridiem) {
-                if (this.inputType === INPUT_TYPE_SELECTBOX) {
-                  off(this.meridiemElement.querySelector("select"), "change", this.onChangeMeridiem, this);
-                } else if (this.inputType === INPUT_TYPE_SPINBOX) {
-                  off(this.meridiemElement, "click", this.onChangeMeridiem, this);
+              },
+              setEvents: function() {
+                this.hourInput.on("change", this.onChangeTimeInput, this);
+                this.minuteInput.on("change", this.onChangeTimeInput, this);
+                if (this.showMeridiem) {
+                  if (this.inputType === INPUT_TYPE_SELECTBOX) {
+                    on2(this.meridiemElement.querySelector("select"), "change", this.onChangeMeridiem, this);
+                  } else if (this.inputType === INPUT_TYPE_SPINBOX) {
+                    on2(this.meridiemElement, "click", this.onChangeMeridiem, this);
+                  }
                 }
-              }
-            },
-            render: function() {
-              var context = {
-                showMeridiem: this.showMeridiem,
-                isSpinbox: this.inputType === "spinbox"
-              };
-              if (this.showMeridiem) {
-                extend2(context, {
-                  meridiemElement: this.makeMeridiemHTML()
-                });
-              }
-              if (this.element) {
-                removeElement(this.element);
-              }
-              this.container.innerHTML = tmpl(context);
-              this.element = this.container.firstChild;
-              this.renderTimeInputs();
-              if (this.showMeridiem) {
-                this.setMeridiemElement();
-              }
-            },
-            setMeridiemElement: function() {
-              if (this.meridiemPosition === "left") {
-                addClass(this.element, CLASS_NAME_LEFT_MERIDIEM);
-              }
-              this.meridiemElement = this.element.querySelector(SELECTOR_MERIDIEM_ELEMENT);
-              this.amEl = this.meridiemElement.querySelector('[value="AM"]');
-              this.pmEl = this.meridiemElement.querySelector('[value="PM"]');
-              this.syncToMeridiemElements();
-            },
-            makeMeridiemHTML: function() {
-              var localeText = this.localeText;
-              return meridiemTmpl({
-                am: localeText.am,
-                pm: localeText.pm,
-                radioId: this.id,
-                isSpinbox: this.inputType === "spinbox"
-              });
-            },
-            renderTimeInputs: function() {
-              var hour = this.hour;
-              var showMeridiem = this.showMeridiem;
-              var hourElement = this.element.querySelector(SELECTOR_HOUR_ELEMENT);
-              var minuteElement = this.element.querySelector(SELECTOR_MINUTE_ELEMENT);
-              var BoxComponent = this.inputType.toLowerCase() === "selectbox" ? Selectbox : Spinbox;
-              var formatExplode = this.format.split(":");
-              var hourItems = this.getHourItems();
-              if (showMeridiem) {
-                hour = util.getMeridiemHour(hour);
-              }
-              this.hourInput = new BoxComponent(hourElement, {
-                initialValue: hour,
-                items: hourItems,
-                format: formatExplode[0],
-                disabledItems: this.makeDisabledStatItems(hourItems)
-              });
-              this.minuteInput = new BoxComponent(minuteElement, {
-                initialValue: this.minute,
-                items: this.getMinuteItems(),
-                format: formatExplode[1]
-              });
-            },
-            makeDisabledStatItems: function(hourItems) {
-              var result = [];
-              var disabledHours = this.disabledHours.slice();
-              if (this.showMeridiem) {
-                disabledHours = this.meridiemableTime(disabledHours);
-              }
-              forEachArray2(hourItems, function(hour) {
-                result.push(inArray(hour, disabledHours) >= 0);
-              });
-              return result;
-            },
-            meridiemableTime: function(disabledHours) {
-              var diffHour = 0;
-              var startHour = 0;
-              var endHour = 11;
-              var result = [];
-              if (this.hour >= 12) {
-                diffHour = 12;
-                startHour = 12;
-                endHour = 23;
-              }
-              forEachArray2(disabledHours, function(hour) {
-                if (hour >= startHour && hour <= endHour) {
-                  result.push(hour - diffHour === 0 ? 12 : hour - diffHour);
+              },
+              removeEvents: function() {
+                this.off();
+                this.hourInput.destroy();
+                this.minuteInput.destroy();
+                if (this.showMeridiem) {
+                  if (this.inputType === INPUT_TYPE_SELECTBOX) {
+                    off(this.meridiemElement.querySelector("select"), "change", this.onChangeMeridiem, this);
+                  } else if (this.inputType === INPUT_TYPE_SPINBOX) {
+                    off(this.meridiemElement, "click", this.onChangeMeridiem, this);
+                  }
                 }
-              });
-              return result;
-            },
-            getValidTimeFormat: function(format) {
-              if (!format.match(/^[h]{1,2}:[m]{1,2}$/i)) {
-                return "h:m";
-              }
-              return format.toLowerCase();
-            },
-            syncToMeridiemElements: function() {
-              var selectedEl = this.hour >= 12 ? this.pmEl : this.amEl;
-              var notSelectedEl = selectedEl === this.pmEl ? this.amEl : this.pmEl;
-              selectedEl.setAttribute("selected", true);
-              selectedEl.setAttribute("checked", true);
-              addClass(selectedEl, CLASS_NAME_CHECKED);
-              notSelectedEl.removeAttribute("selected");
-              notSelectedEl.removeAttribute("checked");
-              removeClass(notSelectedEl, CLASS_NAME_CHECKED);
-            },
-            syncToInputs: function() {
-              var hour = this.hour;
-              var minute = this.minute;
-              if (this.showMeridiem) {
-                hour = util.getMeridiemHour(hour);
-              }
-              this.hourInput.setValue(hour);
-              this.minuteInput.setValue(minute);
-            },
-            onChangeMeridiem: function(ev) {
-              var hour = this.hour;
-              var target = util.getTarget(ev);
-              if (target.value && closest(target, SELECTOR_MERIDIEM_ELEMENT)) {
-                hour = this.to24Hour(target.value === "PM", hour);
-                this.setTime(hour, this.minute);
-                this.setDisabledHours();
-                this.setDisabledMinutes(hour);
-              }
-            },
-            onChangeTimeInput: function() {
-              var hour = this.hourInput.getValue();
-              var minute = this.minuteInput.getValue();
-              var isPM = this.hour >= 12;
-              if (this.showMeridiem) {
-                hour = this.to24Hour(isPM, hour);
-              }
-              this.setTime(hour, minute);
-              this.setDisabledMinutes(hour);
-            },
-            to24Hour: function(isPM, hour) {
-              hour %= 12;
-              if (isPM) {
-                hour += 12;
-              }
-              return hour;
-            },
-            setDisabledHours: function() {
-              var hourItems = this.getHourItems();
-              var disabledItems = this.makeDisabledStatItems(hourItems);
-              this.hourInput.setDisabledItems(disabledItems);
-            },
-            setDisabledMinutes: function(hour) {
-              var disabledItems;
-              disabledItems = this.disabledMinutes[hour] || [];
-              this.minuteInput.setDisabledItems(disabledItems);
-            },
-            getHourItems: function() {
-              var step = this.hourStep;
-              return this.showMeridiem ? util.getRangeArr(1, 12, step) : util.getRangeArr(0, 23, step);
-            },
-            getMinuteItems: function() {
-              return util.getRangeArr(0, 59, this.minuteStep);
-            },
-            validItems: function(hour, minute) {
-              if (!isNumber2(hour) || !isNumber2(minute)) {
-                return false;
-              }
-              if (this.showMeridiem) {
-                hour = util.getMeridiemHour(hour);
-              }
-              return inArray(hour, this.getHourItems()) > -1 && inArray(minute, this.getMinuteItems()) > -1;
-            },
-            setHourStep: function(step) {
-              this.hourStep = step;
-              this.hourInput.fire("changeItems", this.getHourItems());
-            },
-            getHourStep: function() {
-              return this.hourStep;
-            },
-            setMinuteStep: function(step) {
-              this.minuteStep = step;
-              this.minuteInput.fire("changeItems", this.getMinuteItems());
-            },
-            getMinuteStep: function() {
-              return this.minuteStep;
-            },
-            show: function() {
-              removeClass(this.element, CLASS_NAME_HIDDEN);
-            },
-            hide: function() {
-              addClass(this.element, CLASS_NAME_HIDDEN);
-            },
-            setHour: function(hour) {
-              return this.setTime(hour, this.minute);
-            },
-            setMinute: function(minute) {
-              return this.setTime(this.hour, minute);
-            },
-            setTime: function(hour, minute) {
-              if (!this.validItems(hour, minute)) {
-                return;
-              }
-              this.hour = hour;
-              this.minute = minute;
-              this.syncToInputs();
-              if (this.showMeridiem) {
+              },
+              render: function() {
+                var context = {
+                  showMeridiem: this.showMeridiem,
+                  isSpinbox: this.inputType === "spinbox"
+                };
+                if (this.showMeridiem) {
+                  extend2(context, {
+                    meridiemElement: this.makeMeridiemHTML()
+                  });
+                }
+                if (this.element) {
+                  removeElement(this.element);
+                }
+                this.container.innerHTML = tmpl(context);
+                this.element = this.container.firstChild;
+                this.renderTimeInputs();
+                if (this.showMeridiem) {
+                  this.setMeridiemElement();
+                }
+              },
+              setMeridiemElement: function() {
+                if (this.meridiemPosition === "left") {
+                  addClass(this.element, CLASS_NAME_LEFT_MERIDIEM);
+                }
+                this.meridiemElement = this.element.querySelector(SELECTOR_MERIDIEM_ELEMENT);
+                this.amEl = this.meridiemElement.querySelector('[value="AM"]');
+                this.pmEl = this.meridiemElement.querySelector('[value="PM"]');
                 this.syncToMeridiemElements();
-              }
-              this.fire("change", {
-                hour: this.hour,
-                minute: this.minute
-              });
-            },
-            setRange: function(begin, end) {
-              var beginHour = begin.hour;
-              var beginMin = begin.minute;
-              var endHour, endMin;
-              if (!this.isValidRange(begin, end)) {
-                return;
-              }
-              if (end) {
-                endHour = end.hour;
-                endMin = end.minute;
-              }
-              this.setRangeHour(beginHour, endHour);
-              this.setRangeMinute(beginHour, beginMin, endHour, endMin);
-              this.applyRange(beginHour, beginMin, endHour);
-            },
-            setRangeHour: function(beginHour, endHour) {
-              var disabledHours = util.getRangeArr(START_NUMBER_OF_TIME, beginHour - 1);
-              if (endHour) {
-                disabledHours = disabledHours.concat(util.getRangeArr(endHour + 1, END_NUMBER_OF_HOUR));
-              }
-              this.disabledHours = disabledHours.slice();
-            },
-            setRangeMinute: function(beginHour, beginMin, endHour, endMin) {
-              var disabledMinRanges = [];
-              if (!beginHour && !beginMin) {
-                return;
-              }
-              disabledMinRanges.push({
-                begin: START_NUMBER_OF_TIME,
-                end: beginMin
-              });
-              if (endHour && endMin) {
-                disabledMinRanges.push({
-                  begin: endMin,
-                  end: END_NUMBER_OF_MINUTE
+              },
+              makeMeridiemHTML: function() {
+                var localeText = this.localeText;
+                return meridiemTmpl({
+                  am: localeText.am,
+                  pm: localeText.pm,
+                  radioId: this.id,
+                  isSpinbox: this.inputType === "spinbox"
                 });
-                if (beginHour === endHour) {
-                  this.disabledMinutes[beginHour] = util.getDisabledMinuteArr(disabledMinRanges, this.minuteStep).slice();
+              },
+              renderTimeInputs: function() {
+                var hour = this.hour;
+                var showMeridiem = this.showMeridiem;
+                var hourElement = this.element.querySelector(SELECTOR_HOUR_ELEMENT);
+                var minuteElement = this.element.querySelector(SELECTOR_MINUTE_ELEMENT);
+                var BoxComponent = this.inputType.toLowerCase() === "selectbox" ? Selectbox : Spinbox;
+                var formatExplode = this.format.split(":");
+                var hourItems = this.getHourItems();
+                if (showMeridiem) {
+                  hour = util.getMeridiemHour(hour);
+                }
+                this.hourInput = new BoxComponent(hourElement, {
+                  initialValue: hour,
+                  items: hourItems,
+                  format: formatExplode[0],
+                  disabledItems: this.makeDisabledStatItems(hourItems)
+                });
+                this.minuteInput = new BoxComponent(minuteElement, {
+                  initialValue: this.minute,
+                  items: this.getMinuteItems(),
+                  format: formatExplode[1]
+                });
+              },
+              makeDisabledStatItems: function(hourItems) {
+                var result = [];
+                var disabledHours = this.disabledHours.slice();
+                if (this.showMeridiem) {
+                  disabledHours = this.meridiemableTime(disabledHours);
+                }
+                forEachArray2(hourItems, function(hour) {
+                  result.push(inArray(hour, disabledHours) >= 0);
+                });
+                return result;
+              },
+              meridiemableTime: function(disabledHours) {
+                var diffHour = 0;
+                var startHour = 0;
+                var endHour = 11;
+                var result = [];
+                if (this.hour >= 12) {
+                  diffHour = 12;
+                  startHour = 12;
+                  endHour = 23;
+                }
+                forEachArray2(disabledHours, function(hour) {
+                  if (hour >= startHour && hour <= endHour) {
+                    result.push(hour - diffHour === 0 ? 12 : hour - diffHour);
+                  }
+                });
+                return result;
+              },
+              getValidTimeFormat: function(format) {
+                if (!format.match(/^[h]{1,2}:[m]{1,2}$/i)) {
+                  return "h:m";
+                }
+                return format.toLowerCase();
+              },
+              syncToMeridiemElements: function() {
+                var selectedEl = this.hour >= 12 ? this.pmEl : this.amEl;
+                var notSelectedEl = selectedEl === this.pmEl ? this.amEl : this.pmEl;
+                selectedEl.setAttribute("selected", true);
+                selectedEl.setAttribute("checked", true);
+                addClass(selectedEl, CLASS_NAME_CHECKED);
+                notSelectedEl.removeAttribute("selected");
+                notSelectedEl.removeAttribute("checked");
+                removeClass(notSelectedEl, CLASS_NAME_CHECKED);
+              },
+              syncToInputs: function() {
+                var hour = this.hour;
+                var minute = this.minute;
+                if (this.showMeridiem) {
+                  hour = util.getMeridiemHour(hour);
+                }
+                this.hourInput.setValue(hour, true);
+                this.minuteInput.setValue(minute, true);
+              },
+              onChangeMeridiem: function(ev) {
+                var hour = this.hour;
+                var target = util.getTarget(ev);
+                if (target.value && closest(target, SELECTOR_MERIDIEM_ELEMENT)) {
+                  hour = this.to24Hour(target.value === "PM", hour);
+                  this.setTime(hour, this.minute);
+                  this.setDisabledHours();
+                  this.setDisabledMinutes(hour);
+                }
+              },
+              onChangeTimeInput: function() {
+                var hour = this.hourInput.getValue();
+                var minute = this.minuteInput.getValue();
+                var isPM = this.hour >= 12;
+                if (this.showMeridiem) {
+                  hour = this.to24Hour(isPM, hour);
+                }
+                this.setTime(hour, minute);
+                this.setDisabledMinutes(hour);
+              },
+              to24Hour: function(isPM, hour) {
+                hour %= 12;
+                if (isPM) {
+                  hour += 12;
+                }
+                return hour;
+              },
+              setDisabledHours: function() {
+                var hourItems = this.getHourItems();
+                var disabledItems = this.makeDisabledStatItems(hourItems);
+                this.hourInput.setDisabledItems(disabledItems);
+              },
+              setDisabledMinutes: function(hour) {
+                var disabledItems;
+                disabledItems = this.disabledMinutes[hour] || [];
+                this.minuteInput.setDisabledItems(disabledItems);
+              },
+              getHourItems: function() {
+                var step = this.hourStep;
+                return this.showMeridiem ? util.getRangeArr(1, 12, step) : util.getRangeArr(0, 23, step);
+              },
+              getMinuteItems: function() {
+                return util.getRangeArr(0, 59, this.minuteStep);
+              },
+              validItems: function(hour, minute) {
+                if (!isNumber2(hour) || !isNumber2(minute)) {
+                  return false;
+                }
+                if (this.showMeridiem) {
+                  hour = util.getMeridiemHour(hour);
+                }
+                return inArray(hour, this.getHourItems()) > -1 && inArray(minute, this.getMinuteItems()) > -1;
+              },
+              setHourStep: function(step) {
+                this.hourStep = step;
+                this.hourInput.fire("changeItems", this.getHourItems());
+              },
+              getHourStep: function() {
+                return this.hourStep;
+              },
+              setMinuteStep: function(step) {
+                this.minuteStep = step;
+                this.minuteInput.fire("changeItems", this.getMinuteItems());
+              },
+              getMinuteStep: function() {
+                return this.minuteStep;
+              },
+              show: function() {
+                removeClass(this.element, CLASS_NAME_HIDDEN);
+              },
+              hide: function() {
+                addClass(this.element, CLASS_NAME_HIDDEN);
+              },
+              setHour: function(hour) {
+                return this.setTime(hour, this.minute);
+              },
+              setMinute: function(minute) {
+                return this.setTime(this.hour, minute);
+              },
+              setTime: function(hour, minute, silent) {
+                if (!this.validItems(hour, minute)) {
                   return;
                 }
-                this.disabledMinutes[endHour] = util.getDisabledMinuteArr([disabledMinRanges[1]], this.minuteStep).slice();
-              }
-              this.disabledMinutes[beginHour] = util.getDisabledMinuteArr([disabledMinRanges[0]], this.minuteStep).slice();
-            },
-            applyRange: function(beginHour, beginMin, endHour) {
-              var targetHour = beginHour;
-              var targetMinute = Math.ceil(beginMin / this.minuteStep) * this.minuteStep;
-              if (this.isLaterThanSetTime(beginHour, beginMin)) {
-                if (this.hourStep !== 1 && beginHour % this.hourStep !== 1) {
-                  targetHour = beginHour + beginHour % this.hourStep + 1;
-                  targetMinute = 0;
+                this.hour = hour;
+                this.minute = minute;
+                this.syncToInputs();
+                if (this.showMeridiem) {
+                  this.syncToMeridiemElements();
                 }
-                this.setTime(targetHour, targetMinute);
-              }
-              this.setDisabledHours();
-              if (this.showMeridiem) {
-                this.syncToMeridiemElements();
-                util.setDisabled(this.amEl, beginHour >= END_NUMBER_OF_HOUR_WITH_MERIDIEM);
-                util.setDisabled(this.pmEl, endHour < END_NUMBER_OF_HOUR_WITH_MERIDIEM);
-              }
-            },
-            resetMinuteRange: function() {
-              var i2;
-              this.disabledMinutes = {};
-              for (i2 = 0; i2 <= END_NUMBER_OF_HOUR; i2 += 1) {
+                if (!silent) {
+                  this.fire("change", {
+                    hour: this.hour,
+                    minute: this.minute
+                  });
+                }
+              },
+              setRange: function(begin, end) {
+                var beginHour = begin.hour;
+                var beginMin = begin.minute;
+                var endHour, endMin;
+                if (!this.isValidRange(begin, end)) {
+                  return;
+                }
+                if (end) {
+                  endHour = end.hour;
+                  endMin = end.minute;
+                }
+                this.setRangeHour(beginHour, endHour);
+                this.setRangeMinute(beginHour, beginMin, endHour, endMin);
+                this.applyRange(beginHour, beginMin, endHour);
+              },
+              setRangeHour: function(beginHour, endHour) {
+                var disabledHours = util.getRangeArr(START_NUMBER_OF_TIME, beginHour - 1);
+                if (endHour) {
+                  disabledHours = disabledHours.concat(util.getRangeArr(endHour + 1, END_NUMBER_OF_HOUR));
+                }
+                this.disabledHours = disabledHours.slice();
+              },
+              setRangeMinute: function(beginHour, beginMin, endHour, endMin) {
+                var disabledMinRanges = [];
+                if (!beginHour && !beginMin) {
+                  return;
+                }
+                disabledMinRanges.push({
+                  begin: START_NUMBER_OF_TIME,
+                  end: beginMin
+                });
+                if (endHour && endMin) {
+                  disabledMinRanges.push({
+                    begin: endMin,
+                    end: END_NUMBER_OF_MINUTE
+                  });
+                  if (beginHour === endHour) {
+                    this.disabledMinutes[beginHour] = util.getDisabledMinuteArr(disabledMinRanges, this.minuteStep).slice();
+                    return;
+                  }
+                  this.disabledMinutes[endHour] = util.getDisabledMinuteArr([disabledMinRanges[1]], this.minuteStep).slice();
+                }
+                this.disabledMinutes[beginHour] = util.getDisabledMinuteArr([disabledMinRanges[0]], this.minuteStep).slice();
+              },
+              applyRange: function(beginHour, beginMin, endHour) {
+                var targetMinuteIndex = Math.ceil(beginMin / this.minuteStep);
+                var targetHour = beginHour;
+                var targetMinute = targetMinuteIndex * this.minuteStep;
+                var diffFromSelectableMinute;
+                if (this.isLaterThanSetTime(beginHour, beginMin)) {
+                  if (this.disabledMinutes[targetHour][targetMinuteIndex]) {
+                    diffFromSelectableMinute = this.disabledMinutes[targetHour].slice(targetMinuteIndex).findIndex(function(isMinuteDisabled) {
+                      return !isMinuteDisabled;
+                    }) * this.minuteStep;
+                    targetMinute = diffFromSelectableMinute >= 0 ? targetMinute + diffFromSelectableMinute : 60;
+                  }
+                  if (this.hourStep !== 1 && beginHour % this.hourStep !== 1 || targetMinute >= 60) {
+                    targetHour = beginHour + beginHour % this.hourStep + 1;
+                    targetMinute = 0;
+                  }
+                  this.setTime(targetHour, targetMinute);
+                }
+                this.setDisabledHours();
                 this.setDisabledMinutes(this.hour);
+                if (this.showMeridiem) {
+                  this.syncToMeridiemElements();
+                  util.setDisabled(this.amEl, beginHour >= END_NUMBER_OF_HOUR_WITH_MERIDIEM);
+                  util.setDisabled(this.pmEl, endHour < END_NUMBER_OF_HOUR_WITH_MERIDIEM);
+                }
+              },
+              resetMinuteRange: function() {
+                var i2;
+                this.disabledMinutes = {};
+                for (i2 = 0; i2 <= END_NUMBER_OF_HOUR; i2 += 1) {
+                  this.setDisabledMinutes(this.hour);
+                }
+              },
+              isValidRange: function(begin, end) {
+                var beginHour = begin.hour;
+                var beginMin = begin.minute;
+                var endHour, endMin;
+                if (!this.isValidTime(beginHour, beginMin)) {
+                  return false;
+                }
+                if (!end) {
+                  return true;
+                }
+                endHour = end.hour;
+                endMin = end.minute;
+                return this.isValidTime(endHour, endMin) && this.compareTimes(begin, end) > 0;
+              },
+              isValidTime: function(hour, minute) {
+                return hour >= START_NUMBER_OF_TIME && hour <= END_NUMBER_OF_HOUR && minute >= START_NUMBER_OF_TIME && minute <= END_NUMBER_OF_MINUTE;
+              },
+              isLaterThanSetTime: function(hour, minute) {
+                return hour > this.hour || hour === this.hour && minute > this.minute;
+              },
+              compareTimes: function(begin, end) {
+                var first2 = new Date(0);
+                var second = new Date(0);
+                first2.setHours(begin.hour, begin.minute);
+                second.setHours(end.hour, end.minute);
+                return second.getTime() - first2.getTime();
+              },
+              getHour: function() {
+                return this.hour;
+              },
+              getMinute: function() {
+                return this.minute;
+              },
+              changeLanguage: function(language) {
+                this.localeText = localeTexts[language];
+                this.render();
+              },
+              destroy: function() {
+                this.removeEvents();
+                removeElement(this.element);
+                this.container = this.showMeridiem = this.hourInput = this.minuteInput = this.hour = this.minute = this.inputType = this.element = this.meridiemElement = this.amEl = this.pmEl = null;
               }
-            },
-            isValidRange: function(begin, end) {
-              var beginHour = begin.hour;
-              var beginMin = begin.minute;
-              var endHour, endMin;
-              if (!this.isValidTime(beginHour, beginMin)) {
-                return false;
-              }
-              if (!end) {
-                return true;
-              }
-              endHour = end.hour;
-              endMin = end.minute;
-              return this.isValidTime(endHour, endMin) && this.compareTimes(begin, end) > 0;
-            },
-            isValidTime: function(hour, minute) {
-              return hour >= START_NUMBER_OF_TIME && hour <= END_NUMBER_OF_HOUR && minute >= START_NUMBER_OF_TIME && minute <= END_NUMBER_OF_MINUTE;
-            },
-            isLaterThanSetTime: function(hour, minute) {
-              return hour > this.hour || hour === this.hour && minute > this.minute;
-            },
-            compareTimes: function(begin, end) {
-              var first2 = new Date(0);
-              var second = new Date(0);
-              first2.setHours(begin.hour, begin.minute);
-              second.setHours(end.hour, end.minute);
-              return second.getTime() - first2.getTime();
-            },
-            getHour: function() {
-              return this.hour;
-            },
-            getMinute: function() {
-              return this.minute;
-            },
-            changeLanguage: function(language) {
-              this.localeText = localeTexts[language];
-              this.render();
-            },
-            destroy: function() {
-              this.removeEvents();
-              removeElement(this.element);
-              this.container = this.showMeridiem = this.hourInput = this.minuteInput = this.hour = this.minute = this.inputType = this.element = this.meridiemElement = this.amEl = this.pmEl = null;
             }
-          });
+          );
           CustomEvents2.mixin(TimePicker);
           module3.exports = TimePicker;
         },
@@ -1453,141 +1472,152 @@
           var tmpl = __webpack_require__(37);
           var SELECTOR_UP_BUTTON = ".tui-timepicker-btn-up";
           var SELECTOR_DOWN_BUTTON = ".tui-timepicker-btn-down";
-          var Spinbox = defineClass({
-            init: function(container, options) {
-              options = extend2({
-                items: []
-              }, options);
-              this._container = isHTMLNode(container) ? container : document.querySelector(container);
-              this._element = null;
-              this._inputElement = null;
-              this._items = options.items;
-              this._disabledItems = options.disabledItems || [];
-              this._selectedIndex = Math.max(0, inArray(options.initialValue, this._items));
-              this._format = options.format;
-              this._render();
-              this._setEvents();
-            },
-            _render: function() {
-              var index = inArray(this.getValue(), this._items);
-              var context;
-              if (this._disabledItems[index]) {
-                this._selectedIndex = this._findEnabledIndex();
-              }
-              context = {
-                maxLength: this._getMaxLength(),
-                initialValue: this.getValue(),
-                format: this._format,
-                formatTime: util.formatTime
-              };
-              this._container.innerHTML = tmpl(context);
-              this._element = this._container.firstChild;
-              this._inputElement = this._element.querySelector("input");
-            },
-            _findEnabledIndex: function() {
-              return inArray(false, this._disabledItems);
-            },
-            _getMaxLength: function() {
-              var lengths = [];
-              forEachArray2(this._items, function(item) {
-                lengths.push(String(item).length);
-              });
-              return Math.max.apply(null, lengths);
-            },
-            setDisabledItems: function(disabledItems) {
-              this._disabledItems = disabledItems;
-              this._changeToInputValue();
-            },
-            _setEvents: function() {
-              on2(this._container, "click", this._onClickHandler, this);
-              on2(this._inputElement, "keydown", this._onKeydownInputElement, this);
-              on2(this._inputElement, "change", this._onChangeHandler, this);
-              this.on("changeItems", function(items) {
-                this._items = items;
+          var Spinbox = defineClass(
+            {
+              init: function(container, options) {
+                options = extend2(
+                  {
+                    items: []
+                  },
+                  options
+                );
+                this._container = isHTMLNode(container) ? container : document.querySelector(container);
+                this._element = null;
+                this._inputElement = null;
+                this._items = options.items;
+                this._disabledItems = options.disabledItems || [];
+                this._selectedIndex = Math.max(0, inArray(options.initialValue, this._items));
+                this._format = options.format;
                 this._render();
-              }, this);
-            },
-            _removeEvents: function() {
-              this.off();
-              off(this._container, "click", this._onClickHandler, this);
-              off(this._inputElement, "keydown", this._onKeydownInputElement, this);
-              off(this._inputElement, "change", this._onChangeHandler, this);
-            },
-            _onClickHandler: function(ev) {
-              var target = util.getTarget(ev);
-              if (closest(target, SELECTOR_DOWN_BUTTON)) {
-                this._setNextValue(true);
-              } else if (closest(target, SELECTOR_UP_BUTTON)) {
-                this._setNextValue(false);
-              }
-            },
-            _setNextValue: function(isDown) {
-              var index = this._selectedIndex;
-              if (isDown) {
-                index = index ? index - 1 : this._items.length - 1;
-              } else {
-                index = index < this._items.length - 1 ? index + 1 : 0;
-              }
-              if (this._disabledItems[index]) {
-                this._selectedIndex = index;
-                this._setNextValue(isDown);
-              } else {
-                this.setValue(this._items[index]);
-              }
-            },
-            _onKeydownInputElement: function(ev) {
-              var keyCode = ev.which || ev.keyCode;
-              var isDown;
-              if (closest(util.getTarget(ev), "input")) {
-                switch (keyCode) {
-                  case 38:
-                    isDown = false;
-                    break;
-                  case 40:
-                    isDown = true;
-                    break;
-                  default:
-                    return;
+                this._setEvents();
+              },
+              _render: function() {
+                var index = inArray(this.getValue(), this._items);
+                var context;
+                if (this._disabledItems[index]) {
+                  this._selectedIndex = this._findEnabledIndex();
                 }
-                this._setNextValue(isDown);
-              }
-            },
-            _onChangeHandler: function(ev) {
-              if (closest(util.getTarget(ev), "input")) {
-                this._changeToInputValue();
-              }
-            },
-            _changeToInputValue: function() {
-              var newValue = Number(this._inputElement.value);
-              var newIndex = inArray(newValue, this._items);
-              if (this._disabledItems[newIndex]) {
-                newIndex = this._findEnabledIndex();
-                newValue = this._items[newIndex];
-              } else if (newIndex === this._selectedIndex) {
-                return;
-              }
-              if (newIndex === -1) {
-                this.setValue(this._items[this._selectedIndex]);
-              } else {
-                this._selectedIndex = newIndex;
-                this.fire("change", {
-                  value: newValue
+                context = {
+                  maxLength: this._getMaxLength(),
+                  initialValue: this.getValue(),
+                  format: this._format,
+                  formatTime: util.formatTime
+                };
+                this._container.innerHTML = tmpl(context);
+                this._element = this._container.firstChild;
+                this._inputElement = this._element.querySelector("input");
+              },
+              _findEnabledIndex: function() {
+                return inArray(false, this._disabledItems);
+              },
+              _getMaxLength: function() {
+                var lengths = [];
+                forEachArray2(this._items, function(item) {
+                  lengths.push(String(item).length);
                 });
+                return Math.max.apply(null, lengths);
+              },
+              setDisabledItems: function(disabledItems) {
+                this._disabledItems = disabledItems;
+                this._changeToInputValue();
+              },
+              _setEvents: function() {
+                on2(this._container, "click", this._onClickHandler, this);
+                on2(this._inputElement, "keydown", this._onKeydownInputElement, this);
+                on2(this._inputElement, "change", this._onChangeHandler, this);
+                this.on(
+                  "changeItems",
+                  function(items) {
+                    this._items = items;
+                    this._render();
+                  },
+                  this
+                );
+              },
+              _removeEvents: function() {
+                this.off();
+                off(this._container, "click", this._onClickHandler, this);
+                off(this._inputElement, "keydown", this._onKeydownInputElement, this);
+                off(this._inputElement, "change", this._onChangeHandler, this);
+              },
+              _onClickHandler: function(ev) {
+                var target = util.getTarget(ev);
+                if (closest(target, SELECTOR_DOWN_BUTTON)) {
+                  this._setNextValue(true);
+                } else if (closest(target, SELECTOR_UP_BUTTON)) {
+                  this._setNextValue(false);
+                }
+              },
+              _setNextValue: function(isDown) {
+                var index = this._selectedIndex;
+                if (isDown) {
+                  index = index ? index - 1 : this._items.length - 1;
+                } else {
+                  index = index < this._items.length - 1 ? index + 1 : 0;
+                }
+                if (this._disabledItems[index]) {
+                  this._selectedIndex = index;
+                  this._setNextValue(isDown);
+                } else {
+                  this.setValue(this._items[index]);
+                }
+              },
+              _onKeydownInputElement: function(ev) {
+                var keyCode = ev.which || ev.keyCode;
+                var isDown;
+                if (closest(util.getTarget(ev), "input")) {
+                  switch (keyCode) {
+                    case 38:
+                      isDown = false;
+                      break;
+                    case 40:
+                      isDown = true;
+                      break;
+                    default:
+                      return;
+                  }
+                  this._setNextValue(isDown);
+                }
+              },
+              _onChangeHandler: function(ev) {
+                if (closest(util.getTarget(ev), "input")) {
+                  this._changeToInputValue();
+                }
+              },
+              _changeToInputValue: function(silent) {
+                var newValue = Number(this._inputElement.value);
+                var newIndex = inArray(newValue, this._items);
+                if (this._disabledItems[newIndex]) {
+                  newIndex = this._findEnabledIndex();
+                  newValue = this._items[newIndex];
+                } else if (newIndex === this._selectedIndex) {
+                  return;
+                }
+                if (newIndex === -1) {
+                  this.setValue(this._items[this._selectedIndex], silent);
+                } else {
+                  this._selectedIndex = newIndex;
+                  if (!silent) {
+                    this.fire("change", {
+                      value: newValue
+                    });
+                  }
+                }
+              },
+              setValue: function(value, silent) {
+                this._inputElement.value = util.formatTime(value, this._format);
+                this._changeToInputValue(silent);
+              },
+              getValue: function() {
+                return this._items[this._selectedIndex];
+              },
+              destroy: function() {
+                this._removeEvents();
+                removeElement(this._element);
+                this._container = this._element = this._inputElement = this._items = this._selectedIndex = null;
               }
-            },
-            setValue: function(value) {
-              this._inputElement.value = util.formatTime(value, this._format);
-              this._changeToInputValue();
-            },
-            getValue: function() {
-              return this._items[this._selectedIndex];
-            },
-            destroy: function() {
-              this._removeEvents();
-              removeElement(this._element);
-              this._container = this._element = this._inputElement = this._items = this._selectedIndex = null;
             }
-          });
+          );
           CustomEvents2.mixin(Spinbox);
           module3.exports = Spinbox;
         },
@@ -1666,92 +1696,103 @@
           var isHTMLNode = __webpack_require__(14);
           var util = __webpack_require__(15);
           var tmpl = __webpack_require__(39);
-          var Selectbox = defineClass({
-            init: function(container, options) {
-              options = extend2({
-                items: []
-              }, options);
-              this._container = isHTMLNode(container) ? container : document.querySelector(container);
-              this._items = options.items || [];
-              this._disabledItems = options.disabledItems || [];
-              this._selectedIndex = Math.max(0, inArray(options.initialValue, this._items));
-              this._format = options.format;
-              this._element = null;
-              this._render();
-              this._setEvents();
-            },
-            _render: function() {
-              var context;
-              this._changeEnabledIndex();
-              context = {
-                items: this._items,
-                format: this._format,
-                initialValue: this.getValue(),
-                disabledItems: this._disabledItems,
-                formatTime: util.formatTime,
-                equals: function(a2, b2) {
-                  return a2 === b2;
-                }
-              };
-              if (this._element) {
-                this._removeElement();
-              }
-              this._container.innerHTML = tmpl(context);
-              this._element = this._container.firstChild;
-              on2(this._element, "change", this._onChangeHandler, this);
-            },
-            _changeEnabledIndex: function() {
-              var index = inArray(this.getValue(), this._items);
-              if (this._disabledItems[index]) {
-                this._selectedIndex = inArray(false, this._disabledItems);
-              }
-            },
-            setDisabledItems: function(disabledItems) {
-              this._disabledItems = disabledItems;
-              this._render();
-            },
-            _setEvents: function() {
-              this.on("changeItems", function(items) {
-                this._items = items;
+          var Selectbox = defineClass(
+            {
+              init: function(container, options) {
+                options = extend2(
+                  {
+                    items: []
+                  },
+                  options
+                );
+                this._container = isHTMLNode(container) ? container : document.querySelector(container);
+                this._items = options.items || [];
+                this._disabledItems = options.disabledItems || [];
+                this._selectedIndex = Math.max(0, inArray(options.initialValue, this._items));
+                this._format = options.format;
+                this._element = null;
                 this._render();
-              }, this);
-            },
-            _removeEvents: function() {
-              this.off();
-            },
-            _removeElement: function() {
-              off(this._element, "change", this._onChangeHandler, this);
-              removeElement(this._element);
-            },
-            _onChangeHandler: function(ev) {
-              if (closest(util.getTarget(ev), "select")) {
-                this._setNewValue();
+                this._setEvents();
+              },
+              _render: function() {
+                var context;
+                this._changeEnabledIndex();
+                context = {
+                  items: this._items,
+                  format: this._format,
+                  initialValue: this.getValue(),
+                  disabledItems: this._disabledItems,
+                  formatTime: util.formatTime,
+                  equals: function(a2, b2) {
+                    return a2 === b2;
+                  }
+                };
+                if (this._element) {
+                  this._removeElement();
+                }
+                this._container.innerHTML = tmpl(context);
+                this._element = this._container.firstChild;
+                on2(this._element, "change", this._onChangeHandler, this);
+              },
+              _changeEnabledIndex: function() {
+                var index = inArray(this.getValue(), this._items);
+                if (this._disabledItems[index]) {
+                  this._selectedIndex = inArray(false, this._disabledItems);
+                }
+              },
+              setDisabledItems: function(disabledItems) {
+                this._disabledItems = disabledItems;
+                this._render();
+              },
+              _setEvents: function() {
+                this.on(
+                  "changeItems",
+                  function(items) {
+                    this._items = items;
+                    this._render();
+                  },
+                  this
+                );
+              },
+              _removeEvents: function() {
+                this.off();
+              },
+              _removeElement: function() {
+                off(this._element, "change", this._onChangeHandler, this);
+                removeElement(this._element);
+              },
+              _onChangeHandler: function(ev) {
+                if (closest(util.getTarget(ev), "select")) {
+                  this._setNewValue();
+                }
+              },
+              _setNewValue: function(silent) {
+                var newValue = Number(this._element.value);
+                this._selectedIndex = inArray(newValue, this._items);
+                if (!silent) {
+                  this.fire("change", {
+                    value: newValue
+                  });
+                }
+              },
+              getValue: function() {
+                return this._items[this._selectedIndex];
+              },
+              setValue: function(value, silent) {
+                var newIndex = inArray(value, this._items);
+                if (newIndex > -1 && newIndex !== this._selectedIndex) {
+                  this._selectedIndex = newIndex;
+                  this._element.value = value;
+                  this._setNewValue(silent);
+                }
+              },
+              destroy: function() {
+                this._removeEvents();
+                this._removeElement();
+                this._container = this._items = this._selectedIndex = this._element = null;
               }
-            },
-            _setNewValue: function() {
-              var newValue = Number(this._element.value);
-              this._selectedIndex = inArray(newValue, this._items);
-              this.fire("change", {
-                value: newValue
-              });
-            },
-            getValue: function() {
-              return this._items[this._selectedIndex];
-            },
-            setValue: function(value) {
-              var newIndex = inArray(value, this._items);
-              if (newIndex > -1 && newIndex !== this._selectedIndex) {
-                this._selectedIndex = newIndex;
-                this._element.value = value;
-                this._setNewValue();
-              }
-            },
-            destroy: function() {
-              this._removeEvents();
-              this._removeElement();
-              this._container = this._items = this._selectedIndex = this._element = null;
             }
-          });
+          );
           CustomEvents2.mixin(Selectbox);
           module3.exports = Selectbox;
         },
@@ -1793,8 +1834,8 @@
   })(tuiTimePicker);
   /*!
    * TOAST UI Date Picker
-   * @version 4.3.1
-   * @author NHN. FE Development Lab <dl_javascript@nhn.com>
+   * @version 4.3.3
+   * @author NHN Cloud. FE Development Lab <dl_javascript@nhn.com>
    * @license MIT
    */
   (function(module2, exports2) {
@@ -2589,7 +2630,11 @@
             if (helperCount) {
               throw Error(helperKeyword + " needs {{/" + helperKeyword + "}} expression.");
             }
-            sourcesToEnd[startBlockIndex] = executeBlockHelper(sourcesToEnd[startBlockIndex].split(" ").slice(1), extractSourcesInsideBlock(sourcesToEnd, startBlockIndex, endBlockIndex), context);
+            sourcesToEnd[startBlockIndex] = executeBlockHelper(
+              sourcesToEnd[startBlockIndex].split(" ").slice(1),
+              extractSourcesInsideBlock(sourcesToEnd, startBlockIndex, endBlockIndex),
+              context
+            );
             return sourcesToEnd;
           }
           function handleExpression(exps, context) {
@@ -2728,7 +2773,9 @@
           var off = __webpack_require__(33);
           var mouseTouchEvent = {
             _isMobile: function() {
-              return /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+              return /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+                navigator.userAgent
+              );
             }(),
             _getEventType: function(type) {
               if (this._isMobile) {
@@ -2754,35 +2801,37 @@
           var removeElement = __webpack_require__(14);
           var localeText = __webpack_require__(10);
           var DEFAULT_LANGUAGE_TYPE = __webpack_require__(1).DEFAULT_LANGUAGE_TYPE;
-          var LayerBase = defineClass({
-            init: function(language) {
-              language = language || DEFAULT_LANGUAGE_TYPE;
-              this._element = null;
-              this._localeText = localeText[language];
-              this._type = "base";
-            },
-            _makeContext: function() {
-              throwOverrideError(this.getType(), "_makeContext");
-            },
-            render: function() {
-              throwOverrideError(this.getType(), "render");
-            },
-            getDateElements: function() {
-              throwOverrideError(this.getType(), "getDateElements");
-            },
-            getType: function() {
-              return this._type;
-            },
-            changeLanguage: function(language) {
-              this._localeText = localeText[language];
-            },
-            remove: function() {
-              if (this._element) {
-                removeElement(this._element);
+          var LayerBase = defineClass(
+            {
+              init: function(language) {
+                language = language || DEFAULT_LANGUAGE_TYPE;
+                this._element = null;
+                this._localeText = localeText[language];
+                this._type = "base";
+              },
+              _makeContext: function() {
+                throwOverrideError(this.getType(), "_makeContext");
+              },
+              render: function() {
+                throwOverrideError(this.getType(), "render");
+              },
+              getDateElements: function() {
+                throwOverrideError(this.getType(), "getDateElements");
+              },
+              getType: function() {
+                return this._type;
+              },
+              changeLanguage: function(language) {
+                this._localeText = localeText[language];
+              },
+              remove: function() {
+                if (this._element) {
+                  removeElement(this._element);
+                }
+                this._element = null;
               }
-              this._element = null;
             }
-          });
+          );
           function throwOverrideError(layerType, methodName) {
             throw new Error(layerType + ' layer does not have the "' + methodName + '" method.');
           }
@@ -2837,23 +2886,26 @@
           var SELECTOR_CALENDAR_CONTAINER = ".tui-calendar-container";
           var SELECTOR_TIMEPICKER_CONTAINER = ".tui-timepicker-container";
           var mergeDefaultOption = function(option) {
-            option = extend2({
-              language: DEFAULT_LANGUAGE_TYPE,
-              calendar: {},
-              input: {
-                element: null,
-                format: null
+            option = extend2(
+              {
+                language: DEFAULT_LANGUAGE_TYPE,
+                calendar: {},
+                input: {
+                  element: null,
+                  format: null
+                },
+                timePicker: null,
+                date: null,
+                showAlways: false,
+                type: TYPE_DATE,
+                selectableRanges: null,
+                openers: [],
+                autoClose: true,
+                usageStatistics: true,
+                weekStartDay: DEFAULT_WEEK_START_DAY
               },
-              timePicker: null,
-              date: null,
-              showAlways: false,
-              type: TYPE_DATE,
-              selectableRanges: null,
-              openers: [],
-              autoClose: true,
-              usageStatistics: true,
-              weekStartDay: DEFAULT_WEEK_START_DAY
-            }, option);
+              option
+            );
             option.selectableRanges = option.selectableRanges || [[constants.MIN_DATE, constants.MAX_DATE]];
             if (!isObject2(option.calendar)) {
               throw new Error("Calendar option must be an object");
@@ -2870,585 +2922,625 @@
             option.timePicker = option.timePicker || option.timepicker;
             return option;
           };
-          var DatePicker2 = defineClass({
-            static: {
-              localeTexts
-            },
-            init: function(container, options) {
-              options = mergeDefaultOption(options);
-              this._language = options.language;
-              this._container = util.getElement(container);
-              this._container.innerHTML = tmpl(extend2(options, {
-                isTab: options.timePicker && options.timePicker.layoutType === "tab"
-              }));
-              this._element = this._container.firstChild;
-              this._calendar = new Calendar2(this._element.querySelector(SELECTOR_CALENDAR_CONTAINER), extend2(options.calendar, {
-                usageStatistics: options.usageStatistics,
-                weekStartDay: options.weekStartDay
-              }));
-              this._timePicker = null;
-              this._datepickerInput = null;
-              this._date = null;
-              this._rangeModel = null;
-              this._openers = [];
-              this._isEnabled = true;
-              this._id = "tui-datepicker-" + util.generateId();
-              this._type = options.type;
-              this.showAlways = options.showAlways;
-              this.autoClose = options.autoClose;
-              this._initializeDatePicker(options);
-            },
-            _initializeDatePicker: function(option) {
-              this.setRanges(option.selectableRanges);
-              this._setEvents();
-              this._initTimePicker(option.timePicker, option.usageStatistics);
-              this.setInput(option.input.element);
-              this.setDateFormat(option.input.format);
-              this.setDate(option.date);
-              forEachArray2(option.openers, this.addOpener, this);
-              if (!this.showAlways) {
-                this._hide();
-              }
-              if (this.getType() === TYPE_DATE) {
-                addClass(this._element.querySelector(SELECTOR_BODY), "tui-datepicker-type-date");
-              }
-            },
-            _setEvents: function() {
-              mouseTouchEvent.on(this._element, "click", this._onClickHandler, this);
-              this._calendar.on("draw", this._onDrawCalendar, this);
-            },
-            _removeEvents: function() {
-              mouseTouchEvent.off(this._element, "click", this._onClickHandler, this);
-              this._calendar.off();
-            },
-            _setDocumentEvents: function() {
-              mouseTouchEvent.on(document, "mousedown", this._onMousedownDocument, this);
-            },
-            _removeDocumentEvents: function() {
-              mouseTouchEvent.off(document, "mousedown", this._onMousedownDocument);
-            },
-            _setOpenerEvents: function(opener) {
-              mouseTouchEvent.on(opener, "click", this.toggle, this);
-            },
-            _removeOpenerEvents: function(opener) {
-              mouseTouchEvent.off(opener, "click", this.toggle);
-            },
-            _initTimePicker: function(opTimePicker, usageStatistics) {
-              var layoutType;
-              if (!opTimePicker) {
-                return;
-              }
-              layoutType = opTimePicker.layoutType || "";
-              if (isObject2(opTimePicker)) {
-                opTimePicker.usageStatistics = usageStatistics;
-              } else {
-                opTimePicker = {
-                  usageStatistics
-                };
-              }
-              this._timePicker = new TimePicker(this._element.querySelector(SELECTOR_TIMEPICKER_CONTAINER), opTimePicker);
-              if (layoutType.toLowerCase() === "tab") {
-                this._timePicker.hide();
-              }
-              this._timePicker.on("change", function(ev) {
-                var prevDate;
-                if (this._date) {
-                  prevDate = new Date(this._date);
-                  this.setDate(prevDate.setHours(ev.hour, ev.minute));
+          var DatePicker2 = defineClass(
+            {
+              static: {
+                localeTexts
+              },
+              init: function(container, options) {
+                options = mergeDefaultOption(options);
+                this._language = options.language;
+                this._container = util.getElement(container);
+                this._container.innerHTML = tmpl(
+                  extend2(options, {
+                    isTab: options.timePicker && options.timePicker.layoutType === "tab"
+                  })
+                );
+                this._element = this._container.firstChild;
+                this._calendar = new Calendar2(
+                  this._element.querySelector(SELECTOR_CALENDAR_CONTAINER),
+                  extend2(options.calendar, {
+                    usageStatistics: options.usageStatistics,
+                    weekStartDay: options.weekStartDay
+                  })
+                );
+                this._timePicker = null;
+                this._datepickerInput = null;
+                this._date = null;
+                this._rangeModel = null;
+                this._openers = [];
+                this._isEnabled = true;
+                this._id = "tui-datepicker-" + util.generateId();
+                this._type = options.type;
+                this.showAlways = options.showAlways;
+                this.autoClose = options.autoClose;
+                this._initializeDatePicker(options);
+              },
+              _initializeDatePicker: function(option) {
+                this.setRanges(option.selectableRanges);
+                this._setEvents();
+                this._initTimePicker(option.timePicker, option.usageStatistics);
+                this.setInput(option.input.element);
+                this.setDateFormat(option.input.format);
+                this.setDate(option.date);
+                forEachArray2(option.openers, this.addOpener, this);
+                if (!this.showAlways) {
+                  this._hide();
                 }
-              }, this);
-            },
-            _changePicker: function(target) {
-              var btnSelector = "." + CLASS_NAME_SELECTOR_BUTTON;
-              var selectedBtn = closest(target, btnSelector);
-              var isDateElement = !!selectedBtn.querySelector(SELECTOR_DATE_ICO);
-              if (isDateElement) {
-                this._calendar.show();
-                this._timePicker.hide();
-              } else {
-                this._calendar.hide();
-                this._timePicker.show();
-              }
-              removeClass(this._element.querySelector("." + CLASS_NAME_CHECKED), CLASS_NAME_CHECKED);
-              addClass(selectedBtn, CLASS_NAME_CHECKED);
-            },
-            _isOpener: function(element) {
-              var el = util.getElement(element);
-              return inArray(el, this._openers) > -1;
-            },
-            _setTodayClassName: function(el) {
-              var timestamp, isToday;
-              if (this.getCalendarType() !== TYPE_DATE) {
-                return;
-              }
-              timestamp = Number(getData(el, "timestamp"));
-              isToday = timestamp === new Date().setHours(0, 0, 0, 0);
-              if (isToday) {
-                addClass(el, CLASS_NAME_TODAY);
-              } else {
-                removeClass(el, CLASS_NAME_TODAY);
-              }
-            },
-            _setSelectableClassName: function(el) {
-              var elDate = new Date(Number(getData(el, "timestamp")));
-              if (this._isSelectableOnCalendar(elDate)) {
-                addClass(el, CLASS_NAME_SELECTABLE);
-                removeClass(el, CLASS_NAME_BLOCKED);
-              } else {
-                removeClass(el, CLASS_NAME_SELECTABLE);
-                addClass(el, CLASS_NAME_BLOCKED);
-              }
-            },
-            _setSelectedClassName: function(el) {
-              var elDate = new Date(Number(getData(el, "timestamp")));
-              if (this._isSelectedOnCalendar(elDate)) {
-                addClass(el, CLASS_NAME_SELECTED);
-              } else {
-                removeClass(el, CLASS_NAME_SELECTED);
-              }
-            },
-            _isSelectableOnCalendar: function(date2) {
-              var type = this.getCalendarType();
-              var start = dateUtil.cloneWithStartOf(date2, type).getTime();
-              var end = dateUtil.cloneWithEndOf(date2, type).getTime();
-              return this._rangeModel.hasOverlap(start, end);
-            },
-            _isSelectedOnCalendar: function(date2) {
-              var curDate = this.getDate();
-              var calendarType = this.getCalendarType();
-              return curDate && dateUtil.isSame(curDate, date2, calendarType);
-            },
-            _show: function() {
-              removeClass(this._element, CLASS_NAME_HIDDEN);
-            },
-            _hide: function() {
-              addClass(this._element, CLASS_NAME_HIDDEN);
-            },
-            _syncToInput: function() {
-              if (!this._date) {
-                return;
-              }
-              this._datepickerInput.setDate(this._date);
-            },
-            _syncFromInput: function(shouldRollback) {
-              var isFailed = false;
-              var date2;
-              try {
-                date2 = this._datepickerInput.getDate();
-                if (this.isSelectable(date2)) {
-                  if (this._timePicker) {
-                    this._timePicker.setTime(date2.getHours(), date2.getMinutes());
-                  }
-                  this.setDate(date2);
+                if (this.getType() === TYPE_DATE) {
+                  addClass(this._element.querySelector(SELECTOR_BODY), "tui-datepicker-type-date");
+                }
+              },
+              _setEvents: function() {
+                mouseTouchEvent.on(this._element, "click", this._onClickHandler, this);
+                this._calendar.on("draw", this._onDrawCalendar, this);
+              },
+              _removeEvents: function() {
+                mouseTouchEvent.off(this._element, "click", this._onClickHandler, this);
+                this._calendar.off();
+              },
+              _setDocumentEvents: function() {
+                mouseTouchEvent.on(document, "mousedown", this._onMousedownDocument, this);
+              },
+              _removeDocumentEvents: function() {
+                mouseTouchEvent.off(document, "mousedown", this._onMousedownDocument);
+              },
+              _setOpenerEvents: function(opener) {
+                mouseTouchEvent.on(opener, "click", this.toggle, this);
+              },
+              _removeOpenerEvents: function(opener) {
+                mouseTouchEvent.off(opener, "click", this.toggle);
+              },
+              _initTimePicker: function(opTimePicker, usageStatistics) {
+                var layoutType;
+                if (!opTimePicker) {
+                  return;
+                }
+                layoutType = opTimePicker.layoutType || "";
+                if (isObject2(opTimePicker)) {
+                  opTimePicker.usageStatistics = usageStatistics;
                 } else {
-                  isFailed = true;
+                  opTimePicker = {
+                    usageStatistics
+                  };
                 }
-              } catch (err) {
-                this.fire("error", {
-                  type: "ParsingError",
-                  message: err.message
-                });
-                isFailed = true;
-              } finally {
-                if (isFailed) {
-                  if (shouldRollback) {
-                    this._syncToInput();
+                this._timePicker = new TimePicker(
+                  this._element.querySelector(SELECTOR_TIMEPICKER_CONTAINER),
+                  opTimePicker
+                );
+                if (layoutType.toLowerCase() === "tab") {
+                  this._timePicker.hide();
+                }
+                this._timePicker.on(
+                  "change",
+                  function(ev) {
+                    var prevDate;
+                    if (this._date) {
+                      prevDate = new Date(this._date);
+                      this.setDate(prevDate.setHours(ev.hour, ev.minute));
+                    }
+                  },
+                  this
+                );
+              },
+              _changePicker: function(target) {
+                var btnSelector = "." + CLASS_NAME_SELECTOR_BUTTON;
+                var selectedBtn = closest(target, btnSelector);
+                var isDateElement = !!selectedBtn.querySelector(SELECTOR_DATE_ICO);
+                if (isDateElement) {
+                  this._calendar.show();
+                  this._timePicker.hide();
+                } else {
+                  this._calendar.hide();
+                  this._timePicker.show();
+                }
+                removeClass(this._element.querySelector("." + CLASS_NAME_CHECKED), CLASS_NAME_CHECKED);
+                addClass(selectedBtn, CLASS_NAME_CHECKED);
+              },
+              _isOpener: function(element) {
+                var el = util.getElement(element);
+                return inArray(el, this._openers) > -1;
+              },
+              _setTodayClassName: function(el) {
+                var timestamp, isToday;
+                if (this.getCalendarType() !== TYPE_DATE) {
+                  return;
+                }
+                timestamp = Number(getData(el, "timestamp"));
+                isToday = timestamp === new Date().setHours(0, 0, 0, 0);
+                if (isToday) {
+                  addClass(el, CLASS_NAME_TODAY);
+                } else {
+                  removeClass(el, CLASS_NAME_TODAY);
+                }
+              },
+              _setSelectableClassName: function(el) {
+                var elDate = new Date(Number(getData(el, "timestamp")));
+                if (this._isSelectableOnCalendar(elDate)) {
+                  addClass(el, CLASS_NAME_SELECTABLE);
+                  removeClass(el, CLASS_NAME_BLOCKED);
+                } else {
+                  removeClass(el, CLASS_NAME_SELECTABLE);
+                  addClass(el, CLASS_NAME_BLOCKED);
+                }
+              },
+              _setSelectedClassName: function(el) {
+                var elDate = new Date(Number(getData(el, "timestamp")));
+                if (this._isSelectedOnCalendar(elDate)) {
+                  addClass(el, CLASS_NAME_SELECTED);
+                } else {
+                  removeClass(el, CLASS_NAME_SELECTED);
+                }
+              },
+              _isSelectableOnCalendar: function(date2) {
+                var type = this.getCalendarType();
+                var start = dateUtil.cloneWithStartOf(date2, type).getTime();
+                var end = dateUtil.cloneWithEndOf(date2, type).getTime();
+                return this._rangeModel.hasOverlap(start, end);
+              },
+              _isSelectedOnCalendar: function(date2) {
+                var curDate = this.getDate();
+                var calendarType = this.getCalendarType();
+                return curDate && dateUtil.isSame(curDate, date2, calendarType);
+              },
+              _show: function() {
+                removeClass(this._element, CLASS_NAME_HIDDEN);
+              },
+              _hide: function() {
+                addClass(this._element, CLASS_NAME_HIDDEN);
+              },
+              _syncToInput: function() {
+                if (!this._date) {
+                  return;
+                }
+                this._datepickerInput.setDate(this._date);
+              },
+              _syncFromInput: function(shouldRollback) {
+                var isFailed = false;
+                var date2;
+                try {
+                  date2 = this._datepickerInput.getDate();
+                  if (this.isSelectable(date2)) {
+                    if (this._timePicker) {
+                      this._timePicker.setTime(date2.getHours(), date2.getMinutes());
+                    }
+                    this.setDate(date2);
                   } else {
-                    this.setNull();
+                    isFailed = true;
+                  }
+                } catch (err) {
+                  this.fire("error", {
+                    type: "ParsingError",
+                    message: err.message
+                  });
+                  isFailed = true;
+                } finally {
+                  if (isFailed) {
+                    if (shouldRollback) {
+                      this._syncToInput();
+                    } else {
+                      this.setNull();
+                    }
                   }
                 }
-              }
-            },
-            _onMousedownDocument: function(ev) {
-              var target = util.getTarget(ev);
-              var selector = util.getSelector(target);
-              var isContain = selector ? this._element.querySelector(selector) : false;
-              var isInput = this._datepickerInput.is(target);
-              var isInOpener = inArray(target, this._openers) > -1;
-              var shouldClose = !(this.showAlways || isInput || isContain || isInOpener);
-              if (shouldClose) {
-                this.close();
-              }
-            },
-            _onClickHandler: function(ev) {
-              var target = util.getTarget(ev);
-              if (closest(target, "." + CLASS_NAME_SELECTABLE)) {
-                ev.preventDefault();
-                this._updateDate(target);
-              } else if (closest(target, "." + CLASS_NAME_TITLE_TODAY)) {
-                ev.preventDefault();
-                this._updateDateToToday();
-              } else if (closest(target, SELECTOR_CALENDAR_TITLE)) {
-                this.drawUpperCalendar(this._date);
-              } else if (closest(target, "." + CLASS_NAME_SELECTOR_BUTTON)) {
-                this._changePicker(target);
-              }
-            },
-            _updateDateToToday: function() {
-              this.setDate(Date.now());
-              this.close();
-            },
-            _updateDate: function(target) {
-              var timestamp = Number(getData(target, "timestamp"));
-              var newDate = new Date(timestamp);
-              var timePicker = this._timePicker;
-              var prevDate = this._date;
-              var calendarType = this.getCalendarType();
-              var pickerType = this.getType();
-              if (calendarType !== pickerType) {
-                this.drawLowerCalendar(newDate);
-              } else {
-                if (timePicker) {
-                  newDate.setHours(timePicker.getHour(), timePicker.getMinute());
-                } else if (prevDate) {
-                  newDate.setHours(prevDate.getHours(), prevDate.getMinutes());
-                }
-                this.setDate(newDate);
-                if (!this.showAlways && this.autoClose) {
+              },
+              _onMousedownDocument: function(ev) {
+                var target = util.getTarget(ev);
+                var selector = util.getSelector(target);
+                var isContain = selector ? this._element.querySelector(selector) : false;
+                var isInput = this._datepickerInput.is(target);
+                var isInOpener = inArray(target, this._openers) > -1;
+                var shouldClose = !(this.showAlways || isInput || isContain || isInOpener);
+                if (shouldClose) {
                   this.close();
                 }
-              }
-            },
-            _onDrawCalendar: function(eventData) {
-              forEachArray2(eventData.dateElements, function(el) {
-                this._setTodayClassName(el);
-                this._setSelectableClassName(el);
-                this._setSelectedClassName(el);
-              }, this);
-              this._setDisplayHeadButtons();
-              this.fire("draw", eventData);
-            },
-            _setDisplayHeadButtons: function() {
-              var nextYearDate = this._calendar.getNextYearDate();
-              var prevYearDate = this._calendar.getPrevYearDate();
-              var maxTimestamp = this._rangeModel.getMaximumValue();
-              var minTimestamp = this._rangeModel.getMinimumValue();
-              var nextYearBtn = this._element.querySelector("." + CLASS_NAME_NEXT_YEAR_BTN);
-              var prevYearBtn = this._element.querySelector("." + CLASS_NAME_PREV_YEAR_BTN);
-              var nextMonthDate, prevMonthDate, nextMonBtn, prevMonBtn;
-              if (this.getCalendarType() === TYPE_DATE) {
-                nextMonthDate = dateUtil.cloneWithStartOf(this._calendar.getNextDate(), TYPE_MONTH);
-                prevMonthDate = dateUtil.cloneWithEndOf(this._calendar.getPrevDate(), TYPE_MONTH);
-                nextMonBtn = this._element.querySelector("." + CLASS_NAME_NEXT_MONTH_BTN);
-                prevMonBtn = this._element.querySelector("." + CLASS_NAME_PREV_MONTH_BTN);
-                this._setDisplay(nextMonBtn, nextMonthDate.getTime() <= maxTimestamp);
-                this._setDisplay(prevMonBtn, prevMonthDate.getTime() >= minTimestamp);
-                prevYearDate.setDate(1);
-                nextYearDate.setDate(1);
-              } else {
-                prevYearDate.setMonth(12, 0);
-                nextYearDate.setMonth(0, 1);
-              }
-              this._setDisplay(nextYearBtn, nextYearDate.getTime() <= maxTimestamp);
-              this._setDisplay(prevYearBtn, prevYearDate.getTime() >= minTimestamp);
-            },
-            _setDisplay: function(el, shouldShow) {
-              if (el) {
-                if (shouldShow) {
-                  removeClass(el, CLASS_NAME_HIDDEN);
-                } else {
-                  addClass(el, CLASS_NAME_HIDDEN);
+              },
+              _onClickHandler: function(ev) {
+                var target = util.getTarget(ev);
+                if (closest(target, "." + CLASS_NAME_SELECTABLE)) {
+                  ev.preventDefault();
+                  this._updateDate(target);
+                } else if (closest(target, "." + CLASS_NAME_TITLE_TODAY)) {
+                  ev.preventDefault();
+                  this._updateDateToToday();
+                } else if (closest(target, SELECTOR_CALENDAR_TITLE)) {
+                  this.drawUpperCalendar(this._date);
+                } else if (closest(target, "." + CLASS_NAME_SELECTOR_BUTTON)) {
+                  this._changePicker(target);
                 }
-              }
-            },
-            _onChangeInput: function() {
-              this._syncFromInput(true);
-            },
-            _isChanged: function(date2) {
-              var prevDate = this.getDate();
-              return !prevDate || date2.getTime() !== prevDate.getTime();
-            },
-            _refreshFromRanges: function() {
-              if (!this.isSelectable(this._date)) {
-                this.setNull();
-              } else {
-                this._calendar.draw();
-              }
-            },
-            getCalendarType: function() {
-              return this._calendar.getType();
-            },
-            getType: function() {
-              return this._type;
-            },
-            isSelectable: function(date2) {
-              var type = this.getType();
-              var start, end;
-              if (!dateUtil.isValidDate(date2)) {
-                return false;
-              }
-              start = dateUtil.cloneWithStartOf(date2, type).getTime();
-              end = dateUtil.cloneWithEndOf(date2, type).getTime();
-              return this._rangeModel.hasOverlap(start, end);
-            },
-            isSelected: function(date2) {
-              return dateUtil.isValidDate(date2) && dateUtil.isSame(this._date, date2, this.getType());
-            },
-            setRanges: function(ranges) {
-              var result = [];
-              forEachArray2(ranges, function(range2) {
-                var start = new Date(range2[0]).getTime();
-                var end = new Date(range2[1]).getTime();
-                result.push([start, end]);
-              });
-              this._rangeModel = new RangeModel(result);
-              this._refreshFromRanges();
-            },
-            setType: function(type) {
-              this._type = type;
-            },
-            addRange: function(start, end) {
-              start = new Date(start).getTime();
-              end = new Date(end).getTime();
-              this._rangeModel.add(start, end);
-              this._refreshFromRanges();
-            },
-            removeRange: function(start, end, type) {
-              start = new Date(start);
-              end = new Date(end);
-              if (type) {
-                start = dateUtil.cloneWithStartOf(start, type);
-                end = dateUtil.cloneWithEndOf(end, type);
-              }
-              this._rangeModel.exclude(start.getTime(), end.getTime());
-              this._refreshFromRanges();
-            },
-            addOpener: function(opener) {
-              opener = util.getElement(opener);
-              if (!this._isOpener(opener)) {
-                this._openers.push(opener);
-                this._setOpenerEvents(opener);
-              }
-            },
-            removeOpener: function(opener) {
-              var index;
-              opener = util.getElement(opener);
-              index = inArray(opener, this._openers);
-              if (index > -1) {
-                this._removeOpenerEvents(opener);
-                this._openers.splice(index, 1);
-              }
-            },
-            removeAllOpeners: function() {
-              forEachArray2(this._openers, function(opener) {
-                this._removeOpenerEvents(opener);
-              }, this);
-              this._openers = [];
-            },
-            open: function() {
-              if (this.isOpened() || !this._isEnabled) {
-                return;
-              }
-              this._calendar.draw({
-                date: this._date,
-                type: this._type
-              });
-              this._show();
-              if (!this.showAlways) {
-                this._setDocumentEvents();
-              }
-              this.fire("open");
-            },
-            drawUpperCalendar: function(date2) {
-              var calendarType = this.getCalendarType();
-              if (calendarType === TYPE_DATE) {
-                this._calendar.draw({
-                  date: date2,
-                  type: TYPE_MONTH
-                });
-              } else if (calendarType === TYPE_MONTH) {
-                this._calendar.draw({
-                  date: date2,
-                  type: TYPE_YEAR
-                });
-              }
-            },
-            drawLowerCalendar: function(date2) {
-              var calendarType = this.getCalendarType();
-              var pickerType = this.getType();
-              var isLast = calendarType === pickerType;
-              if (isLast) {
-                return;
-              }
-              if (calendarType === TYPE_MONTH) {
-                this._calendar.draw({
-                  date: date2,
-                  type: TYPE_DATE
-                });
-              } else if (calendarType === TYPE_YEAR) {
-                this._calendar.draw({
-                  date: date2,
-                  type: TYPE_MONTH
-                });
-              }
-            },
-            close: function() {
-              if (!this.isOpened()) {
-                return;
-              }
-              this._removeDocumentEvents();
-              this._hide();
-              this.fire("close");
-            },
-            toggle: function() {
-              if (this.isOpened()) {
+              },
+              _updateDateToToday: function() {
+                this.setDate(Date.now());
                 this.close();
-              } else {
-                this.open();
-              }
-            },
-            getDate: function() {
-              if (!this._date) {
-                return null;
-              }
-              return new Date(this._date);
-            },
-            setDate: function(date2) {
-              var isValidInput, newDate, shouldUpdate;
-              if (date2 === null) {
-                this.setNull();
-                return;
-              }
-              isValidInput = isNumber2(date2) || isDate(date2);
-              newDate = new Date(date2);
-              shouldUpdate = isValidInput && this._isChanged(newDate) && this.isSelectable(newDate);
-              if (shouldUpdate) {
-                newDate = new Date(date2);
-                this._date = newDate;
-                this._calendar.draw({ date: newDate });
-                if (this._timePicker) {
-                  this._timePicker.setTime(newDate.getHours(), newDate.getMinutes());
+              },
+              _updateDate: function(target) {
+                var timestamp = Number(getData(target, "timestamp"));
+                var newDate = new Date(timestamp);
+                var timePicker = this._timePicker;
+                var prevDate = this._date;
+                var calendarType = this.getCalendarType();
+                var pickerType = this.getType();
+                if (calendarType !== pickerType) {
+                  this.drawLowerCalendar(newDate);
+                } else {
+                  if (timePicker) {
+                    newDate.setHours(timePicker.getHour(), timePicker.getMinute());
+                  } else if (prevDate) {
+                    newDate.setHours(prevDate.getHours(), prevDate.getMinutes());
+                  }
+                  this.setDate(newDate);
+                  if (!this.showAlways && this.autoClose) {
+                    this.close();
+                  }
                 }
-                this._syncToInput();
-                this.fire("change");
-              }
-            },
-            setNull: function() {
-              var calendarDate = this._calendar.getDate();
-              var isChagned = this._date !== null;
-              this._date = null;
-              if (this._datepickerInput) {
-                this._datepickerInput.clearText();
-              }
-              if (this._timePicker) {
-                this._timePicker.setTime(0, 0);
-              }
-              if (!this.isSelectable(calendarDate)) {
-                this._calendar.draw({
-                  date: new Date(this._rangeModel.getMinimumValue())
+              },
+              _onDrawCalendar: function(eventData) {
+                forEachArray2(
+                  eventData.dateElements,
+                  function(el) {
+                    this._setTodayClassName(el);
+                    this._setSelectableClassName(el);
+                    this._setSelectedClassName(el);
+                  },
+                  this
+                );
+                this._setDisplayHeadButtons();
+                this.fire("draw", eventData);
+              },
+              _setDisplayHeadButtons: function() {
+                var customStep = 60;
+                var nextYearDate = this._calendar.getNextYearDate(
+                  this.getCalendarType() === TYPE_YEAR ? customStep : null
+                );
+                var prevYearDate = this._calendar.getPrevYearDate(
+                  this.getCalendarType() === TYPE_YEAR ? -customStep : null
+                );
+                var maxTimestamp = this._rangeModel.getMaximumValue();
+                var minTimestamp = this._rangeModel.getMinimumValue();
+                var nextYearBtn = this._element.querySelector("." + CLASS_NAME_NEXT_YEAR_BTN);
+                var prevYearBtn = this._element.querySelector("." + CLASS_NAME_PREV_YEAR_BTN);
+                var nextMonthDate, prevMonthDate, nextMonBtn, prevMonBtn;
+                if (this.getCalendarType() === TYPE_DATE) {
+                  nextMonthDate = dateUtil.cloneWithStartOf(this._calendar.getNextDate(), TYPE_MONTH);
+                  prevMonthDate = dateUtil.cloneWithEndOf(this._calendar.getPrevDate(), TYPE_MONTH);
+                  nextMonBtn = this._element.querySelector("." + CLASS_NAME_NEXT_MONTH_BTN);
+                  prevMonBtn = this._element.querySelector("." + CLASS_NAME_PREV_MONTH_BTN);
+                  this._setDisplay(nextMonBtn, nextMonthDate.getTime() <= maxTimestamp);
+                  this._setDisplay(prevMonBtn, prevMonthDate.getTime() >= minTimestamp);
+                  prevYearDate.setDate(1);
+                  nextYearDate.setDate(1);
+                } else {
+                  prevYearDate.setMonth(12, 0);
+                  nextYearDate.setMonth(0, 1);
+                }
+                this._setDisplay(nextYearBtn, nextYearDate.getTime() <= maxTimestamp);
+                this._setDisplay(prevYearBtn, prevYearDate.getTime() >= minTimestamp);
+              },
+              _setDisplay: function(el, shouldShow) {
+                if (el) {
+                  if (shouldShow) {
+                    removeClass(el, CLASS_NAME_HIDDEN);
+                  } else {
+                    addClass(el, CLASS_NAME_HIDDEN);
+                  }
+                }
+              },
+              _onChangeInput: function() {
+                this._syncFromInput(true);
+              },
+              _isChanged: function(date2) {
+                var prevDate = this.getDate();
+                return !prevDate || date2.getTime() !== prevDate.getTime();
+              },
+              _refreshFromRanges: function() {
+                if (!this.isSelectable(this._date)) {
+                  this.setNull();
+                } else {
+                  this._calendar.draw();
+                }
+              },
+              getCalendarType: function() {
+                return this._calendar.getType();
+              },
+              getType: function() {
+                return this._type;
+              },
+              isSelectable: function(date2) {
+                var type = this.getType();
+                var start, end;
+                if (!dateUtil.isValidDate(date2)) {
+                  return false;
+                }
+                start = dateUtil.cloneWithStartOf(date2, type).getTime();
+                end = dateUtil.cloneWithEndOf(date2, type).getTime();
+                return this._rangeModel.hasOverlap(start, end);
+              },
+              isSelected: function(date2) {
+                return dateUtil.isValidDate(date2) && dateUtil.isSame(this._date, date2, this.getType());
+              },
+              setRanges: function(ranges) {
+                var result = [];
+                forEachArray2(ranges, function(range2) {
+                  var start = new Date(range2[0]).getTime();
+                  var end = new Date(range2[1]).getTime();
+                  result.push([start, end]);
                 });
-              } else {
-                this._calendar.draw();
-              }
-              if (isChagned) {
-                this.fire("change");
-              }
-            },
-            setDateFormat: function(format) {
-              this._datepickerInput.setFormat(format);
-              this._syncToInput();
-            },
-            isOpened: function() {
-              return !hasClass(this._element, CLASS_NAME_HIDDEN);
-            },
-            getTimePicker: function() {
-              return this._timePicker;
-            },
-            getCalendar: function() {
-              return this._calendar;
-            },
-            getLocaleText: function() {
-              return localeTexts[this._language] || localeTexts[DEFAULT_LANGUAGE_TYPE];
-            },
-            setInput: function(element, options) {
-              var prev = this._datepickerInput;
-              var localeText = this.getLocaleText();
-              var prevFormat;
-              options = options || {};
-              if (prev) {
-                prevFormat = prev.getFormat();
-                prev.destroy();
-              }
-              this._datepickerInput = new DatePickerInput(element, {
-                format: options.format || prevFormat,
-                id: this._id,
-                localeText
-              });
-              this._datepickerInput.on({
-                change: this._onChangeInput,
-                click: this.open
-              }, this);
-              if (options.syncFromInput) {
-                this._syncFromInput();
-              } else {
+                this._rangeModel = new RangeModel(result);
+                this._refreshFromRanges();
+              },
+              setType: function(type) {
+                this._type = type;
+              },
+              addRange: function(start, end) {
+                start = new Date(start).getTime();
+                end = new Date(end).getTime();
+                this._rangeModel.add(start, end);
+                this._refreshFromRanges();
+              },
+              removeRange: function(start, end, type) {
+                start = new Date(start);
+                end = new Date(end);
+                if (type) {
+                  start = dateUtil.cloneWithStartOf(start, type);
+                  end = dateUtil.cloneWithEndOf(end, type);
+                }
+                this._rangeModel.exclude(start.getTime(), end.getTime());
+                this._refreshFromRanges();
+              },
+              addOpener: function(opener) {
+                opener = util.getElement(opener);
+                if (!this._isOpener(opener)) {
+                  this._openers.push(opener);
+                  this._setOpenerEvents(opener);
+                }
+              },
+              removeOpener: function(opener) {
+                var index;
+                opener = util.getElement(opener);
+                index = inArray(opener, this._openers);
+                if (index > -1) {
+                  this._removeOpenerEvents(opener);
+                  this._openers.splice(index, 1);
+                }
+              },
+              removeAllOpeners: function() {
+                forEachArray2(
+                  this._openers,
+                  function(opener) {
+                    this._removeOpenerEvents(opener);
+                  },
+                  this
+                );
+                this._openers = [];
+              },
+              open: function() {
+                if (this.isOpened() || !this._isEnabled) {
+                  return;
+                }
+                this._calendar.draw({
+                  date: this._date,
+                  type: this._type
+                });
+                this._show();
+                if (!this.showAlways) {
+                  this._setDocumentEvents();
+                }
+                this.fire("open");
+              },
+              drawUpperCalendar: function(date2) {
+                var calendarType = this.getCalendarType();
+                if (calendarType === TYPE_DATE) {
+                  this._calendar.draw({
+                    date: date2,
+                    type: TYPE_MONTH
+                  });
+                } else if (calendarType === TYPE_MONTH) {
+                  this._calendar.draw({
+                    date: date2,
+                    type: TYPE_YEAR
+                  });
+                }
+              },
+              drawLowerCalendar: function(date2) {
+                var calendarType = this.getCalendarType();
+                var pickerType = this.getType();
+                var isLast = calendarType === pickerType;
+                if (isLast) {
+                  return;
+                }
+                if (calendarType === TYPE_MONTH) {
+                  this._calendar.draw({
+                    date: date2,
+                    type: TYPE_DATE
+                  });
+                } else if (calendarType === TYPE_YEAR) {
+                  this._calendar.draw({
+                    date: date2,
+                    type: TYPE_MONTH
+                  });
+                }
+              },
+              close: function() {
+                if (!this.isOpened()) {
+                  return;
+                }
+                this._removeDocumentEvents();
+                this._hide();
+                this.fire("close");
+              },
+              toggle: function() {
+                if (this.isOpened()) {
+                  this.close();
+                } else {
+                  this.open();
+                }
+              },
+              getDate: function() {
+                if (!this._date) {
+                  return null;
+                }
+                return new Date(this._date);
+              },
+              setDate: function(date2, silent) {
+                var isValidInput, newDate, shouldUpdate;
+                if (date2 === null) {
+                  this.setNull();
+                  return;
+                }
+                isValidInput = isNumber2(date2) || isDate(date2);
+                newDate = new Date(date2);
+                shouldUpdate = isValidInput && this._isChanged(newDate) && this.isSelectable(newDate);
+                if (shouldUpdate) {
+                  newDate = new Date(date2);
+                  this._date = newDate;
+                  this._calendar.draw({ date: newDate });
+                  if (this._timePicker) {
+                    this._timePicker.setTime(newDate.getHours(), newDate.getMinutes(), true);
+                  }
+                  this._syncToInput();
+                  if (!silent) {
+                    this.fire("change");
+                  }
+                }
+              },
+              setNull: function() {
+                var calendarDate = this._calendar.getDate();
+                var isChagned = this._date !== null;
+                this._date = null;
+                if (this._datepickerInput) {
+                  this._datepickerInput.clearText();
+                }
+                if (this._timePicker) {
+                  this._timePicker.setTime(0, 0);
+                }
+                if (!this.isSelectable(calendarDate)) {
+                  this._calendar.draw({
+                    date: new Date(this._rangeModel.getMinimumValue())
+                  });
+                } else {
+                  this._calendar.draw();
+                }
+                if (isChagned) {
+                  this.fire("change");
+                }
+              },
+              setDateFormat: function(format) {
+                this._datepickerInput.setFormat(format);
                 this._syncToInput();
+              },
+              isOpened: function() {
+                return !hasClass(this._element, CLASS_NAME_HIDDEN);
+              },
+              getTimePicker: function() {
+                return this._timePicker;
+              },
+              getCalendar: function() {
+                return this._calendar;
+              },
+              getLocaleText: function() {
+                return localeTexts[this._language] || localeTexts[DEFAULT_LANGUAGE_TYPE];
+              },
+              setInput: function(element, options) {
+                var prev = this._datepickerInput;
+                var localeText = this.getLocaleText();
+                var prevFormat;
+                options = options || {};
+                if (prev) {
+                  prevFormat = prev.getFormat();
+                  prev.destroy();
+                }
+                this._datepickerInput = new DatePickerInput(element, {
+                  format: options.format || prevFormat,
+                  id: this._id,
+                  localeText
+                });
+                this._datepickerInput.on(
+                  {
+                    change: this._onChangeInput,
+                    click: this.open
+                  },
+                  this
+                );
+                if (options.syncFromInput) {
+                  this._syncFromInput();
+                } else {
+                  this._syncToInput();
+                }
+              },
+              enable: function() {
+                if (this._isEnabled) {
+                  return;
+                }
+                this._isEnabled = true;
+                this._datepickerInput.enable();
+                forEachArray2(
+                  this._openers,
+                  function(opener) {
+                    opener.removeAttribute("disabled");
+                    this._setOpenerEvents(opener);
+                  },
+                  this
+                );
+              },
+              disable: function() {
+                if (!this._isEnabled) {
+                  return;
+                }
+                this._isEnabled = false;
+                this.close();
+                this._datepickerInput.disable();
+                forEachArray2(
+                  this._openers,
+                  function(opener) {
+                    opener.setAttribute("disabled", true);
+                    this._removeOpenerEvents(opener);
+                  },
+                  this
+                );
+              },
+              isDisabled: function() {
+                return !this._isEnabled;
+              },
+              addCssClass: function(className2) {
+                addClass(this._element, className2);
+              },
+              removeCssClass: function(className2) {
+                removeClass(this._element, className2);
+              },
+              getDateElements: function() {
+                return this._calendar.getDateElements();
+              },
+              findOverlappedRange: function(startDate, endDate) {
+                var startTimestamp = new Date(startDate).getTime();
+                var endTimestamp = new Date(endDate).getTime();
+                var overlappedRange = this._rangeModel.findOverlappedRange(startTimestamp, endTimestamp);
+                return [new Date(overlappedRange[0]), new Date(overlappedRange[1])];
+              },
+              changeLanguage: function(language) {
+                this._language = language;
+                this._calendar.changeLanguage(this._language);
+                this._datepickerInput.changeLocaleTitles(this.getLocaleText().titles);
+                this.setDateFormat(this._datepickerInput.getFormat());
+                if (this._timePicker) {
+                  this._timePicker.changeLanguage(this._language);
+                }
+              },
+              destroy: function() {
+                this._removeDocumentEvents();
+                this._calendar.destroy();
+                if (this._timePicker) {
+                  this._timePicker.destroy();
+                }
+                if (this._datepickerInput) {
+                  this._datepickerInput.destroy();
+                }
+                this._removeEvents();
+                removeElement(this._element);
+                this.removeAllOpeners();
+                this._calendar = this._timePicker = this._datepickerInput = this._container = this._element = this._date = this._rangeModel = this._openers = this._isEnabled = this._id = null;
               }
-            },
-            enable: function() {
-              if (this._isEnabled) {
-                return;
-              }
-              this._isEnabled = true;
-              this._datepickerInput.enable();
-              forEachArray2(this._openers, function(opener) {
-                opener.removeAttribute("disabled");
-                this._setOpenerEvents(opener);
-              }, this);
-            },
-            disable: function() {
-              if (!this._isEnabled) {
-                return;
-              }
-              this._isEnabled = false;
-              this.close();
-              this._datepickerInput.disable();
-              forEachArray2(this._openers, function(opener) {
-                opener.setAttribute("disabled", true);
-                this._removeOpenerEvents(opener);
-              }, this);
-            },
-            isDisabled: function() {
-              return !this._isEnabled;
-            },
-            addCssClass: function(className2) {
-              addClass(this._element, className2);
-            },
-            removeCssClass: function(className2) {
-              removeClass(this._element, className2);
-            },
-            getDateElements: function() {
-              return this._calendar.getDateElements();
-            },
-            findOverlappedRange: function(startDate, endDate) {
-              var startTimestamp = new Date(startDate).getTime();
-              var endTimestamp = new Date(endDate).getTime();
-              var overlappedRange = this._rangeModel.findOverlappedRange(startTimestamp, endTimestamp);
-              return [new Date(overlappedRange[0]), new Date(overlappedRange[1])];
-            },
-            changeLanguage: function(language) {
-              this._language = language;
-              this._calendar.changeLanguage(this._language);
-              this._datepickerInput.changeLocaleTitles(this.getLocaleText().titles);
-              this.setDateFormat(this._datepickerInput.getFormat());
-              if (this._timePicker) {
-                this._timePicker.changeLanguage(this._language);
-              }
-            },
-            destroy: function() {
-              this._removeDocumentEvents();
-              this._calendar.destroy();
-              if (this._timePicker) {
-                this._timePicker.destroy();
-              }
-              if (this._datepickerInput) {
-                this._datepickerInput.destroy();
-              }
-              this._removeEvents();
-              removeElement(this._element);
-              this.removeAllOpeners();
-              this._calendar = this._timePicker = this._datepickerInput = this._container = this._element = this._date = this._rangeModel = this._openers = this._isEnabled = this._id = null;
             }
-          });
+          );
           CustomEvents2.mixin(DatePicker2);
           module3.exports = DatePicker2;
         },
@@ -3560,200 +3652,215 @@
           var CLASS_NAME_HIDDEN = "tui-hidden";
           var HEADER_SELECTOR = ".tui-calendar-header";
           var BODY_SELECTOR = ".tui-calendar-body";
-          var Calendar2 = defineClass({
-            static: {
-              localeTexts
-            },
-            init: function(container, options) {
-              options = extend2({
-                language: DEFAULT_LANGUAGE_TYPE,
-                showToday: true,
-                showJumpButtons: false,
-                date: new Date(),
-                type: TYPE_DATE,
-                usageStatistics: true,
-                weekStartDay: DEFAULT_WEEK_START_DAY
-              }, options);
-              this._container = util.getElement(container);
-              this._container.innerHTML = '<div class="tui-calendar">    <div class="tui-calendar-header"></div>    <div class="tui-calendar-body"></div></div>';
-              this._element = this._container.firstChild;
-              this._date = null;
-              this._type = null;
-              this._header = null;
-              this._body = null;
-              this._initHeader(options);
-              this._initBody(options);
-              this.draw({
-                date: options.date,
-                type: options.type
-              });
-              if (options.usageStatistics) {
-                util.sendHostName();
-              }
-            },
-            _initHeader: function(options) {
-              var headerContainer = this._element.querySelector(HEADER_SELECTOR);
-              this._header = new Header(headerContainer, options);
-              this._header.on("click", function(ev) {
-                var target = util.getTarget(ev);
-                if (hasClass(target, CLASS_NAME_PREV_MONTH_BTN)) {
-                  this.drawPrev();
-                } else if (hasClass(target, CLASS_NAME_PREV_YEAR_BTN)) {
-                  this._onClickPrevYear();
-                } else if (hasClass(target, CLASS_NAME_NEXT_MONTH_BTN)) {
-                  this.drawNext();
-                } else if (hasClass(target, CLASS_NAME_NEXT_YEAR_BTN)) {
-                  this._onClickNextYear();
+          var Calendar2 = defineClass(
+            {
+              static: {
+                localeTexts
+              },
+              init: function(container, options) {
+                options = extend2(
+                  {
+                    language: DEFAULT_LANGUAGE_TYPE,
+                    showToday: true,
+                    showJumpButtons: false,
+                    date: new Date(),
+                    type: TYPE_DATE,
+                    usageStatistics: true,
+                    weekStartDay: DEFAULT_WEEK_START_DAY
+                  },
+                  options
+                );
+                this._container = util.getElement(container);
+                this._container.innerHTML = '<div class="tui-calendar">    <div class="tui-calendar-header"></div>    <div class="tui-calendar-body"></div></div>';
+                this._element = this._container.firstChild;
+                this._date = null;
+                this._type = null;
+                this._header = null;
+                this._body = null;
+                this._initHeader(options);
+                this._initBody(options);
+                this.draw({
+                  date: options.date,
+                  type: options.type
+                });
+                if (options.usageStatistics) {
+                  util.sendHostName();
                 }
-              }, this);
-            },
-            _initBody: function(options) {
-              var bodyContainer = this._element.querySelector(BODY_SELECTOR);
-              this._body = new Body(bodyContainer, options);
-            },
-            _onClickPrevYear: function() {
-              if (this.getType() === TYPE_DATE) {
-                this.draw({
-                  date: this._getRelativeDate(-12)
+              },
+              _initHeader: function(options) {
+                var headerContainer = this._element.querySelector(HEADER_SELECTOR);
+                this._header = new Header(headerContainer, options);
+                this._header.on(
+                  "click",
+                  function(ev) {
+                    var target = util.getTarget(ev);
+                    if (hasClass(target, CLASS_NAME_PREV_MONTH_BTN)) {
+                      this.drawPrev();
+                    } else if (hasClass(target, CLASS_NAME_PREV_YEAR_BTN)) {
+                      this._onClickPrevYear();
+                    } else if (hasClass(target, CLASS_NAME_NEXT_MONTH_BTN)) {
+                      this.drawNext();
+                    } else if (hasClass(target, CLASS_NAME_NEXT_YEAR_BTN)) {
+                      this._onClickNextYear();
+                    }
+                  },
+                  this
+                );
+              },
+              _initBody: function(options) {
+                var bodyContainer = this._element.querySelector(BODY_SELECTOR);
+                this._body = new Body(bodyContainer, options);
+              },
+              _onClickPrevYear: function() {
+                if (this.getType() === TYPE_DATE) {
+                  this.draw({
+                    date: this._getRelativeDate(-12)
+                  });
+                } else {
+                  this.drawPrev();
+                }
+              },
+              _onClickNextYear: function() {
+                if (this.getType() === TYPE_DATE) {
+                  this.draw({
+                    date: this._getRelativeDate(12)
+                  });
+                } else {
+                  this.drawNext();
+                }
+              },
+              _isValidType: function(type) {
+                return type === TYPE_DATE || type === TYPE_MONTH || type === TYPE_YEAR;
+              },
+              _shouldUpdate: function(date2, type) {
+                var prevDate = this._date;
+                if (!dateUtil.isValidDate(date2)) {
+                  throw new Error("Invalid date");
+                }
+                if (!this._isValidType(type)) {
+                  throw new Error("Invalid layer type");
+                }
+                return !prevDate || prevDate.getFullYear() !== date2.getFullYear() || prevDate.getMonth() !== date2.getMonth() || this.getType() !== type;
+              },
+              _render: function() {
+                var date2 = this._date;
+                var type = this.getType();
+                this._header.render(date2, type);
+                this._body.render(date2, type);
+                removeClass(this._element, CLASS_NAME_CALENDAR_MONTH, CLASS_NAME_CALENDAR_YEAR);
+                switch (type) {
+                  case TYPE_MONTH:
+                    addClass(this._element, CLASS_NAME_CALENDAR_MONTH);
+                    break;
+                  case TYPE_YEAR:
+                    addClass(this._element, CLASS_NAME_CALENDAR_YEAR);
+                    break;
+                }
+              },
+              _getRelativeDate: function(step) {
+                var prev = this._date;
+                return new Date(prev.getFullYear(), prev.getMonth() + step);
+              },
+              draw: function(options) {
+                var date2, type;
+                options = options || {};
+                date2 = options.date || this._date;
+                type = (options.type || this.getType()).toLowerCase();
+                if (this._shouldUpdate(date2, type)) {
+                  this._date = date2;
+                  this._type = type;
+                  this._render();
+                }
+                this.fire("draw", {
+                  date: this._date,
+                  type,
+                  dateElements: this._body.getDateElements()
                 });
-              } else {
-                this.drawPrev();
-              }
-            },
-            _onClickNextYear: function() {
-              if (this.getType() === TYPE_DATE) {
+              },
+              show: function() {
+                removeClass(this._element, CLASS_NAME_HIDDEN);
+              },
+              hide: function() {
+                addClass(this._element, CLASS_NAME_HIDDEN);
+              },
+              drawNext: function() {
                 this.draw({
-                  date: this._getRelativeDate(12)
+                  date: this.getNextDate()
                 });
-              } else {
-                this.drawNext();
-              }
-            },
-            _isValidType: function(type) {
-              return type === TYPE_DATE || type === TYPE_MONTH || type === TYPE_YEAR;
-            },
-            _shouldUpdate: function(date2, type) {
-              var prevDate = this._date;
-              if (!dateUtil.isValidDate(date2)) {
-                throw new Error("Invalid date");
-              }
-              if (!this._isValidType(type)) {
-                throw new Error("Invalid layer type");
-              }
-              return !prevDate || prevDate.getFullYear() !== date2.getFullYear() || prevDate.getMonth() !== date2.getMonth() || this.getType() !== type;
-            },
-            _render: function() {
-              var date2 = this._date;
-              var type = this.getType();
-              this._header.render(date2, type);
-              this._body.render(date2, type);
-              removeClass(this._element, CLASS_NAME_CALENDAR_MONTH, CLASS_NAME_CALENDAR_YEAR);
-              switch (type) {
-                case TYPE_MONTH:
-                  addClass(this._element, CLASS_NAME_CALENDAR_MONTH);
-                  break;
-                case TYPE_YEAR:
-                  addClass(this._element, CLASS_NAME_CALENDAR_YEAR);
-                  break;
-              }
-            },
-            _getRelativeDate: function(step) {
-              var prev = this._date;
-              return new Date(prev.getFullYear(), prev.getMonth() + step);
-            },
-            draw: function(options) {
-              var date2, type;
-              options = options || {};
-              date2 = options.date || this._date;
-              type = (options.type || this.getType()).toLowerCase();
-              if (this._shouldUpdate(date2, type)) {
-                this._date = date2;
-                this._type = type;
+              },
+              drawPrev: function() {
+                this.draw({
+                  date: this.getPrevDate()
+                });
+              },
+              getNextDate: function() {
+                if (this.getType() === TYPE_DATE) {
+                  return this._getRelativeDate(1);
+                }
+                return this.getNextYearDate();
+              },
+              getPrevDate: function() {
+                if (this.getType() === TYPE_DATE) {
+                  return this._getRelativeDate(-1);
+                }
+                return this.getPrevYearDate();
+              },
+              getNextYearDate: function(customStep) {
+                if (customStep) {
+                  return this._getRelativeDate(customStep);
+                }
+                switch (this.getType()) {
+                  case TYPE_DATE:
+                  case TYPE_MONTH:
+                    return this._getRelativeDate(12);
+                  case TYPE_YEAR:
+                    return this._getRelativeDate(108);
+                  default:
+                    throw new Error("Unknown layer type");
+                }
+              },
+              getPrevYearDate: function(customStep) {
+                if (customStep) {
+                  return this._getRelativeDate(customStep);
+                }
+                switch (this.getType()) {
+                  case TYPE_DATE:
+                  case TYPE_MONTH:
+                    return this._getRelativeDate(-12);
+                  case TYPE_YEAR:
+                    return this._getRelativeDate(-108);
+                  default:
+                    throw new Error("Unknown layer type");
+                }
+              },
+              changeLanguage: function(language) {
+                this._header.changeLanguage(language);
+                this._body.changeLanguage(language);
                 this._render();
+              },
+              getDate: function() {
+                return new Date(this._date);
+              },
+              getType: function() {
+                return this._type;
+              },
+              getDateElements: function() {
+                return this._body.getDateElements();
+              },
+              addCssClass: function(className2) {
+                addClass(this._element, className2);
+              },
+              removeCssClass: function(className2) {
+                removeClass(this._element, className2);
+              },
+              destroy: function() {
+                this._header.destroy();
+                this._body.destroy();
+                removeElement(this._element);
+                this._type = this._date = this._container = this._element = this._header = this._body = null;
               }
-              this.fire("draw", {
-                date: this._date,
-                type,
-                dateElements: this._body.getDateElements()
-              });
-            },
-            show: function() {
-              removeClass(this._element, CLASS_NAME_HIDDEN);
-            },
-            hide: function() {
-              addClass(this._element, CLASS_NAME_HIDDEN);
-            },
-            drawNext: function() {
-              this.draw({
-                date: this.getNextDate()
-              });
-            },
-            drawPrev: function() {
-              this.draw({
-                date: this.getPrevDate()
-              });
-            },
-            getNextDate: function() {
-              if (this.getType() === TYPE_DATE) {
-                return this._getRelativeDate(1);
-              }
-              return this.getNextYearDate();
-            },
-            getPrevDate: function() {
-              if (this.getType() === TYPE_DATE) {
-                return this._getRelativeDate(-1);
-              }
-              return this.getPrevYearDate();
-            },
-            getNextYearDate: function() {
-              switch (this.getType()) {
-                case TYPE_DATE:
-                case TYPE_MONTH:
-                  return this._getRelativeDate(12);
-                case TYPE_YEAR:
-                  return this._getRelativeDate(108);
-                default:
-                  throw new Error("Unknown layer type");
-              }
-            },
-            getPrevYearDate: function() {
-              switch (this.getType()) {
-                case TYPE_DATE:
-                case TYPE_MONTH:
-                  return this._getRelativeDate(-12);
-                case TYPE_YEAR:
-                  return this._getRelativeDate(-108);
-                default:
-                  throw new Error("Unknown layer type");
-              }
-            },
-            changeLanguage: function(language) {
-              this._header.changeLanguage(language);
-              this._body.changeLanguage(language);
-              this._render();
-            },
-            getDate: function() {
-              return new Date(this._date);
-            },
-            getType: function() {
-              return this._type;
-            },
-            getDateElements: function() {
-              return this._body.getDateElements();
-            },
-            addCssClass: function(className2) {
-              addClass(this._element, className2);
-            },
-            removeCssClass: function(className2) {
-              removeClass(this._element, className2);
-            },
-            destroy: function() {
-              this._header.destroy();
-              this._body.destroy();
-              removeElement(this._element);
-              this._type = this._date = this._container = this._element = this._header = this._body = null;
             }
-          });
+          );
           CustomEvents2.mixin(Calendar2);
           module3.exports = Calendar2;
         },
@@ -3852,115 +3959,123 @@
               type: constants.TYPE_MERIDIEM
             }
           };
-          var DateTimeFormatter = defineClass({
-            init: function(rawStr, titles) {
-              this._rawStr = rawStr;
-              this._keyOrder = null;
-              this._regExp = null;
-              this._titles = titles || localeTexts.en.titles;
-              this._parseFormat();
-            },
-            _parseFormat: function() {
-              var regExpStr = "^";
-              var matchedKeys = this._rawStr.match(rFormableKeys);
-              var keyOrder = [];
-              matchedKeys = util.filter(matchedKeys, function(key) {
-                return key[0] !== "\\";
-              });
-              forEachArray2(matchedKeys, function(key, index) {
-                if (!/m/i.test(key)) {
-                  key = key.toLowerCase();
-                }
-                regExpStr += mapForConverting[key].expression + "[\\D\\s]*";
-                keyOrder[index] = mapForConverting[key].type;
-              });
-              regExpStr += "$";
-              this._keyOrder = keyOrder;
-              this._regExp = new RegExp(regExpStr, "gi");
-            },
-            parse: function(str) {
-              var dateHash = {
-                year: 0,
-                month: 1,
-                date: 1,
-                hour: 0,
-                minute: 0
-              };
-              var hasMeridiem = false;
-              var isPM = false;
-              var matched;
-              this._regExp.lastIndex = 0;
-              matched = this._regExp.exec(str);
-              if (!matched) {
-                throw Error('DateTimeFormatter: Not matched - "' + str + '"');
-              }
-              forEachArray2(this._keyOrder, function(name, index) {
-                var value = matched[index + 1];
-                if (name === constants.TYPE_MERIDIEM && /[ap]m/i.test(value)) {
-                  hasMeridiem = true;
-                  isPM = /pm/i.test(value);
-                } else {
-                  value = Number(value);
-                  if (value !== 0 && !value) {
-                    throw Error("DateTimeFormatter: Unknown value - " + matched[index + 1]);
+          var DateTimeFormatter = defineClass(
+            {
+              init: function(rawStr, titles) {
+                this._rawStr = rawStr;
+                this._keyOrder = null;
+                this._regExp = null;
+                this._titles = titles || localeTexts.en.titles;
+                this._parseFormat();
+              },
+              _parseFormat: function() {
+                var regExpStr = "^";
+                var matchedKeys = this._rawStr.match(rFormableKeys);
+                var keyOrder = [];
+                matchedKeys = util.filter(matchedKeys, function(key) {
+                  return key[0] !== "\\";
+                });
+                forEachArray2(matchedKeys, function(key, index) {
+                  if (!/m/i.test(key)) {
+                    key = key.toLowerCase();
                   }
-                  if (name === constants.TYPE_YEAR && value < 100) {
-                    value += 2e3;
+                  regExpStr += mapForConverting[key].expression + "[\\D\\s]*";
+                  keyOrder[index] = mapForConverting[key].type;
+                });
+                regExpStr += "$";
+                this._keyOrder = keyOrder;
+                this._regExp = new RegExp(regExpStr, "gi");
+              },
+              parse: function(str) {
+                var dateHash = {
+                  year: 0,
+                  month: 1,
+                  date: 1,
+                  hour: 0,
+                  minute: 0
+                };
+                var hasMeridiem = false;
+                var isPM = false;
+                var matched;
+                this._regExp.lastIndex = 0;
+                matched = this._regExp.exec(str);
+                if (!matched) {
+                  throw Error('DateTimeFormatter: Not matched - "' + str + '"');
+                }
+                forEachArray2(this._keyOrder, function(name, index) {
+                  var value = matched[index + 1];
+                  if (name === constants.TYPE_MERIDIEM && /[ap]m/i.test(value)) {
+                    hasMeridiem = true;
+                    isPM = /pm/i.test(value);
+                  } else {
+                    value = Number(value);
+                    if (value !== 0 && !value) {
+                      throw Error("DateTimeFormatter: Unknown value - " + matched[index + 1]);
+                    }
+                    if (name === constants.TYPE_YEAR && value < 100) {
+                      value += 2e3;
+                    }
+                    dateHash[name] = value;
                   }
-                  dateHash[name] = value;
+                });
+                if (hasMeridiem) {
+                  isPM = isPM || dateHash.hour > 12;
+                  dateHash.hour %= 12;
+                  if (isPM) {
+                    dateHash.hour += 12;
+                  }
                 }
-              });
-              if (hasMeridiem) {
-                isPM = isPM || dateHash.hour > 12;
-                dateHash.hour %= 12;
-                if (isPM) {
-                  dateHash.hour += 12;
+                return new Date(
+                  dateHash.year,
+                  dateHash.month - 1,
+                  dateHash.date,
+                  dateHash.hour,
+                  dateHash.minute
+                );
+              },
+              getRawString: function() {
+                return this._rawStr;
+              },
+              format: function(dateObj) {
+                var year = dateObj.getFullYear();
+                var month = dateObj.getMonth() + 1;
+                var dayInMonth = dateObj.getDate();
+                var day = dateObj.getDay();
+                var hour = dateObj.getHours();
+                var minute = dateObj.getMinutes();
+                var meridiem = "a";
+                var replaceMap;
+                if (inArray(constants.TYPE_MERIDIEM, this._keyOrder) > -1) {
+                  meridiem = hour >= 12 ? "pm" : "am";
+                  hour = dateUtil.getMeridiemHour(hour);
                 }
+                replaceMap = {
+                  yyyy: year,
+                  yy: String(year).substr(2, 2),
+                  M: month,
+                  MM: dateUtil.prependLeadingZero(month),
+                  MMM: this._titles.MMM[month - 1],
+                  MMMM: this._titles.MMMM[month - 1],
+                  d: dayInMonth,
+                  dd: dateUtil.prependLeadingZero(dayInMonth),
+                  D: this._titles.D[day],
+                  DD: this._titles.DD[day],
+                  hh: dateUtil.prependLeadingZero(hour),
+                  h: hour,
+                  mm: dateUtil.prependLeadingZero(minute),
+                  m: minute,
+                  A: meridiem.toUpperCase(),
+                  a: meridiem
+                };
+                return this._rawStr.replace(rFormableKeys, function(key) {
+                  if (key[0] === "\\") {
+                    return key.substr(1);
+                  }
+                  return replaceMap[key] || replaceMap[key.toLowerCase()] || "";
+                });
               }
-              return new Date(dateHash.year, dateHash.month - 1, dateHash.date, dateHash.hour, dateHash.minute);
-            },
-            getRawString: function() {
-              return this._rawStr;
-            },
-            format: function(dateObj) {
-              var year = dateObj.getFullYear();
-              var month = dateObj.getMonth() + 1;
-              var dayInMonth = dateObj.getDate();
-              var day = dateObj.getDay();
-              var hour = dateObj.getHours();
-              var minute = dateObj.getMinutes();
-              var meridiem = "a";
-              var replaceMap;
-              if (inArray(constants.TYPE_MERIDIEM, this._keyOrder) > -1) {
-                meridiem = hour >= 12 ? "pm" : "am";
-                hour = dateUtil.getMeridiemHour(hour);
-              }
-              replaceMap = {
-                yyyy: year,
-                yy: String(year).substr(2, 2),
-                M: month,
-                MM: dateUtil.prependLeadingZero(month),
-                MMM: this._titles.MMM[month - 1],
-                MMMM: this._titles.MMMM[month - 1],
-                d: dayInMonth,
-                dd: dateUtil.prependLeadingZero(dayInMonth),
-                D: this._titles.D[day],
-                DD: this._titles.DD[day],
-                hh: dateUtil.prependLeadingZero(hour),
-                h: hour,
-                mm: dateUtil.prependLeadingZero(minute),
-                m: minute,
-                A: meridiem.toUpperCase(),
-                a: meridiem
-              };
-              return this._rawStr.replace(rFormableKeys, function(key) {
-                if (key[0] === "\\") {
-                  return key.substr(1);
-                }
-                return replaceMap[key] || replaceMap[key.toLowerCase()] || "";
-              });
             }
-          });
+          );
           module3.exports = DateTimeFormatter;
         },
         function(module3, exports3, __webpack_require__) {
@@ -4180,90 +4295,95 @@
           var SELECTOR_INFO_ELEM = ".tui-calendar-header-info";
           var SELECTOR_BTN = ".tui-calendar-btn";
           var YEAR_TITLE_FORMAT = "yyyy";
-          var Header = defineClass({
-            init: function(container, option) {
-              this._container = util.getElement(container);
-              this._innerElement = null;
-              this._infoElement = null;
-              this._showToday = option.showToday;
-              this._showJumpButtons = option.showJumpButtons;
-              this._yearMonthTitleFormatter = null;
-              this._yearTitleFormatter = null;
-              this._todayFormatter = null;
-              this._setFormatters(localeTexts[option.language]);
-              this._setEvents(option);
-            },
-            _setFormatters: function(localeText) {
-              this._yearMonthTitleFormatter = new DateTimeFormatter(localeText.titleFormat, localeText.titles);
-              this._yearTitleFormatter = new DateTimeFormatter(YEAR_TITLE_FORMAT, localeText.titles);
-              this._todayFormatter = new DateTimeFormatter(localeText.todayFormat, localeText.titles);
-            },
-            _setEvents: function() {
-              mouseTouchEvent.on(this._container, "click", this._onClickHandler, this);
-            },
-            _removeEvents: function() {
-              this.off();
-              mouseTouchEvent.off(this._container, "click", this._onClickHandler);
-            },
-            _onClickHandler: function(ev) {
-              var target = util.getTarget(ev);
-              if (closest(target, SELECTOR_BTN)) {
-                this.fire("click", ev);
+          var Header = defineClass(
+            {
+              init: function(container, option) {
+                this._container = util.getElement(container);
+                this._innerElement = null;
+                this._infoElement = null;
+                this._showToday = option.showToday;
+                this._showJumpButtons = option.showJumpButtons;
+                this._yearMonthTitleFormatter = null;
+                this._yearTitleFormatter = null;
+                this._todayFormatter = null;
+                this._setFormatters(localeTexts[option.language]);
+                this._setEvents(option);
+              },
+              _setFormatters: function(localeText) {
+                this._yearMonthTitleFormatter = new DateTimeFormatter(
+                  localeText.titleFormat,
+                  localeText.titles
+                );
+                this._yearTitleFormatter = new DateTimeFormatter(YEAR_TITLE_FORMAT, localeText.titles);
+                this._todayFormatter = new DateTimeFormatter(localeText.todayFormat, localeText.titles);
+              },
+              _setEvents: function() {
+                mouseTouchEvent.on(this._container, "click", this._onClickHandler, this);
+              },
+              _removeEvents: function() {
+                this.off();
+                mouseTouchEvent.off(this._container, "click", this._onClickHandler);
+              },
+              _onClickHandler: function(ev) {
+                var target = util.getTarget(ev);
+                if (closest(target, SELECTOR_BTN)) {
+                  this.fire("click", ev);
+                }
+              },
+              _getTitleClass: function(type) {
+                switch (type) {
+                  case TYPE_DATE:
+                    return CLASS_NAME_TITLE_MONTH;
+                  case TYPE_MONTH:
+                    return CLASS_NAME_TITLE_YEAR;
+                  case TYPE_YEAR:
+                    return CLASS_NAME_TITLE_YEAR_TO_YEAR;
+                  default:
+                    return "";
+                }
+              },
+              _getTitleText: function(date2, type) {
+                var currentYear, start, end;
+                switch (type) {
+                  case TYPE_DATE:
+                    return this._yearMonthTitleFormatter.format(date2);
+                  case TYPE_MONTH:
+                    return this._yearTitleFormatter.format(date2);
+                  case TYPE_YEAR:
+                    currentYear = date2.getFullYear();
+                    start = new Date(currentYear - 4, 0, 1);
+                    end = new Date(currentYear + 4, 0, 1);
+                    return this._yearTitleFormatter.format(start) + " - " + this._yearTitleFormatter.format(end);
+                  default:
+                    return "";
+                }
+              },
+              changeLanguage: function(language) {
+                this._setFormatters(localeTexts[language]);
+              },
+              render: function(date2, type) {
+                var context = {
+                  showToday: this._showToday,
+                  showJumpButtons: this._showJumpButtons,
+                  todayText: this._todayFormatter.format(new Date()),
+                  isDateCalendar: type === TYPE_DATE,
+                  titleClass: this._getTitleClass(type),
+                  title: this._getTitleText(date2, type)
+                };
+                this._container.innerHTML = headerTmpl(context).replace(/^\s+|\s+$/g, "");
+                this._innerElement = this._container.querySelector(SELECTOR_INNER_ELEM);
+                if (context.showToday) {
+                  this._infoElement = this._container.querySelector(SELECTOR_INFO_ELEM);
+                }
+              },
+              destroy: function() {
+                this._removeEvents();
+                removeElement(this._innerElement);
+                removeElement(this._infoElement);
+                this._container = this._showToday = this._showJumpButtons = this._yearMonthTitleFormatter = this._yearTitleFormatter = this._todayFormatter = this._innerElement = this._infoElement = null;
               }
-            },
-            _getTitleClass: function(type) {
-              switch (type) {
-                case TYPE_DATE:
-                  return CLASS_NAME_TITLE_MONTH;
-                case TYPE_MONTH:
-                  return CLASS_NAME_TITLE_YEAR;
-                case TYPE_YEAR:
-                  return CLASS_NAME_TITLE_YEAR_TO_YEAR;
-                default:
-                  return "";
-              }
-            },
-            _getTitleText: function(date2, type) {
-              var currentYear, start, end;
-              switch (type) {
-                case TYPE_DATE:
-                  return this._yearMonthTitleFormatter.format(date2);
-                case TYPE_MONTH:
-                  return this._yearTitleFormatter.format(date2);
-                case TYPE_YEAR:
-                  currentYear = date2.getFullYear();
-                  start = new Date(currentYear - 4, 0, 1);
-                  end = new Date(currentYear + 4, 0, 1);
-                  return this._yearTitleFormatter.format(start) + " - " + this._yearTitleFormatter.format(end);
-                default:
-                  return "";
-              }
-            },
-            changeLanguage: function(language) {
-              this._setFormatters(localeTexts[language]);
-            },
-            render: function(date2, type) {
-              var context = {
-                showToday: this._showToday,
-                showJumpButtons: this._showJumpButtons,
-                todayText: this._todayFormatter.format(new Date()),
-                isDateCalendar: type === TYPE_DATE,
-                titleClass: this._getTitleClass(type),
-                title: this._getTitleText(date2, type)
-              };
-              this._container.innerHTML = headerTmpl(context).replace(/^\s+|\s+$/g, "");
-              this._innerElement = this._container.querySelector(SELECTOR_INNER_ELEM);
-              if (context.showToday) {
-                this._infoElement = this._container.querySelector(SELECTOR_INFO_ELEM);
-              }
-            },
-            destroy: function() {
-              this._removeEvents();
-              removeElement(this._innerElement);
-              removeElement(this._infoElement);
-              this._container = this._showToday = this._showJumpButtons = this._yearMonthTitleFormatter = this._yearTitleFormatter = this._todayFormatter = this._innerElement = this._infoElement = null;
             }
-          });
+          );
           CustomEvents2.mixin(Header);
           module3.exports = Header;
         },
@@ -4349,53 +4469,55 @@
           var TYPE_DATE = constants.TYPE_DATE;
           var TYPE_MONTH = constants.TYPE_MONTH;
           var TYPE_YEAR = constants.TYPE_YEAR;
-          var Body = defineClass({
-            init: function(bodyContainer, options) {
-              var language = options.language;
-              var weekStartDay = options.weekStartDay;
-              this._container = bodyContainer;
-              this._dateLayer = new DateLayer(language, weekStartDay);
-              this._monthLayer = new MonthLayer(language);
-              this._yearLayer = new YearLayer(language);
-              this._currentLayer = this._dateLayer;
-            },
-            _getLayer: function(type) {
-              switch (type) {
-                case TYPE_DATE:
-                  return this._dateLayer;
-                case TYPE_MONTH:
-                  return this._monthLayer;
-                case TYPE_YEAR:
-                  return this._yearLayer;
-                default:
-                  return this._currentLayer;
+          var Body = defineClass(
+            {
+              init: function(bodyContainer, options) {
+                var language = options.language;
+                var weekStartDay = options.weekStartDay;
+                this._container = bodyContainer;
+                this._dateLayer = new DateLayer(language, weekStartDay);
+                this._monthLayer = new MonthLayer(language);
+                this._yearLayer = new YearLayer(language);
+                this._currentLayer = this._dateLayer;
+              },
+              _getLayer: function(type) {
+                switch (type) {
+                  case TYPE_DATE:
+                    return this._dateLayer;
+                  case TYPE_MONTH:
+                    return this._monthLayer;
+                  case TYPE_YEAR:
+                    return this._yearLayer;
+                  default:
+                    return this._currentLayer;
+                }
+              },
+              _eachLayer: function(fn2) {
+                forEachArray2([this._dateLayer, this._monthLayer, this._yearLayer], fn2);
+              },
+              changeLanguage: function(language) {
+                this._eachLayer(function(layer) {
+                  layer.changeLanguage(language);
+                });
+              },
+              render: function(date2, type) {
+                var nextLayer = this._getLayer(type);
+                var prevLayer = this._currentLayer;
+                prevLayer.remove();
+                nextLayer.render(date2, this._container);
+                this._currentLayer = nextLayer;
+              },
+              getDateElements: function() {
+                return this._currentLayer.getDateElements();
+              },
+              destroy: function() {
+                this._eachLayer(function(layer) {
+                  layer.remove();
+                });
+                this._container = this._currentLayer = this._dateLayer = this._monthLayer = this._yearLayer = null;
               }
-            },
-            _eachLayer: function(fn2) {
-              forEachArray2([this._dateLayer, this._monthLayer, this._yearLayer], fn2);
-            },
-            changeLanguage: function(language) {
-              this._eachLayer(function(layer) {
-                layer.changeLanguage(language);
-              });
-            },
-            render: function(date2, type) {
-              var nextLayer = this._getLayer(type);
-              var prevLayer = this._currentLayer;
-              prevLayer.remove();
-              nextLayer.render(date2, this._container);
-              this._currentLayer = nextLayer;
-            },
-            getDateElements: function() {
-              return this._currentLayer.getDateElements();
-            },
-            destroy: function() {
-              this._eachLayer(function(layer) {
-                layer.remove();
-              });
-              this._container = this._currentLayer = this._dateLayer = this._monthLayer = this._yearLayer = null;
             }
-          });
+          );
           module3.exports = Body;
         },
         function(module3, exports3, __webpack_require__) {
@@ -4407,104 +4529,107 @@
           var WEEK_START_DAY_MAP = __webpack_require__(1).WEEK_START_DAY_MAP;
           var DATE_SELECTOR = ".tui-calendar-date";
           var DAYS_OF_WEEK = 7;
-          var DateLayer = defineClass(LayerBase, {
-            init: function(language, weekStartDay) {
-              LayerBase.call(this, language);
-              this.weekStartDay = WEEK_START_DAY_MAP[String(weekStartDay).toLowerCase()] || 0;
-            },
-            _type: TYPE_DATE,
-            _makeContext: function(date2) {
-              var daysShort = this._localeText.titles.D;
-              var year, month, days, i2;
-              date2 = date2 || new Date();
-              year = date2.getFullYear();
-              month = date2.getMonth() + 1;
-              if (this.weekStartDay) {
-                days = daysShort.slice();
-                for (i2 = 0; i2 < this.weekStartDay; i2 += 1) {
-                  days.push(days.shift());
+          var DateLayer = defineClass(
+            LayerBase,
+            {
+              init: function(language, weekStartDay) {
+                LayerBase.call(this, language);
+                this.weekStartDay = WEEK_START_DAY_MAP[String(weekStartDay).toLowerCase()] || 0;
+              },
+              _type: TYPE_DATE,
+              _makeContext: function(date2) {
+                var daysShort = this._localeText.titles.D;
+                var year, month, days, i2;
+                date2 = date2 || new Date();
+                year = date2.getFullYear();
+                month = date2.getMonth() + 1;
+                if (this.weekStartDay) {
+                  days = daysShort.slice();
+                  for (i2 = 0; i2 < this.weekStartDay; i2 += 1) {
+                    days.push(days.shift());
+                  }
+                  daysShort = days;
                 }
-                daysShort = days;
-              }
-              return {
-                Sun: daysShort[0],
-                Mon: daysShort[1],
-                Tue: daysShort[2],
-                Wed: daysShort[3],
-                Thu: daysShort[4],
-                Fri: daysShort[5],
-                Sat: daysShort[6],
-                year,
-                month,
-                weeks: this._getWeeks(year, month)
-              };
-            },
-            _getWeeks: function(year, month) {
-              var weekNumber = 0;
-              var weeksCount = 6;
-              var weeks = [];
-              var week, dates, i2;
-              while (weekNumber < weeksCount) {
-                dates = [];
+                return {
+                  Sun: daysShort[0],
+                  Mon: daysShort[1],
+                  Tue: daysShort[2],
+                  Wed: daysShort[3],
+                  Thu: daysShort[4],
+                  Fri: daysShort[5],
+                  Sat: daysShort[6],
+                  year,
+                  month,
+                  weeks: this._getWeeks(year, month)
+                };
+              },
+              _getWeeks: function(year, month) {
+                var weekNumber = 0;
+                var weeksCount = 6;
+                var weeks = [];
+                var week, dates, i2;
+                while (weekNumber < weeksCount) {
+                  dates = [];
+                  for (i2 = this.weekStartDay; i2 < DAYS_OF_WEEK + this.weekStartDay; i2 += 1) {
+                    dates.push(dateUtil.getDateOfWeek(year, month, weekNumber, i2));
+                  }
+                  week = this._getWeek(year, month, dates);
+                  if (this.weekStartDay && !_isFirstWeek(weekNumber, week[0].dayInMonth)) {
+                    weeks.push(this._getFirstWeek(year, month));
+                    weeksCount -= 1;
+                  }
+                  weeks.push(week);
+                  weekNumber += 1;
+                }
+                return weeks;
+              },
+              _getWeek: function(currentYear, currentMonth, dates) {
+                var firstDateOfCurrentMonth = new Date(currentYear, currentMonth - 1, 1);
+                var lastDateOfCurrentMonth = new Date(currentYear, currentMonth, 0);
+                var contexts = [];
+                var i2 = 0;
+                var length = dates.length;
+                var date2, className2;
+                for (; i2 < length; i2 += 1) {
+                  className2 = "tui-calendar-date";
+                  date2 = dates[i2];
+                  if (date2 < firstDateOfCurrentMonth) {
+                    className2 += " tui-calendar-prev-month";
+                  }
+                  if (date2 > lastDateOfCurrentMonth) {
+                    className2 += " tui-calendar-next-month";
+                  }
+                  if (date2.getDay() === 0) {
+                    className2 += " tui-calendar-sun";
+                  } else if (date2.getDay() === 6) {
+                    className2 += " tui-calendar-sat";
+                  }
+                  contexts.push({
+                    dayInMonth: date2.getDate(),
+                    className: className2,
+                    timestamp: date2.getTime()
+                  });
+                }
+                return contexts;
+              },
+              render: function(date2, container) {
+                var context = this._makeContext(date2);
+                container.innerHTML = bodyTmpl(context);
+                this._element = container.firstChild;
+              },
+              getDateElements: function() {
+                return this._element.querySelectorAll(DATE_SELECTOR);
+              },
+              _getFirstWeek: function(year, month) {
+                var firstWeekDates = [];
+                var i2;
                 for (i2 = this.weekStartDay; i2 < DAYS_OF_WEEK + this.weekStartDay; i2 += 1) {
-                  dates.push(dateUtil.getDateOfWeek(year, month, weekNumber, i2));
+                  firstWeekDates.push(dateUtil.getDateOfWeek(year, month, -1, i2));
                 }
-                week = this._getWeek(year, month, dates);
-                if (this.weekStartDay && !_isFirstWeek(weekNumber, week[0].dayInMonth)) {
-                  weeks.push(this._getFirstWeek(year, month));
-                  weeksCount -= 1;
-                }
-                weeks.push(week);
-                weekNumber += 1;
+                return this._getWeek(year, month, firstWeekDates);
               }
-              return weeks;
-            },
-            _getWeek: function(currentYear, currentMonth, dates) {
-              var firstDateOfCurrentMonth = new Date(currentYear, currentMonth - 1, 1);
-              var lastDateOfCurrentMonth = new Date(currentYear, currentMonth, 0);
-              var contexts = [];
-              var i2 = 0;
-              var length = dates.length;
-              var date2, className2;
-              for (; i2 < length; i2 += 1) {
-                className2 = "tui-calendar-date";
-                date2 = dates[i2];
-                if (date2 < firstDateOfCurrentMonth) {
-                  className2 += " tui-calendar-prev-month";
-                }
-                if (date2 > lastDateOfCurrentMonth) {
-                  className2 += " tui-calendar-next-month";
-                }
-                if (date2.getDay() === 0) {
-                  className2 += " tui-calendar-sun";
-                } else if (date2.getDay() === 6) {
-                  className2 += " tui-calendar-sat";
-                }
-                contexts.push({
-                  dayInMonth: date2.getDate(),
-                  className: className2,
-                  timestamp: date2.getTime()
-                });
-              }
-              return contexts;
-            },
-            render: function(date2, container) {
-              var context = this._makeContext(date2);
-              container.innerHTML = bodyTmpl(context);
-              this._element = container.firstChild;
-            },
-            getDateElements: function() {
-              return this._element.querySelectorAll(DATE_SELECTOR);
-            },
-            _getFirstWeek: function(year, month) {
-              var firstWeekDates = [];
-              var i2;
-              for (i2 = this.weekStartDay; i2 < DAYS_OF_WEEK + this.weekStartDay; i2 += 1) {
-                firstWeekDates.push(dateUtil.getDateOfWeek(year, month, -1, i2));
-              }
-              return this._getWeek(year, month, firstWeekDates);
             }
-          });
+          );
           function _isFirstWeek(weekIndex, dayInMonth) {
             return weekIndex || dayInMonth === 1 || dayInMonth > DAYS_OF_WEEK;
           }
@@ -4524,39 +4649,42 @@
           var TYPE_MONTH = __webpack_require__(1).TYPE_MONTH;
           var dateUtil = __webpack_require__(5);
           var DATE_SELECTOR = ".tui-calendar-month";
-          var MonthLayer = defineClass(LayerBase, {
-            init: function(language) {
-              LayerBase.call(this, language);
-            },
-            _type: TYPE_MONTH,
-            _makeContext: function(date2) {
-              var monthsShort = this._localeText.titles.MMM;
-              return {
-                year: date2.getFullYear(),
-                Jan: monthsShort[0],
-                Feb: monthsShort[1],
-                Mar: monthsShort[2],
-                Apr: monthsShort[3],
-                May: monthsShort[4],
-                Jun: monthsShort[5],
-                Jul: monthsShort[6],
-                Aug: monthsShort[7],
-                Sep: monthsShort[8],
-                Oct: monthsShort[9],
-                Nov: monthsShort[10],
-                Dec: monthsShort[11],
-                getFirstDayTimestamp: dateUtil.getFirstDayTimestamp
-              };
-            },
-            render: function(date2, container) {
-              var context = this._makeContext(date2);
-              container.innerHTML = bodyTmpl(context);
-              this._element = container.firstChild;
-            },
-            getDateElements: function() {
-              return this._element.querySelectorAll(DATE_SELECTOR);
+          var MonthLayer = defineClass(
+            LayerBase,
+            {
+              init: function(language) {
+                LayerBase.call(this, language);
+              },
+              _type: TYPE_MONTH,
+              _makeContext: function(date2) {
+                var monthsShort = this._localeText.titles.MMM;
+                return {
+                  year: date2.getFullYear(),
+                  Jan: monthsShort[0],
+                  Feb: monthsShort[1],
+                  Mar: monthsShort[2],
+                  Apr: monthsShort[3],
+                  May: monthsShort[4],
+                  Jun: monthsShort[5],
+                  Jul: monthsShort[6],
+                  Aug: monthsShort[7],
+                  Sep: monthsShort[8],
+                  Oct: monthsShort[9],
+                  Nov: monthsShort[10],
+                  Dec: monthsShort[11],
+                  getFirstDayTimestamp: dateUtil.getFirstDayTimestamp
+                };
+              },
+              render: function(date2, container) {
+                var context = this._makeContext(date2);
+                container.innerHTML = bodyTmpl(context);
+                this._element = container.firstChild;
+              },
+              getDateElements: function() {
+                return this._element.querySelectorAll(DATE_SELECTOR);
+              }
             }
-          });
+          );
           module3.exports = MonthLayer;
         },
         function(module3, exports3, __webpack_require__) {
@@ -4573,31 +4701,34 @@
           var TYPE_YEAR = __webpack_require__(1).TYPE_YEAR;
           var dateUtil = __webpack_require__(5);
           var DATE_SELECTOR = ".tui-calendar-year";
-          var YearLayer = defineClass(LayerBase, {
-            init: function(language) {
-              LayerBase.call(this, language);
-            },
-            _type: TYPE_YEAR,
-            _makeContext: function(date2) {
-              var year = date2.getFullYear();
-              return {
-                yearGroups: [
-                  dateUtil.getRangeArr(year - 4, year - 2),
-                  dateUtil.getRangeArr(year - 1, year + 1),
-                  dateUtil.getRangeArr(year + 2, year + 4)
-                ],
-                getFirstDayTimestamp: dateUtil.getFirstDayTimestamp
-              };
-            },
-            render: function(date2, container) {
-              var context = this._makeContext(date2);
-              container.innerHTML = bodyTmpl(context);
-              this._element = container.firstChild;
-            },
-            getDateElements: function() {
-              return this._element.querySelectorAll(DATE_SELECTOR);
+          var YearLayer = defineClass(
+            LayerBase,
+            {
+              init: function(language) {
+                LayerBase.call(this, language);
+              },
+              _type: TYPE_YEAR,
+              _makeContext: function(date2) {
+                var year = date2.getFullYear();
+                return {
+                  yearGroups: [
+                    dateUtil.getRangeArr(year - 4, year - 2),
+                    dateUtil.getRangeArr(year - 1, year + 1),
+                    dateUtil.getRangeArr(year + 2, year + 4)
+                  ],
+                  getFirstDayTimestamp: dateUtil.getFirstDayTimestamp
+                };
+              },
+              render: function(date2, container) {
+                var context = this._makeContext(date2);
+                container.innerHTML = bodyTmpl(context);
+                this._element = container.firstChild;
+              },
+              getDateElements: function() {
+                return this._element.querySelectorAll(DATE_SELECTOR);
+              }
             }
-          });
+          );
           module3.exports = YearLayer;
         },
         function(module3, exports3, __webpack_require__) {
@@ -4613,147 +4744,159 @@
           var isNumber2 = __webpack_require__(15);
           var Range = __webpack_require__(57);
           var util = __webpack_require__(4);
-          var RangeModel = defineClass({
-            init: function(ranges) {
-              ranges = ranges || [];
-              this._ranges = [];
-              forEachArray2(ranges, function(range2) {
-                this.add(range2[0], range2[1]);
-              }, this);
-            },
-            contains: function(start, end) {
-              var i2 = 0;
-              var length = this._ranges.length;
-              var range2;
-              for (; i2 < length; i2 += 1) {
-                range2 = this._ranges[i2];
-                if (range2.contains(start, end)) {
-                  return true;
-                }
-              }
-              return false;
-            },
-            hasOverlap: function(start, end) {
-              var i2 = 0;
-              var length = this._ranges.length;
-              var range2;
-              for (; i2 < length; i2 += 1) {
-                range2 = this._ranges[i2];
-                if (range2.isOverlapped(start, end)) {
-                  return true;
-                }
-              }
-              return false;
-            },
-            add: function(start, end) {
-              var overlapped = false;
-              var i2 = 0;
-              var len = this._ranges.length;
-              var range2;
-              for (; i2 < len; i2 += 1) {
-                range2 = this._ranges[i2];
-                overlapped = range2.isOverlapped(start, end);
-                if (overlapped) {
-                  range2.merge(start, end);
-                  break;
-                }
-                if (start < range2.start) {
-                  break;
-                }
-              }
-              if (!overlapped) {
-                this._ranges.splice(i2, 0, new Range(start, end));
-              }
-            },
-            getMinimumValue: function() {
-              return this._ranges[0].start;
-            },
-            getMaximumValue: function() {
-              var length = this._ranges.length;
-              return this._ranges[length - 1].end;
-            },
-            exclude: function(start, end) {
-              if (!isNumber2(end)) {
-                end = start;
-              }
-              forEachArray2(this._ranges, function(range2) {
-                var rangeEnd;
-                if (range2.isOverlapped(start, end)) {
-                  rangeEnd = range2.end;
-                  range2.exclude(start, end);
-                  if (end + 1 <= rangeEnd) {
-                    this.add(end + 1, rangeEnd);
+          var RangeModel = defineClass(
+            {
+              init: function(ranges) {
+                ranges = ranges || [];
+                this._ranges = [];
+                forEachArray2(
+                  ranges,
+                  function(range2) {
+                    this.add(range2[0], range2[1]);
+                  },
+                  this
+                );
+              },
+              contains: function(start, end) {
+                var i2 = 0;
+                var length = this._ranges.length;
+                var range2;
+                for (; i2 < length; i2 += 1) {
+                  range2 = this._ranges[i2];
+                  if (range2.contains(start, end)) {
+                    return true;
                   }
                 }
-              }, this);
-              this._ranges = util.filter(this._ranges, function(range2) {
-                return !range2.isEmpty();
-              });
-            },
-            findOverlappedRange: function(start, end) {
-              var i2 = 0;
-              var len = this._ranges.length;
-              var range2;
-              for (; i2 < len; i2 += 1) {
-                range2 = this._ranges[i2];
-                if (range2.isOverlapped(start, end)) {
-                  return [range2.start, range2.end];
+                return false;
+              },
+              hasOverlap: function(start, end) {
+                var i2 = 0;
+                var length = this._ranges.length;
+                var range2;
+                for (; i2 < length; i2 += 1) {
+                  range2 = this._ranges[i2];
+                  if (range2.isOverlapped(start, end)) {
+                    return true;
+                  }
                 }
+                return false;
+              },
+              add: function(start, end) {
+                var overlapped = false;
+                var i2 = 0;
+                var len = this._ranges.length;
+                var range2;
+                for (; i2 < len; i2 += 1) {
+                  range2 = this._ranges[i2];
+                  overlapped = range2.isOverlapped(start, end);
+                  if (overlapped) {
+                    range2.merge(start, end);
+                    break;
+                  }
+                  if (start < range2.start) {
+                    break;
+                  }
+                }
+                if (!overlapped) {
+                  this._ranges.splice(i2, 0, new Range(start, end));
+                }
+              },
+              getMinimumValue: function() {
+                return this._ranges[0].start;
+              },
+              getMaximumValue: function() {
+                var length = this._ranges.length;
+                return this._ranges[length - 1].end;
+              },
+              exclude: function(start, end) {
+                if (!isNumber2(end)) {
+                  end = start;
+                }
+                forEachArray2(
+                  this._ranges,
+                  function(range2) {
+                    var rangeEnd;
+                    if (range2.isOverlapped(start, end)) {
+                      rangeEnd = range2.end;
+                      range2.exclude(start, end);
+                      if (end + 1 <= rangeEnd) {
+                        this.add(end + 1, rangeEnd);
+                      }
+                    }
+                  },
+                  this
+                );
+                this._ranges = util.filter(this._ranges, function(range2) {
+                  return !range2.isEmpty();
+                });
+              },
+              findOverlappedRange: function(start, end) {
+                var i2 = 0;
+                var len = this._ranges.length;
+                var range2;
+                for (; i2 < len; i2 += 1) {
+                  range2 = this._ranges[i2];
+                  if (range2.isOverlapped(start, end)) {
+                    return [range2.start, range2.end];
+                  }
+                }
+                return null;
               }
-              return null;
             }
-          });
+          );
           module3.exports = RangeModel;
         },
         function(module3, exports3, __webpack_require__) {
           var defineClass = __webpack_require__(0);
           var isNumber2 = __webpack_require__(15);
-          var Range = defineClass({
-            init: function(start, end) {
-              this.setRange(start, end);
-            },
-            setRange: function(start, end) {
-              if (!isNumber2(end)) {
-                end = start;
-              }
-              this.start = Math.min(start, end);
-              this.end = Math.max(start, end);
-            },
-            merge: function(start, end) {
-              if (!isNumber2(start) || !isNumber2(end) || !this.isOverlapped(start, end)) {
-                return;
-              }
-              this.start = Math.min(start, this.start);
-              this.end = Math.max(end, this.end);
-            },
-            isEmpty: function() {
-              return !isNumber2(this.start) || !isNumber2(this.end);
-            },
-            setEmpty: function() {
-              this.start = this.end = null;
-            },
-            contains: function(start, end) {
-              if (!isNumber2(end)) {
-                end = start;
-              }
-              return this.start <= start && end <= this.end;
-            },
-            isOverlapped: function(start, end) {
-              if (!isNumber2(end)) {
-                end = start;
-              }
-              return this.start <= end && this.end >= start;
-            },
-            exclude: function(start, end) {
-              if (start <= this.start && end >= this.end) {
-                this.setEmpty();
-              } else if (this.contains(start)) {
-                this.setRange(this.start, start - 1);
-              } else if (this.contains(end)) {
-                this.setRange(end + 1, this.end);
+          var Range = defineClass(
+            {
+              init: function(start, end) {
+                this.setRange(start, end);
+              },
+              setRange: function(start, end) {
+                if (!isNumber2(end)) {
+                  end = start;
+                }
+                this.start = Math.min(start, end);
+                this.end = Math.max(start, end);
+              },
+              merge: function(start, end) {
+                if (!isNumber2(start) || !isNumber2(end) || !this.isOverlapped(start, end)) {
+                  return;
+                }
+                this.start = Math.min(start, this.start);
+                this.end = Math.max(end, this.end);
+              },
+              isEmpty: function() {
+                return !isNumber2(this.start) || !isNumber2(this.end);
+              },
+              setEmpty: function() {
+                this.start = this.end = null;
+              },
+              contains: function(start, end) {
+                if (!isNumber2(end)) {
+                  end = start;
+                }
+                return this.start <= start && end <= this.end;
+              },
+              isOverlapped: function(start, end) {
+                if (!isNumber2(end)) {
+                  end = start;
+                }
+                return this.start <= end && this.end >= start;
+              },
+              exclude: function(start, end) {
+                if (start <= this.start && end >= this.end) {
+                  this.setEmpty();
+                } else if (this.contains(start)) {
+                  this.setRange(this.start, start - 1);
+                } else if (this.contains(end)) {
+                  this.setRange(end + 1, this.end);
+                }
               }
             }
-          });
+          );
           module3.exports = Range;
         },
         function(module3, exports3, __webpack_require__) {
@@ -4772,81 +4915,83 @@
           var mouseTouchEvent = __webpack_require__(19);
           var util = __webpack_require__(4);
           var DEFAULT_FORMAT = "yyyy-MM-dd";
-          var DatePickerInput = defineClass({
-            init: function(inputElement, option) {
-              option.format = option.format || DEFAULT_FORMAT;
-              this._input = util.getElement(inputElement);
-              this._id = option.id;
-              this._titles = option.localeText.titles;
-              this._formatter = new DateTimeFormatter(option.format, this._titles);
-              this._setEvents();
-            },
-            changeLocaleTitles: function(titles) {
-              this._titles = titles;
-            },
-            _setEvents: function() {
-              if (this._input) {
-                on2(this._input, "change", this._onChangeHandler, this);
-                mouseTouchEvent.on(this._input, "click", this._onClickHandler, this);
+          var DatePickerInput = defineClass(
+            {
+              init: function(inputElement, option) {
+                option.format = option.format || DEFAULT_FORMAT;
+                this._input = util.getElement(inputElement);
+                this._id = option.id;
+                this._titles = option.localeText.titles;
+                this._formatter = new DateTimeFormatter(option.format, this._titles);
+                this._setEvents();
+              },
+              changeLocaleTitles: function(titles) {
+                this._titles = titles;
+              },
+              _setEvents: function() {
+                if (this._input) {
+                  on2(this._input, "change", this._onChangeHandler, this);
+                  mouseTouchEvent.on(this._input, "click", this._onClickHandler, this);
+                }
+              },
+              _removeEvents: function() {
+                this.off();
+                if (this._input) {
+                  off(this._input, "change", this._onChangeHandler);
+                  mouseTouchEvent.off(this._input, "click", this._onClickHandler);
+                }
+              },
+              _onChangeHandler: function() {
+                this.fire("change");
+              },
+              _onClickHandler: function() {
+                this.fire("click");
+              },
+              is: function(el) {
+                return this._input === el;
+              },
+              enable: function() {
+                if (this._input) {
+                  this._input.removeAttribute("disabled");
+                }
+              },
+              disable: function() {
+                if (this._input) {
+                  this._input.setAttribute("disabled", true);
+                }
+              },
+              getFormat: function() {
+                return this._formatter.getRawString();
+              },
+              setFormat: function(format) {
+                if (!format) {
+                  return;
+                }
+                this._formatter = new DateTimeFormatter(format, this._titles);
+              },
+              clearText: function() {
+                if (this._input) {
+                  this._input.value = "";
+                }
+              },
+              setDate: function(date2) {
+                if (this._input) {
+                  this._input.value = this._formatter.format(date2);
+                }
+              },
+              getDate: function() {
+                var value = "";
+                if (this._input) {
+                  value = this._input.value;
+                }
+                return this._formatter.parse(value);
+              },
+              destroy: function() {
+                this._removeEvents();
+                this._input = this._id = this._formatter = null;
               }
-            },
-            _removeEvents: function() {
-              this.off();
-              if (this._input) {
-                off(this._input, "change", this._onChangeHandler);
-                mouseTouchEvent.off(this._input, "click", this._onClickHandler);
-              }
-            },
-            _onChangeHandler: function() {
-              this.fire("change");
-            },
-            _onClickHandler: function() {
-              this.fire("click");
-            },
-            is: function(el) {
-              return this._input === el;
-            },
-            enable: function() {
-              if (this._input) {
-                this._input.removeAttribute("disabled");
-              }
-            },
-            disable: function() {
-              if (this._input) {
-                this._input.setAttribute("disabled", true);
-              }
-            },
-            getFormat: function() {
-              return this._formatter.getRawString();
-            },
-            setFormat: function(format) {
-              if (!format) {
-                return;
-              }
-              this._formatter = new DateTimeFormatter(format, this._titles);
-            },
-            clearText: function() {
-              if (this._input) {
-                this._input.value = "";
-              }
-            },
-            setDate: function(date2) {
-              if (this._input) {
-                this._input.value = this._formatter.format(date2);
-              }
-            },
-            getDate: function() {
-              var value = "";
-              if (this._input) {
-                value = this._input.value;
-              }
-              return this._formatter.parse(value);
-            },
-            destroy: function() {
-              this._removeEvents();
-              this._input = this._id = this._formatter = null;
             }
-          });
+          );
           CustomEvents2.mixin(DatePickerInput);
           module3.exports = DatePickerInput;
         },
@@ -4865,185 +5010,202 @@
           var CLASS_NAME_RANGE_PICKER = "tui-rangepicker";
           var CLASS_NAME_SELECTED = constants.CLASS_NAME_SELECTED;
           var CLASS_NAME_SELECTED_RANGE = "tui-is-selected-range";
-          var DateRangePicker = defineClass({
-            init: function(options) {
-              var startpickerOpt, endpickerOpt;
-              options = options || {};
-              startpickerOpt = options.startpicker;
-              endpickerOpt = options.endpicker;
-              if (!startpickerOpt) {
-                throw new Error('The "startpicker" option is required.');
-              }
-              if (!endpickerOpt) {
-                throw new Error('The "endpicker" option is required.');
-              }
-              this._startpicker = null;
-              this._endpicker = null;
-              this._isRangeSet = false;
-              this._preEndPickerDate = new Date().getDate();
-              this._initializePickers(options);
-              this._syncRangesToEndpicker();
-            },
-            _initializePickers: function(options) {
-              var startpickerContainer = util.getElement(options.startpicker.container);
-              var endpickerContainer = util.getElement(options.endpicker.container);
-              var startInput = util.getElement(options.startpicker.input);
-              var endInput = util.getElement(options.endpicker.input);
-              var startpickerOpt = extend2({}, options, {
-                input: {
-                  element: startInput,
-                  format: options.format
-                },
-                date: options.startpicker.date,
-                weekStartDay: options.startpicker.weekStartDay
-              });
-              var endpickerOpt = extend2({}, options, {
-                input: {
-                  element: endInput,
-                  format: options.format
-                },
-                date: options.endpicker.date,
-                weekStartDay: options.endpicker.weekStartDay
-              });
-              this._startpicker = new DatePicker2(startpickerContainer, startpickerOpt);
-              this._startpicker.addCssClass(CLASS_NAME_RANGE_PICKER);
-              this._startpicker.on("change", this._onChangeStartpicker, this);
-              this._startpicker.on("draw", this._onDrawPicker, this);
-              this._endpicker = new DatePicker2(endpickerContainer, endpickerOpt);
-              this._endpicker.addCssClass(CLASS_NAME_RANGE_PICKER);
-              this._endpicker.on("change", this._onChangeEndpicker, this);
-              this._endpicker.on("draw", this._onDrawPicker, this);
-            },
-            _onDrawPicker: function(eventData) {
-              var calendarType = eventData.type;
-              var startDate = this._startpicker.getDate();
-              var endDate = this._endpicker.getDate();
-              if (!startDate) {
-                return;
-              }
-              if (!endDate) {
-                endDate = new Date(NaN);
-              }
-              forEachArray2(eventData.dateElements, function(el) {
-                var elDate = new Date(Number(getData(el, "timestamp")));
-                var isInRange = dateUtil.inRange(startDate, endDate, elDate, calendarType);
-                var isSelected = dateUtil.isSame(startDate, elDate, calendarType) || dateUtil.isSame(endDate, elDate, calendarType);
-                this._setRangeClass(el, isInRange);
-                this._setSelectedClass(el, isSelected);
-              }, this);
-            },
-            _setRangeClass: function(el, isInRange) {
-              if (isInRange) {
-                addClass(el, CLASS_NAME_SELECTED_RANGE);
-              } else {
-                removeClass(el, CLASS_NAME_SELECTED_RANGE);
-              }
-            },
-            _setSelectedClass: function(el, isSelected) {
-              if (isSelected) {
-                addClass(el, CLASS_NAME_SELECTED);
-              } else {
-                removeClass(el, CLASS_NAME_SELECTED);
-              }
-            },
-            _syncRangesToEndpicker: function() {
-              var startDate = this._startpicker.getDate();
-              var overlappedRange;
-              if (startDate) {
-                overlappedRange = this._startpicker.findOverlappedRange(dateUtil.cloneWithStartOf(startDate).getTime(), dateUtil.cloneWithEndOf(startDate).getTime());
-                this._endpicker.enable();
-                this._endpicker.setRanges([[startDate.getTime(), overlappedRange[1].getTime()]]);
-                this._setTimeRangeOnEndPicker();
-              } else {
-                this._endpicker.setNull();
-                this._endpicker.disable();
-              }
-            },
-            _onChangeStartpicker: function() {
-              this._syncRangesToEndpicker();
-              this.fire("change:start");
-            },
-            _onChangeEndpicker: function() {
-              var date2;
-              var endPickerDate = this._endpicker.getDate();
-              if (endPickerDate) {
-                date2 = endPickerDate.getDate();
-                if (this._preEndPickerDate !== date2) {
-                  this._setTimeRangeOnEndPicker();
+          var DateRangePicker = defineClass(
+            {
+              init: function(options) {
+                var startpickerOpt, endpickerOpt;
+                options = options || {};
+                startpickerOpt = options.startpicker;
+                endpickerOpt = options.endpicker;
+                if (!startpickerOpt) {
+                  throw new Error('The "startpicker" option is required.');
                 }
-                this._preEndPickerDate = date2;
-              } else {
-                this._preEndPickerDate = null;
-              }
-              this.fire("change:end");
-            },
-            _setTimeRangeOnEndPicker: function() {
-              var pickerDate, timeRange;
-              var endTimePicker = this._endpicker._timePicker;
-              if (!endTimePicker) {
-                return;
-              }
-              pickerDate = this._endpicker.getDate() || this._startpicker.getDate();
-              timeRange = this._getTimeRangeFromStartPicker();
-              if (pickerDate && timeRange[pickerDate.getDate()]) {
-                endTimePicker.setRange(timeRange[pickerDate.getDate()]);
-                this._isRangeSet = true;
-              } else if (this._isRangeSet) {
-                endTimePicker.setRange({ hour: 0, minute: 0 });
-                endTimePicker.resetMinuteRange();
+                if (!endpickerOpt) {
+                  throw new Error('The "endpicker" option is required.');
+                }
+                this._startpicker = null;
+                this._endpicker = null;
                 this._isRangeSet = false;
+                this._preEndPickerDate = new Date().getDate();
+                this._initializePickers(options);
+                this._syncRangesToEndpicker();
+              },
+              _initializePickers: function(options) {
+                var startpickerContainer = util.getElement(options.startpicker.container);
+                var endpickerContainer = util.getElement(options.endpicker.container);
+                var startInput = util.getElement(options.startpicker.input);
+                var endInput = util.getElement(options.endpicker.input);
+                var startpickerOpt = extend2({}, options, {
+                  input: {
+                    element: startInput,
+                    format: options.format
+                  },
+                  date: options.startpicker.date,
+                  weekStartDay: options.startpicker.weekStartDay
+                });
+                var endpickerOpt = extend2({}, options, {
+                  input: {
+                    element: endInput,
+                    format: options.format
+                  },
+                  date: options.endpicker.date,
+                  weekStartDay: options.endpicker.weekStartDay
+                });
+                this._startpicker = new DatePicker2(startpickerContainer, startpickerOpt);
+                this._startpicker.addCssClass(CLASS_NAME_RANGE_PICKER);
+                this._startpicker.on("change", this._onChangeStartpicker, this);
+                this._startpicker.on("draw", this._onDrawPicker, this);
+                this._endpicker = new DatePicker2(endpickerContainer, endpickerOpt);
+                this._endpicker.addCssClass(CLASS_NAME_RANGE_PICKER);
+                this._endpicker.on("change", this._onChangeEndpicker, this);
+                this._endpicker.on("draw", this._onDrawPicker, this);
+              },
+              _onDrawPicker: function(eventData) {
+                var calendarType = eventData.type;
+                var startDate = this._startpicker.getDate();
+                var endDate = this._endpicker.getDate();
+                if (!startDate) {
+                  return;
+                }
+                if (!endDate) {
+                  endDate = new Date(NaN);
+                }
+                forEachArray2(
+                  eventData.dateElements,
+                  function(el) {
+                    var elDate = new Date(Number(getData(el, "timestamp")));
+                    var isInRange = dateUtil.inRange(startDate, endDate, elDate, calendarType);
+                    var isSelected = dateUtil.isSame(startDate, elDate, calendarType) || dateUtil.isSame(endDate, elDate, calendarType);
+                    this._setRangeClass(el, isInRange);
+                    this._setSelectedClass(el, isSelected);
+                  },
+                  this
+                );
+              },
+              _setRangeClass: function(el, isInRange) {
+                if (isInRange) {
+                  addClass(el, CLASS_NAME_SELECTED_RANGE);
+                } else {
+                  removeClass(el, CLASS_NAME_SELECTED_RANGE);
+                }
+              },
+              _setSelectedClass: function(el, isSelected) {
+                if (isSelected) {
+                  addClass(el, CLASS_NAME_SELECTED);
+                } else {
+                  removeClass(el, CLASS_NAME_SELECTED);
+                }
+              },
+              _syncRangesToEndpicker: function() {
+                var startDate = this._startpicker.getDate();
+                var overlappedRange;
+                if (startDate) {
+                  overlappedRange = this._startpicker.findOverlappedRange(
+                    dateUtil.cloneWithStartOf(startDate).getTime(),
+                    dateUtil.cloneWithEndOf(startDate).getTime()
+                  );
+                  this._endpicker.enable();
+                  this._endpicker.setRanges([[startDate.getTime(), overlappedRange[1].getTime()]]);
+                  this._setTimeRangeOnEndPicker();
+                } else {
+                  this._endpicker.setNull();
+                  this._endpicker.disable();
+                }
+              },
+              _onChangeStartpicker: function() {
+                this._syncRangesToEndpicker();
+                this.fire("change:start");
+              },
+              _onChangeEndpicker: function() {
+                var date2;
+                var endPickerDate = this._endpicker.getDate();
+                if (endPickerDate) {
+                  date2 = endPickerDate.getDate();
+                  if (this._preEndPickerDate !== date2) {
+                    this._setTimeRangeOnEndPicker();
+                  }
+                  this._preEndPickerDate = date2;
+                } else {
+                  this._preEndPickerDate = null;
+                }
+                this.fire("change:end");
+              },
+              _isStartAndEndDateSame: function() {
+                return !!this._endpicker.getDate() && !!this._startpicker.getDate() && dateUtil.compare(
+                  this._endpicker.getDate(),
+                  this._startpicker.getDate(),
+                  constants.TYPE_DATE
+                ) === 0;
+              },
+              _setTimeRangeOnEndPicker: function() {
+                var pickerDate, timeRange, timeRangeToSet;
+                var endTimePicker = this._endpicker._timePicker;
+                if (!endTimePicker) {
+                  return;
+                }
+                pickerDate = this._endpicker.getDate() || this._startpicker.getDate();
+                timeRange = this._getTimeRangeFromStartPicker();
+                timeRangeToSet = pickerDate && timeRange[pickerDate.getDate()];
+                if (this._isStartAndEndDateSame() && timeRangeToSet) {
+                  endTimePicker.setRange(timeRangeToSet);
+                  this._isRangeSet = true;
+                } else if (this._isRangeSet) {
+                  endTimePicker.setRange({ hour: 0, minute: 0 });
+                  endTimePicker.resetMinuteRange();
+                  this._isRangeSet = false;
+                }
+              },
+              _getTimeRangeFromStartPicker: function() {
+                var startDate = this._startpicker.getDate();
+                var timeRange = {};
+                timeRange[startDate.getDate()] = {
+                  hour: startDate.getHours(),
+                  minute: startDate.getMinutes()
+                };
+                return timeRange;
+              },
+              getStartpicker: function() {
+                return this._startpicker;
+              },
+              getEndpicker: function() {
+                return this._endpicker;
+              },
+              setStartDate: function(date2) {
+                this._startpicker.setDate(date2);
+              },
+              getStartDate: function() {
+                return this._startpicker.getDate();
+              },
+              getEndDate: function() {
+                return this._endpicker.getDate();
+              },
+              setEndDate: function(date2) {
+                this._endpicker.setDate(date2);
+              },
+              setRanges: function(ranges) {
+                this._startpicker.setRanges(ranges);
+                this._syncRangesToEndpicker();
+              },
+              addRange: function(start, end) {
+                this._startpicker.addRange(start, end);
+                this._syncRangesToEndpicker();
+              },
+              removeRange: function(start, end, type) {
+                this._startpicker.removeRange(start, end, type);
+                this._syncRangesToEndpicker();
+              },
+              changeLanguage: function(language) {
+                this._startpicker.changeLanguage(language);
+                this._endpicker.changeLanguage(language);
+              },
+              destroy: function() {
+                this.off();
+                this._startpicker.destroy();
+                this._endpicker.destroy();
+                this._startpicker = this._endpicker = null;
               }
-            },
-            _getTimeRangeFromStartPicker: function() {
-              var startDate = this._startpicker.getDate();
-              var timeRange = {};
-              timeRange[startDate.getDate()] = {
-                hour: startDate.getHours(),
-                minute: startDate.getMinutes()
-              };
-              return timeRange;
-            },
-            getStartpicker: function() {
-              return this._startpicker;
-            },
-            getEndpicker: function() {
-              return this._endpicker;
-            },
-            setStartDate: function(date2) {
-              this._startpicker.setDate(date2);
-            },
-            getStartDate: function() {
-              return this._startpicker.getDate();
-            },
-            getEndDate: function() {
-              return this._endpicker.getDate();
-            },
-            setEndDate: function(date2) {
-              this._endpicker.setDate(date2);
-            },
-            setRanges: function(ranges) {
-              this._startpicker.setRanges(ranges);
-              this._syncRangesToEndpicker();
-            },
-            addRange: function(start, end) {
-              this._startpicker.addRange(start, end);
-              this._syncRangesToEndpicker();
-            },
-            removeRange: function(start, end, type) {
-              this._startpicker.removeRange(start, end, type);
-              this._syncRangesToEndpicker();
-            },
-            changeLanguage: function(language) {
-              this._startpicker.changeLanguage(language);
-              this._endpicker.changeLanguage(language);
-            },
-            destroy: function() {
-              this.off();
-              this._startpicker.destroy();
-              this._endpicker.destroy();
-              this._startpicker = this._endpicker = null;
             }
-          });
+          );
           CustomEvents2.mixin(DateRangePicker);
           module3.exports = DateRangePicker;
         },
@@ -5084,194 +5246,206 @@
       }
     return target;
   };
-  var n$2, l$3, u$3, t$2, o$3, r$3, f$3 = {}, e$1 = [], c$3 = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
-  function s$3(n2, l2) {
+  var n$2, l$3, u$3, t$2, r$2, o$3, f$3, e$1, c$3 = {}, s$3 = [], a$3 = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
+  function h$3(n2, l2) {
     for (var u2 in l2)
       n2[u2] = l2[u2];
     return n2;
   }
-  function a$3(n2) {
+  function v$3(n2) {
     var l2 = n2.parentNode;
     l2 && l2.removeChild(n2);
   }
-  function h$3(l2, u2, i2) {
-    var t2, o2, r2, f2 = {};
-    for (r2 in u2)
-      r2 == "key" ? t2 = u2[r2] : r2 == "ref" ? o2 = u2[r2] : f2[r2] = u2[r2];
-    if (arguments.length > 2 && (f2.children = arguments.length > 3 ? n$2.call(arguments, 2) : i2), typeof l2 == "function" && l2.defaultProps != null)
-      for (r2 in l2.defaultProps)
-        f2[r2] === void 0 && (f2[r2] = l2.defaultProps[r2]);
-    return v$3(l2, f2, t2, o2, null);
+  function y$3(l2, u2, i2) {
+    var t2, r2, o2, f2 = {};
+    for (o2 in u2)
+      "key" == o2 ? t2 = u2[o2] : "ref" == o2 ? r2 = u2[o2] : f2[o2] = u2[o2];
+    if (arguments.length > 2 && (f2.children = arguments.length > 3 ? n$2.call(arguments, 2) : i2), "function" == typeof l2 && null != l2.defaultProps)
+      for (o2 in l2.defaultProps)
+        void 0 === f2[o2] && (f2[o2] = l2.defaultProps[o2]);
+    return p$3(l2, f2, t2, r2, null);
   }
-  function v$3(n2, i2, t2, o2, r2) {
-    var f2 = { type: n2, props: i2, key: t2, ref: o2, __k: null, __: null, __b: 0, __e: null, __d: void 0, __c: null, __h: null, constructor: void 0, __v: r2 == null ? ++u$3 : r2 };
-    return r2 == null && l$3.vnode != null && l$3.vnode(f2), f2;
+  function p$3(n2, i2, t2, r2, o2) {
+    var f2 = { type: n2, props: i2, key: t2, ref: r2, __k: null, __: null, __b: 0, __e: null, __d: void 0, __c: null, __h: null, constructor: void 0, __v: null == o2 ? ++u$3 : o2 };
+    return null == o2 && null != l$3.vnode && l$3.vnode(f2), f2;
   }
-  function p$3(n2) {
+  function _$3(n2) {
     return n2.children;
   }
-  function d$3(n2, l2) {
+  function k$4(n2, l2) {
     this.props = n2, this.context = l2;
   }
-  function _$3(n2, l2) {
-    if (l2 == null)
-      return n2.__ ? _$3(n2.__, n2.__.__k.indexOf(n2) + 1) : null;
+  function b$3(n2, l2) {
+    if (null == l2)
+      return n2.__ ? b$3(n2.__, n2.__.__k.indexOf(n2) + 1) : null;
     for (var u2; l2 < n2.__k.length; l2++)
-      if ((u2 = n2.__k[l2]) != null && u2.__e != null)
+      if (null != (u2 = n2.__k[l2]) && null != u2.__e)
         return u2.__e;
-    return typeof n2.type == "function" ? _$3(n2) : null;
+    return "function" == typeof n2.type ? b$3(n2) : null;
   }
-  function k$2(n2) {
+  function g$4(n2) {
     var l2, u2;
-    if ((n2 = n2.__) != null && n2.__c != null) {
+    if (null != (n2 = n2.__) && null != n2.__c) {
       for (n2.__e = n2.__c.base = null, l2 = 0; l2 < n2.__k.length; l2++)
-        if ((u2 = n2.__k[l2]) != null && u2.__e != null) {
+        if (null != (u2 = n2.__k[l2]) && null != u2.__e) {
           n2.__e = n2.__c.base = u2.__e;
           break;
         }
-      return k$2(n2);
+      return g$4(n2);
     }
   }
-  function b$2(n2) {
-    (!n2.__d && (n2.__d = true) && t$2.push(n2) && !g$4.__r++ || o$3 !== l$3.debounceRendering) && ((o$3 = l$3.debounceRendering) || setTimeout)(g$4);
+  function m$2(n2) {
+    (!n2.__d && (n2.__d = true) && t$2.push(n2) && !w$4.__r++ || r$2 !== l$3.debounceRendering) && ((r$2 = l$3.debounceRendering) || o$3)(w$4);
   }
-  function g$4() {
-    for (var n2; g$4.__r = t$2.length; )
-      n2 = t$2.sort(function(n3, l2) {
-        return n3.__v.__b - l2.__v.__b;
-      }), t$2 = [], n2.some(function(n3) {
-        var l2, u2, i2, t2, o2, r2;
-        n3.__d && (o2 = (t2 = (l2 = n3).__v).__e, (r2 = l2.__P) && (u2 = [], (i2 = s$3({}, t2)).__v = t2.__v + 1, j$3(r2, t2, i2, l2.__n, r2.ownerSVGElement !== void 0, t2.__h != null ? [o2] : null, u2, o2 == null ? _$3(t2) : o2, t2.__h), z$2(u2, t2), t2.__e != o2 && k$2(t2)));
-      });
+  function w$4() {
+    var n2, l2, u2, i2, r2, o2, e2, c2;
+    for (t$2.sort(f$3); n2 = t$2.shift(); )
+      n2.__d && (l2 = t$2.length, i2 = void 0, r2 = void 0, e2 = (o2 = (u2 = n2).__v).__e, (c2 = u2.__P) && (i2 = [], (r2 = h$3({}, o2)).__v = o2.__v + 1, L$2(c2, o2, r2, u2.__n, void 0 !== c2.ownerSVGElement, null != o2.__h ? [e2] : null, i2, null == e2 ? b$3(o2) : e2, o2.__h), M$1(i2, o2), o2.__e != e2 && g$4(o2)), t$2.length > l2 && t$2.sort(f$3));
+    w$4.__r = 0;
   }
-  function w$3(n2, l2, u2, i2, t2, o2, r2, c2, s2, a2) {
-    var h2, y2, d2, k2, b2, g2, w2, x2 = i2 && i2.__k || e$1, C2 = x2.length;
+  function x$3(n2, l2, u2, i2, t2, r2, o2, f2, e2, a2) {
+    var h2, v2, y2, d2, k2, g2, m2, w2 = i2 && i2.__k || s$3, x2 = w2.length;
     for (u2.__k = [], h2 = 0; h2 < l2.length; h2++)
-      if ((k2 = u2.__k[h2] = (k2 = l2[h2]) == null || typeof k2 == "boolean" ? null : typeof k2 == "string" || typeof k2 == "number" || typeof k2 == "bigint" ? v$3(null, k2, null, null, k2) : Array.isArray(k2) ? v$3(p$3, { children: k2 }, null, null, null) : k2.__b > 0 ? v$3(k2.type, k2.props, k2.key, null, k2.__v) : k2) != null) {
-        if (k2.__ = u2, k2.__b = u2.__b + 1, (d2 = x2[h2]) === null || d2 && k2.key == d2.key && k2.type === d2.type)
-          x2[h2] = void 0;
+      if (null != (d2 = u2.__k[h2] = null == (d2 = l2[h2]) || "boolean" == typeof d2 || "function" == typeof d2 ? null : "string" == typeof d2 || "number" == typeof d2 || "bigint" == typeof d2 ? p$3(null, d2, null, null, d2) : Array.isArray(d2) ? p$3(_$3, { children: d2 }, null, null, null) : d2.__b > 0 ? p$3(d2.type, d2.props, d2.key, d2.ref ? d2.ref : null, d2.__v) : d2)) {
+        if (d2.__ = u2, d2.__b = u2.__b + 1, null === (y2 = w2[h2]) || y2 && d2.key == y2.key && d2.type === y2.type)
+          w2[h2] = void 0;
         else
-          for (y2 = 0; y2 < C2; y2++) {
-            if ((d2 = x2[y2]) && k2.key == d2.key && k2.type === d2.type) {
-              x2[y2] = void 0;
+          for (v2 = 0; v2 < x2; v2++) {
+            if ((y2 = w2[v2]) && d2.key == y2.key && d2.type === y2.type) {
+              w2[v2] = void 0;
               break;
             }
-            d2 = null;
+            y2 = null;
           }
-        j$3(n2, k2, d2 = d2 || f$3, t2, o2, r2, c2, s2, a2), b2 = k2.__e, (y2 = k2.ref) && d2.ref != y2 && (w2 || (w2 = []), d2.ref && w2.push(d2.ref, null, k2), w2.push(y2, k2.__c || b2, k2)), b2 != null ? (g2 == null && (g2 = b2), typeof k2.type == "function" && k2.__k === d2.__k ? k2.__d = s2 = m$2(k2, s2, n2) : s2 = A$2(n2, k2, d2, x2, b2, s2), typeof u2.type == "function" && (u2.__d = s2)) : s2 && d2.__e == s2 && s2.parentNode != n2 && (s2 = _$3(d2));
+        L$2(n2, d2, y2 = y2 || c$3, t2, r2, o2, f2, e2, a2), k2 = d2.__e, (v2 = d2.ref) && y2.ref != v2 && (m2 || (m2 = []), y2.ref && m2.push(y2.ref, null, d2), m2.push(v2, d2.__c || k2, d2)), null != k2 ? (null == g2 && (g2 = k2), "function" == typeof d2.type && d2.__k === y2.__k ? d2.__d = e2 = A$2(d2, e2, n2) : e2 = C$2(n2, d2, y2, w2, k2, e2), "function" == typeof u2.type && (u2.__d = e2)) : e2 && y2.__e == e2 && e2.parentNode != n2 && (e2 = b$3(y2));
       }
-    for (u2.__e = g2, h2 = C2; h2--; )
-      x2[h2] != null && (typeof u2.type == "function" && x2[h2].__e != null && x2[h2].__e == u2.__d && (u2.__d = _$3(i2, h2 + 1)), N(x2[h2], x2[h2]));
-    if (w2)
-      for (h2 = 0; h2 < w2.length; h2++)
-        M$2(w2[h2], w2[++h2], w2[++h2]);
+    for (u2.__e = g2, h2 = x2; h2--; )
+      null != w2[h2] && ("function" == typeof u2.type && null != w2[h2].__e && w2[h2].__e == u2.__d && (u2.__d = $$1(i2).nextSibling), S$2(w2[h2], w2[h2]));
+    if (m2)
+      for (h2 = 0; h2 < m2.length; h2++)
+        O$2(m2[h2], m2[++h2], m2[++h2]);
   }
-  function m$2(n2, l2, u2) {
-    for (var i2, t2 = n2.__k, o2 = 0; t2 && o2 < t2.length; o2++)
-      (i2 = t2[o2]) && (i2.__ = n2, l2 = typeof i2.type == "function" ? m$2(i2, l2, u2) : A$2(u2, i2, i2, t2, i2.__e, l2));
+  function A$2(n2, l2, u2) {
+    for (var i2, t2 = n2.__k, r2 = 0; t2 && r2 < t2.length; r2++)
+      (i2 = t2[r2]) && (i2.__ = n2, l2 = "function" == typeof i2.type ? A$2(i2, l2, u2) : C$2(u2, i2, i2, t2, i2.__e, l2));
     return l2;
   }
-  function x$3(n2, l2) {
-    return l2 = l2 || [], n2 == null || typeof n2 == "boolean" || (Array.isArray(n2) ? n2.some(function(n3) {
-      x$3(n3, l2);
+  function P$2(n2, l2) {
+    return l2 = l2 || [], null == n2 || "boolean" == typeof n2 || (Array.isArray(n2) ? n2.some(function(n3) {
+      P$2(n3, l2);
     }) : l2.push(n2)), l2;
   }
-  function A$2(n2, l2, u2, i2, t2, o2) {
-    var r2, f2, e2;
-    if (l2.__d !== void 0)
-      r2 = l2.__d, l2.__d = void 0;
-    else if (u2 == null || t2 != o2 || t2.parentNode == null)
+  function C$2(n2, l2, u2, i2, t2, r2) {
+    var o2, f2, e2;
+    if (void 0 !== l2.__d)
+      o2 = l2.__d, l2.__d = void 0;
+    else if (null == u2 || t2 != r2 || null == t2.parentNode)
       n:
-        if (o2 == null || o2.parentNode !== n2)
-          n2.appendChild(t2), r2 = null;
+        if (null == r2 || r2.parentNode !== n2)
+          n2.appendChild(t2), o2 = null;
         else {
-          for (f2 = o2, e2 = 0; (f2 = f2.nextSibling) && e2 < i2.length; e2 += 2)
+          for (f2 = r2, e2 = 0; (f2 = f2.nextSibling) && e2 < i2.length; e2 += 1)
             if (f2 == t2)
               break n;
-          n2.insertBefore(t2, o2), r2 = o2;
+          n2.insertBefore(t2, r2), o2 = r2;
         }
-    return r2 !== void 0 ? r2 : t2.nextSibling;
+    return void 0 !== o2 ? o2 : t2.nextSibling;
   }
-  function C$1(n2, l2, u2, i2, t2) {
-    var o2;
-    for (o2 in u2)
-      o2 === "children" || o2 === "key" || o2 in l2 || H$2(n2, o2, null, u2[o2], i2);
-    for (o2 in l2)
-      t2 && typeof l2[o2] != "function" || o2 === "children" || o2 === "key" || o2 === "value" || o2 === "checked" || u2[o2] === l2[o2] || H$2(n2, o2, l2[o2], u2[o2], i2);
-  }
-  function $$1(n2, l2, u2) {
-    l2[0] === "-" ? n2.setProperty(l2, u2) : n2[l2] = u2 == null ? "" : typeof u2 != "number" || c$3.test(l2) ? u2 : u2 + "px";
+  function $$1(n2) {
+    var l2, u2, i2;
+    if (null == n2.type || "string" == typeof n2.type)
+      return n2.__e;
+    if (n2.__k) {
+      for (l2 = n2.__k.length - 1; l2 >= 0; l2--)
+        if ((u2 = n2.__k[l2]) && (i2 = $$1(u2)))
+          return i2;
+    }
+    return null;
   }
   function H$2(n2, l2, u2, i2, t2) {
-    var o2;
+    var r2;
+    for (r2 in u2)
+      "children" === r2 || "key" === r2 || r2 in l2 || T$2(n2, r2, null, u2[r2], i2);
+    for (r2 in l2)
+      t2 && "function" != typeof l2[r2] || "children" === r2 || "key" === r2 || "value" === r2 || "checked" === r2 || u2[r2] === l2[r2] || T$2(n2, r2, l2[r2], u2[r2], i2);
+  }
+  function I$2(n2, l2, u2) {
+    "-" === l2[0] ? n2.setProperty(l2, null == u2 ? "" : u2) : n2[l2] = null == u2 ? "" : "number" != typeof u2 || a$3.test(l2) ? u2 : u2 + "px";
+  }
+  function T$2(n2, l2, u2, i2, t2) {
+    var r2;
     n:
-      if (l2 === "style")
-        if (typeof u2 == "string")
+      if ("style" === l2)
+        if ("string" == typeof u2)
           n2.style.cssText = u2;
         else {
-          if (typeof i2 == "string" && (n2.style.cssText = i2 = ""), i2)
+          if ("string" == typeof i2 && (n2.style.cssText = i2 = ""), i2)
             for (l2 in i2)
-              u2 && l2 in u2 || $$1(n2.style, l2, "");
+              u2 && l2 in u2 || I$2(n2.style, l2, "");
           if (u2)
             for (l2 in u2)
-              i2 && u2[l2] === i2[l2] || $$1(n2.style, l2, u2[l2]);
+              i2 && u2[l2] === i2[l2] || I$2(n2.style, l2, u2[l2]);
         }
-      else if (l2[0] === "o" && l2[1] === "n")
-        o2 = l2 !== (l2 = l2.replace(/Capture$/, "")), l2 = l2.toLowerCase() in n2 ? l2.toLowerCase().slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + o2] = u2, u2 ? i2 || n2.addEventListener(l2, o2 ? T$2 : I$2, o2) : n2.removeEventListener(l2, o2 ? T$2 : I$2, o2);
-      else if (l2 !== "dangerouslySetInnerHTML") {
+      else if ("o" === l2[0] && "n" === l2[1])
+        r2 = l2 !== (l2 = l2.replace(/Capture$/, "")), l2 = l2.toLowerCase() in n2 ? l2.toLowerCase().slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + r2] = u2, u2 ? i2 || n2.addEventListener(l2, r2 ? z$3 : j$4, r2) : n2.removeEventListener(l2, r2 ? z$3 : j$4, r2);
+      else if ("dangerouslySetInnerHTML" !== l2) {
         if (t2)
           l2 = l2.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
-        else if (l2 !== "href" && l2 !== "list" && l2 !== "form" && l2 !== "tabIndex" && l2 !== "download" && l2 in n2)
+        else if ("width" !== l2 && "height" !== l2 && "href" !== l2 && "list" !== l2 && "form" !== l2 && "tabIndex" !== l2 && "download" !== l2 && l2 in n2)
           try {
-            n2[l2] = u2 == null ? "" : u2;
+            n2[l2] = null == u2 ? "" : u2;
             break n;
           } catch (n3) {
           }
-        typeof u2 == "function" || (u2 != null && (u2 !== false || l2[0] === "a" && l2[1] === "r") ? n2.setAttribute(l2, u2) : n2.removeAttribute(l2));
+        "function" == typeof u2 || (null == u2 || false === u2 && "-" !== l2[4] ? n2.removeAttribute(l2) : n2.setAttribute(l2, u2));
       }
   }
-  function I$2(n2) {
-    this.l[n2.type + false](l$3.event ? l$3.event(n2) : n2);
+  function j$4(n2) {
+    return this.l[n2.type + false](l$3.event ? l$3.event(n2) : n2);
   }
-  function T$2(n2) {
-    this.l[n2.type + true](l$3.event ? l$3.event(n2) : n2);
+  function z$3(n2) {
+    return this.l[n2.type + true](l$3.event ? l$3.event(n2) : n2);
   }
-  function j$3(n2, u2, i2, t2, o2, r2, f2, e2, c2) {
-    var a2, h2, v2, y2, _2, k2, b2, g2, m2, x2, A2, C2, $2, H2 = u2.type;
-    if (u2.constructor !== void 0)
+  function L$2(n2, u2, i2, t2, r2, o2, f2, e2, c2) {
+    var s2, a2, v2, y2, p2, d2, b2, g2, m2, w2, A2, P2, C2, $2, H2, I2 = u2.type;
+    if (void 0 !== u2.constructor)
       return null;
-    i2.__h != null && (c2 = i2.__h, e2 = u2.__e = i2.__e, u2.__h = null, r2 = [e2]), (a2 = l$3.__b) && a2(u2);
+    null != i2.__h && (c2 = i2.__h, e2 = u2.__e = i2.__e, u2.__h = null, o2 = [e2]), (s2 = l$3.__b) && s2(u2);
     try {
       n:
-        if (typeof H2 == "function") {
-          if (g2 = u2.props, m2 = (a2 = H2.contextType) && t2[a2.__c], x2 = a2 ? m2 ? m2.props.value : a2.__ : t2, i2.__c ? b2 = (h2 = u2.__c = i2.__c).__ = h2.__E : ("prototype" in H2 && H2.prototype.render ? u2.__c = h2 = new H2(g2, x2) : (u2.__c = h2 = new d$3(g2, x2), h2.constructor = H2, h2.render = O$2), m2 && m2.sub(h2), h2.props = g2, h2.state || (h2.state = {}), h2.context = x2, h2.__n = t2, v2 = h2.__d = true, h2.__h = []), h2.__s == null && (h2.__s = h2.state), H2.getDerivedStateFromProps != null && (h2.__s == h2.state && (h2.__s = s$3({}, h2.__s)), s$3(h2.__s, H2.getDerivedStateFromProps(g2, h2.__s))), y2 = h2.props, _2 = h2.state, v2)
-            H2.getDerivedStateFromProps == null && h2.componentWillMount != null && h2.componentWillMount(), h2.componentDidMount != null && h2.__h.push(h2.componentDidMount);
+        if ("function" == typeof I2) {
+          if (g2 = u2.props, m2 = (s2 = I2.contextType) && t2[s2.__c], w2 = s2 ? m2 ? m2.props.value : s2.__ : t2, i2.__c ? b2 = (a2 = u2.__c = i2.__c).__ = a2.__E : ("prototype" in I2 && I2.prototype.render ? u2.__c = a2 = new I2(g2, w2) : (u2.__c = a2 = new k$4(g2, w2), a2.constructor = I2, a2.render = q$3), m2 && m2.sub(a2), a2.props = g2, a2.state || (a2.state = {}), a2.context = w2, a2.__n = t2, v2 = a2.__d = true, a2.__h = [], a2._sb = []), null == a2.__s && (a2.__s = a2.state), null != I2.getDerivedStateFromProps && (a2.__s == a2.state && (a2.__s = h$3({}, a2.__s)), h$3(a2.__s, I2.getDerivedStateFromProps(g2, a2.__s))), y2 = a2.props, p2 = a2.state, a2.__v = u2, v2)
+            null == I2.getDerivedStateFromProps && null != a2.componentWillMount && a2.componentWillMount(), null != a2.componentDidMount && a2.__h.push(a2.componentDidMount);
           else {
-            if (H2.getDerivedStateFromProps == null && g2 !== y2 && h2.componentWillReceiveProps != null && h2.componentWillReceiveProps(g2, x2), !h2.__e && h2.shouldComponentUpdate != null && h2.shouldComponentUpdate(g2, h2.__s, x2) === false || u2.__v === i2.__v) {
-              h2.props = g2, h2.state = h2.__s, u2.__v !== i2.__v && (h2.__d = false), h2.__v = u2, u2.__e = i2.__e, u2.__k = i2.__k, u2.__k.forEach(function(n3) {
+            if (null == I2.getDerivedStateFromProps && g2 !== y2 && null != a2.componentWillReceiveProps && a2.componentWillReceiveProps(g2, w2), !a2.__e && null != a2.shouldComponentUpdate && false === a2.shouldComponentUpdate(g2, a2.__s, w2) || u2.__v === i2.__v) {
+              for (u2.__v !== i2.__v && (a2.props = g2, a2.state = a2.__s, a2.__d = false), a2.__e = false, u2.__e = i2.__e, u2.__k = i2.__k, u2.__k.forEach(function(n3) {
                 n3 && (n3.__ = u2);
-              }), h2.__h.length && f2.push(h2);
+              }), A2 = 0; A2 < a2._sb.length; A2++)
+                a2.__h.push(a2._sb[A2]);
+              a2._sb = [], a2.__h.length && f2.push(a2);
               break n;
             }
-            h2.componentWillUpdate != null && h2.componentWillUpdate(g2, h2.__s, x2), h2.componentDidUpdate != null && h2.__h.push(function() {
-              h2.componentDidUpdate(y2, _2, k2);
+            null != a2.componentWillUpdate && a2.componentWillUpdate(g2, a2.__s, w2), null != a2.componentDidUpdate && a2.__h.push(function() {
+              a2.componentDidUpdate(y2, p2, d2);
             });
           }
-          if (h2.context = x2, h2.props = g2, h2.__v = u2, h2.__P = n2, A2 = l$3.__r, C2 = 0, "prototype" in H2 && H2.prototype.render)
-            h2.state = h2.__s, h2.__d = false, A2 && A2(u2), a2 = h2.render(h2.props, h2.state, h2.context);
-          else
+          if (a2.context = w2, a2.props = g2, a2.__P = n2, P2 = l$3.__r, C2 = 0, "prototype" in I2 && I2.prototype.render) {
+            for (a2.state = a2.__s, a2.__d = false, P2 && P2(u2), s2 = a2.render(a2.props, a2.state, a2.context), $2 = 0; $2 < a2._sb.length; $2++)
+              a2.__h.push(a2._sb[$2]);
+            a2._sb = [];
+          } else
             do {
-              h2.__d = false, A2 && A2(u2), a2 = h2.render(h2.props, h2.state, h2.context), h2.state = h2.__s;
-            } while (h2.__d && ++C2 < 25);
-          h2.state = h2.__s, h2.getChildContext != null && (t2 = s$3(s$3({}, t2), h2.getChildContext())), v2 || h2.getSnapshotBeforeUpdate == null || (k2 = h2.getSnapshotBeforeUpdate(y2, _2)), $2 = a2 != null && a2.type === p$3 && a2.key == null ? a2.props.children : a2, w$3(n2, Array.isArray($2) ? $2 : [$2], u2, i2, t2, o2, r2, f2, e2, c2), h2.base = u2.__e, u2.__h = null, h2.__h.length && f2.push(h2), b2 && (h2.__E = h2.__ = null), h2.__e = false;
+              a2.__d = false, P2 && P2(u2), s2 = a2.render(a2.props, a2.state, a2.context), a2.state = a2.__s;
+            } while (a2.__d && ++C2 < 25);
+          a2.state = a2.__s, null != a2.getChildContext && (t2 = h$3(h$3({}, t2), a2.getChildContext())), v2 || null == a2.getSnapshotBeforeUpdate || (d2 = a2.getSnapshotBeforeUpdate(y2, p2)), H2 = null != s2 && s2.type === _$3 && null == s2.key ? s2.props.children : s2, x$3(n2, Array.isArray(H2) ? H2 : [H2], u2, i2, t2, r2, o2, f2, e2, c2), a2.base = u2.__e, u2.__h = null, a2.__h.length && f2.push(a2), b2 && (a2.__E = a2.__ = null), a2.__e = false;
         } else
-          r2 == null && u2.__v === i2.__v ? (u2.__k = i2.__k, u2.__e = i2.__e) : u2.__e = L$2(i2.__e, u2, i2, t2, o2, r2, f2, c2);
-      (a2 = l$3.diffed) && a2(u2);
+          null == o2 && u2.__v === i2.__v ? (u2.__k = i2.__k, u2.__e = i2.__e) : u2.__e = N$2(i2.__e, u2, i2, t2, r2, o2, f2, c2);
+      (s2 = l$3.diffed) && s2(u2);
     } catch (n3) {
-      u2.__v = null, (c2 || r2 != null) && (u2.__e = e2, u2.__h = !!c2, r2[r2.indexOf(e2)] = null), l$3.__e(n3, u2, i2);
+      u2.__v = null, (c2 || null != o2) && (u2.__e = e2, u2.__h = !!c2, o2[o2.indexOf(e2)] = null), l$3.__e(n3, u2, i2);
     }
   }
-  function z$2(n2, u2) {
+  function M$1(n2, u2) {
     l$3.__c && l$3.__c(u2, n2), n2.some(function(u3) {
       try {
         n2 = u3.__h, u3.__h = [], n2.some(function(n3) {
@@ -5282,83 +5456,85 @@
       }
     });
   }
-  function L$2(l2, u2, i2, t2, o2, r2, e2, c2) {
-    var s2, h2, v2, y2 = i2.props, p2 = u2.props, d2 = u2.type, k2 = 0;
-    if (d2 === "svg" && (o2 = true), r2 != null) {
-      for (; k2 < r2.length; k2++)
-        if ((s2 = r2[k2]) && "setAttribute" in s2 == !!d2 && (d2 ? s2.localName === d2 : s2.nodeType === 3)) {
-          l2 = s2, r2[k2] = null;
+  function N$2(l2, u2, i2, t2, r2, o2, f2, e2) {
+    var s2, a2, h2, y2 = i2.props, p2 = u2.props, d2 = u2.type, _2 = 0;
+    if ("svg" === d2 && (r2 = true), null != o2) {
+      for (; _2 < o2.length; _2++)
+        if ((s2 = o2[_2]) && "setAttribute" in s2 == !!d2 && (d2 ? s2.localName === d2 : 3 === s2.nodeType)) {
+          l2 = s2, o2[_2] = null;
           break;
         }
     }
-    if (l2 == null) {
-      if (d2 === null)
+    if (null == l2) {
+      if (null === d2)
         return document.createTextNode(p2);
-      l2 = o2 ? document.createElementNS("http://www.w3.org/2000/svg", d2) : document.createElement(d2, p2.is && p2), r2 = null, c2 = false;
+      l2 = r2 ? document.createElementNS("http://www.w3.org/2000/svg", d2) : document.createElement(d2, p2.is && p2), o2 = null, e2 = false;
     }
-    if (d2 === null)
-      y2 === p2 || c2 && l2.data === p2 || (l2.data = p2);
+    if (null === d2)
+      y2 === p2 || e2 && l2.data === p2 || (l2.data = p2);
     else {
-      if (r2 = r2 && n$2.call(l2.childNodes), h2 = (y2 = i2.props || f$3).dangerouslySetInnerHTML, v2 = p2.dangerouslySetInnerHTML, !c2) {
-        if (r2 != null)
-          for (y2 = {}, k2 = 0; k2 < l2.attributes.length; k2++)
-            y2[l2.attributes[k2].name] = l2.attributes[k2].value;
-        (v2 || h2) && (v2 && (h2 && v2.__html == h2.__html || v2.__html === l2.innerHTML) || (l2.innerHTML = v2 && v2.__html || ""));
+      if (o2 = o2 && n$2.call(l2.childNodes), a2 = (y2 = i2.props || c$3).dangerouslySetInnerHTML, h2 = p2.dangerouslySetInnerHTML, !e2) {
+        if (null != o2)
+          for (y2 = {}, _2 = 0; _2 < l2.attributes.length; _2++)
+            y2[l2.attributes[_2].name] = l2.attributes[_2].value;
+        (h2 || a2) && (h2 && (a2 && h2.__html == a2.__html || h2.__html === l2.innerHTML) || (l2.innerHTML = h2 && h2.__html || ""));
       }
-      if (C$1(l2, p2, y2, o2, c2), v2)
+      if (H$2(l2, p2, y2, r2, e2), h2)
         u2.__k = [];
-      else if (k2 = u2.props.children, w$3(l2, Array.isArray(k2) ? k2 : [k2], u2, i2, t2, o2 && d2 !== "foreignObject", r2, e2, r2 ? r2[0] : i2.__k && _$3(i2, 0), c2), r2 != null)
-        for (k2 = r2.length; k2--; )
-          r2[k2] != null && a$3(r2[k2]);
-      c2 || ("value" in p2 && (k2 = p2.value) !== void 0 && (k2 !== l2.value || d2 === "progress" && !k2 || d2 === "option" && k2 !== y2.value) && H$2(l2, "value", k2, y2.value, false), "checked" in p2 && (k2 = p2.checked) !== void 0 && k2 !== l2.checked && H$2(l2, "checked", k2, y2.checked, false));
+      else if (_2 = u2.props.children, x$3(l2, Array.isArray(_2) ? _2 : [_2], u2, i2, t2, r2 && "foreignObject" !== d2, o2, f2, o2 ? o2[0] : i2.__k && b$3(i2, 0), e2), null != o2)
+        for (_2 = o2.length; _2--; )
+          null != o2[_2] && v$3(o2[_2]);
+      e2 || ("value" in p2 && void 0 !== (_2 = p2.value) && (_2 !== l2.value || "progress" === d2 && !_2 || "option" === d2 && _2 !== y2.value) && T$2(l2, "value", _2, y2.value, false), "checked" in p2 && void 0 !== (_2 = p2.checked) && _2 !== l2.checked && T$2(l2, "checked", _2, y2.checked, false));
     }
     return l2;
   }
-  function M$2(n2, u2, i2) {
+  function O$2(n2, u2, i2) {
     try {
-      typeof n2 == "function" ? n2(u2) : n2.current = u2;
+      "function" == typeof n2 ? n2(u2) : n2.current = u2;
     } catch (n3) {
       l$3.__e(n3, i2);
     }
   }
-  function N(n2, u2, i2) {
-    var t2, o2;
-    if (l$3.unmount && l$3.unmount(n2), (t2 = n2.ref) && (t2.current && t2.current !== n2.__e || M$2(t2, null, u2)), (t2 = n2.__c) != null) {
+  function S$2(n2, u2, i2) {
+    var t2, r2;
+    if (l$3.unmount && l$3.unmount(n2), (t2 = n2.ref) && (t2.current && t2.current !== n2.__e || O$2(t2, null, u2)), null != (t2 = n2.__c)) {
       if (t2.componentWillUnmount)
         try {
           t2.componentWillUnmount();
         } catch (n3) {
           l$3.__e(n3, u2);
         }
-      t2.base = t2.__P = null;
+      t2.base = t2.__P = null, n2.__c = void 0;
     }
     if (t2 = n2.__k)
-      for (o2 = 0; o2 < t2.length; o2++)
-        t2[o2] && N(t2[o2], u2, typeof n2.type != "function");
-    i2 || n2.__e == null || a$3(n2.__e), n2.__e = n2.__d = void 0;
+      for (r2 = 0; r2 < t2.length; r2++)
+        t2[r2] && S$2(t2[r2], u2, i2 || "function" != typeof n2.type);
+    i2 || null == n2.__e || v$3(n2.__e), n2.__ = n2.__e = n2.__d = void 0;
   }
-  function O$2(n2, l2, u2) {
+  function q$3(n2, l2, u2) {
     return this.constructor(n2, u2);
   }
-  function P$2(u2, i2, t2) {
-    var o2, r2, e2;
-    l$3.__ && l$3.__(u2, i2), r2 = (o2 = typeof t2 == "function") ? null : t2 && t2.__k || i2.__k, e2 = [], j$3(i2, u2 = (!o2 && t2 || i2).__k = h$3(p$3, null, [u2]), r2 || f$3, f$3, i2.ownerSVGElement !== void 0, !o2 && t2 ? [t2] : r2 ? null : i2.firstChild ? n$2.call(i2.childNodes) : null, e2, !o2 && t2 ? t2 : r2 ? r2.__e : i2.firstChild, o2), z$2(e2, u2);
+  function B$3(u2, i2, t2) {
+    var r2, o2, f2;
+    l$3.__ && l$3.__(u2, i2), o2 = (r2 = "function" == typeof t2) ? null : t2 && t2.__k || i2.__k, f2 = [], L$2(i2, u2 = (!r2 && t2 || i2).__k = y$3(_$3, null, [u2]), o2 || c$3, c$3, void 0 !== i2.ownerSVGElement, !r2 && t2 ? [t2] : o2 ? null : i2.firstChild ? n$2.call(i2.childNodes) : null, f2, !r2 && t2 ? t2 : o2 ? o2.__e : i2.firstChild, r2), M$1(f2, u2);
   }
-  function q$3(l2, u2, i2) {
-    var t2, o2, r2, f2 = s$3({}, l2.props);
-    for (r2 in u2)
-      r2 == "key" ? t2 = u2[r2] : r2 == "ref" ? o2 = u2[r2] : f2[r2] = u2[r2];
-    return arguments.length > 2 && (f2.children = arguments.length > 3 ? n$2.call(arguments, 2) : i2), v$3(l2.type, f2, t2 || l2.key, o2 || l2.ref, null);
+  function E$1(l2, u2, i2) {
+    var t2, r2, o2, f2 = h$3({}, l2.props);
+    for (o2 in u2)
+      "key" == o2 ? t2 = u2[o2] : "ref" == o2 ? r2 = u2[o2] : f2[o2] = u2[o2];
+    return arguments.length > 2 && (f2.children = arguments.length > 3 ? n$2.call(arguments, 2) : i2), p$3(l2.type, f2, t2 || l2.key, r2 || l2.ref, null);
   }
-  function B$1(n2, l2) {
-    var u2 = { __c: l2 = "__cC" + r$3++, __: n2, Consumer: function(n3, l3) {
+  function F$3(n2, l2) {
+    var u2 = { __c: l2 = "__cC" + e$1++, __: n2, Consumer: function(n3, l3) {
       return n3.children(l3);
     }, Provider: function(n3) {
       var u3, i2;
       return this.getChildContext || (u3 = [], (i2 = {})[l2] = this, this.getChildContext = function() {
         return i2;
       }, this.shouldComponentUpdate = function(n4) {
-        this.props.value !== n4.value && u3.some(b$2);
+        this.props.value !== n4.value && u3.some(function(n5) {
+          n5.__e = true, m$2(n5);
+        });
       }, this.sub = function(n4) {
         u3.push(n4);
         var l3 = n4.componentWillUnmount;
@@ -5369,131 +5545,163 @@
     } };
     return u2.Provider.__ = u2.Consumer.contextType = u2;
   }
-  n$2 = e$1.slice, l$3 = { __e: function(n2, l2, u2, i2) {
-    for (var t2, o2, r2; l2 = l2.__; )
+  n$2 = s$3.slice, l$3 = { __e: function(n2, l2, u2, i2) {
+    for (var t2, r2, o2; l2 = l2.__; )
       if ((t2 = l2.__c) && !t2.__)
         try {
-          if ((o2 = t2.constructor) && o2.getDerivedStateFromError != null && (t2.setState(o2.getDerivedStateFromError(n2)), r2 = t2.__d), t2.componentDidCatch != null && (t2.componentDidCatch(n2, i2 || {}), r2 = t2.__d), r2)
+          if ((r2 = t2.constructor) && null != r2.getDerivedStateFromError && (t2.setState(r2.getDerivedStateFromError(n2)), o2 = t2.__d), null != t2.componentDidCatch && (t2.componentDidCatch(n2, i2 || {}), o2 = t2.__d), o2)
             return t2.__E = t2;
         } catch (l3) {
           n2 = l3;
         }
     throw n2;
-  } }, u$3 = 0, d$3.prototype.setState = function(n2, l2) {
+  } }, u$3 = 0, k$4.prototype.setState = function(n2, l2) {
     var u2;
-    u2 = this.__s != null && this.__s !== this.state ? this.__s : this.__s = s$3({}, this.state), typeof n2 == "function" && (n2 = n2(s$3({}, u2), this.props)), n2 && s$3(u2, n2), n2 != null && this.__v && (l2 && this.__h.push(l2), b$2(this));
-  }, d$3.prototype.forceUpdate = function(n2) {
-    this.__v && (this.__e = true, n2 && this.__h.push(n2), b$2(this));
-  }, d$3.prototype.render = p$3, t$2 = [], g$4.__r = 0, r$3 = 0;
-  var t$1, u$2, r$2, o$2, i$2 = 0, c$2 = [], f$2 = [], e = l$3.__b, a$2 = l$3.__r, v$2 = l$3.diffed, l$2 = l$3.__c, m$1 = l$3.unmount;
-  function p$2(t2, r2) {
-    l$3.__h && l$3.__h(u$2, t2, i$2 || r2), i$2 = 0;
-    var o2 = u$2.__H || (u$2.__H = { __: [], __h: [] });
-    return t2 >= o2.__.length && o2.__.push({ __V: f$2 }), o2.__[t2];
+    u2 = null != this.__s && this.__s !== this.state ? this.__s : this.__s = h$3({}, this.state), "function" == typeof n2 && (n2 = n2(h$3({}, u2), this.props)), n2 && h$3(u2, n2), null != n2 && this.__v && (l2 && this._sb.push(l2), m$2(this));
+  }, k$4.prototype.forceUpdate = function(n2) {
+    this.__v && (this.__e = true, n2 && this.__h.push(n2), m$2(this));
+  }, k$4.prototype.render = _$3, t$2 = [], o$3 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, f$3 = function(n2, l2) {
+    return n2.__v.__b - l2.__v.__b;
+  }, w$4.__r = 0, e$1 = 0;
+  var t$1, r$1, u$2, i$2, o$2 = 0, f$2 = [], c$2 = [], e = l$3.__b, a$2 = l$3.__r, v$2 = l$3.diffed, l$2 = l$3.__c, m$1 = l$3.unmount;
+  function d$2(t2, u2) {
+    l$3.__h && l$3.__h(r$1, t2, o$2 || u2), o$2 = 0;
+    var i2 = r$1.__H || (r$1.__H = { __: [], __h: [] });
+    return t2 >= i2.__.length && i2.__.push({ __V: c$2 }), i2.__[t2];
   }
-  function y$1(n2) {
-    return i$2 = 1, d$2(z$1, n2);
+  function h$2(n2) {
+    return o$2 = 1, s$2(B$2, n2);
   }
-  function d$2(n2, r2, o2) {
-    var i2 = p$2(t$1++, 2);
-    return i2.t = n2, i2.__c || (i2.__ = [o2 ? o2(r2) : z$1(void 0, r2), function(n3) {
-      var t2 = i2.t(i2.__[0], n3);
-      i2.__[0] !== t2 && (i2.__ = [t2, i2.__[1]], i2.__c.setState({}));
-    }], i2.__c = u$2), i2.__;
+  function s$2(n2, u2, i2) {
+    var o2 = d$2(t$1++, 2);
+    if (o2.t = n2, !o2.__c && (o2.__ = [i2 ? i2(u2) : B$2(void 0, u2), function(n3) {
+      var t2 = o2.__N ? o2.__N[0] : o2.__[0], r2 = o2.t(t2, n3);
+      t2 !== r2 && (o2.__N = [r2, o2.__[1]], o2.__c.setState({}));
+    }], o2.__c = r$1, !r$1.u)) {
+      var f2 = function(n3, t2, r2) {
+        if (!o2.__c.__H)
+          return true;
+        var u3 = o2.__c.__H.__.filter(function(n4) {
+          return n4.__c;
+        });
+        if (u3.every(function(n4) {
+          return !n4.__N;
+        }))
+          return !c2 || c2.call(this, n3, t2, r2);
+        var i3 = false;
+        return u3.forEach(function(n4) {
+          if (n4.__N) {
+            var t3 = n4.__[0];
+            n4.__ = n4.__N, n4.__N = void 0, t3 !== n4.__[0] && (i3 = true);
+          }
+        }), !(!i3 && o2.__c.props === n3) && (!c2 || c2.call(this, n3, t2, r2));
+      };
+      r$1.u = true;
+      var c2 = r$1.shouldComponentUpdate, e2 = r$1.componentWillUpdate;
+      r$1.componentWillUpdate = function(n3, t2, r2) {
+        if (this.__e) {
+          var u3 = c2;
+          c2 = void 0, f2(n3, t2, r2), c2 = u3;
+        }
+        e2 && e2.call(this, n3, t2, r2);
+      }, r$1.shouldComponentUpdate = f2;
+    }
+    return o2.__N || o2.__;
   }
-  function _$2(r2, o2) {
-    var i2 = p$2(t$1++, 3);
-    !l$3.__s && w$2(i2.__H, o2) && (i2.__ = r2, i2.u = o2, u$2.__H.__h.push(i2));
+  function p$2(u2, i2) {
+    var o2 = d$2(t$1++, 3);
+    !l$3.__s && z$2(o2.__H, i2) && (o2.__ = u2, o2.i = i2, r$1.__H.__h.push(o2));
   }
-  function h$2(r2, o2) {
-    var i2 = p$2(t$1++, 4);
-    !l$3.__s && w$2(i2.__H, o2) && (i2.__ = r2, i2.u = o2, u$2.__h.push(i2));
+  function y$2(u2, i2) {
+    var o2 = d$2(t$1++, 4);
+    !l$3.__s && z$2(o2.__H, i2) && (o2.__ = u2, o2.i = i2, r$1.__h.push(o2));
   }
-  function s$2(n2) {
-    return i$2 = 5, F$2(function() {
+  function _$2(n2) {
+    return o$2 = 5, F$2(function() {
       return { current: n2 };
     }, []);
   }
-  function F$2(n2, u2) {
-    var r2 = p$2(t$1++, 7);
-    return w$2(r2.__H, u2) ? (r2.__V = n2(), r2.u = u2, r2.__h = n2, r2.__V) : r2.__;
+  function F$2(n2, r2) {
+    var u2 = d$2(t$1++, 7);
+    return z$2(u2.__H, r2) ? (u2.__V = n2(), u2.i = r2, u2.__h = n2, u2.__V) : u2.__;
   }
   function T$1(n2, t2) {
-    return i$2 = 8, F$2(function() {
+    return o$2 = 8, F$2(function() {
       return n2;
     }, t2);
   }
   function q$2(n2) {
-    var r2 = u$2.context[n2.__c], o2 = p$2(t$1++, 9);
-    return o2.c = n2, r2 ? (o2.__ == null && (o2.__ = true, r2.sub(u$2)), r2.props.value) : n2.__;
+    var u2 = r$1.context[n2.__c], i2 = d$2(t$1++, 9);
+    return i2.c = n2, u2 ? (null == i2.__ && (i2.__ = true, u2.sub(r$1)), u2.props.value) : n2.__;
   }
-  function b$1() {
-    for (var t2; t2 = c$2.shift(); )
-      if (t2.__P)
+  function b$2() {
+    for (var t2; t2 = f$2.shift(); )
+      if (t2.__P && t2.__H)
         try {
-          t2.__H.__h.forEach(j$2), t2.__H.__h.forEach(k$1), t2.__H.__h = [];
-        } catch (u2) {
-          t2.__H.__h = [], l$3.__e(u2, t2.__v);
+          t2.__H.__h.forEach(k$3), t2.__H.__h.forEach(w$3), t2.__H.__h = [];
+        } catch (r2) {
+          t2.__H.__h = [], l$3.__e(r2, t2.__v);
         }
   }
   l$3.__b = function(n2) {
-    u$2 = null, e && e(n2);
+    r$1 = null, e && e(n2);
   }, l$3.__r = function(n2) {
     a$2 && a$2(n2), t$1 = 0;
-    var o2 = (u$2 = n2.__c).__H;
-    o2 && (r$2 === u$2 ? (o2.__h = [], u$2.__h = [], o2.__.forEach(function(n3) {
-      n3.__V = f$2, n3.u = void 0;
-    })) : (o2.__h.forEach(j$2), o2.__h.forEach(k$1), o2.__h = [])), r$2 = u$2;
+    var i2 = (r$1 = n2.__c).__H;
+    i2 && (u$2 === r$1 ? (i2.__h = [], r$1.__h = [], i2.__.forEach(function(n3) {
+      n3.__N && (n3.__ = n3.__N), n3.__V = c$2, n3.__N = n3.i = void 0;
+    })) : (i2.__h.forEach(k$3), i2.__h.forEach(w$3), i2.__h = [])), u$2 = r$1;
   }, l$3.diffed = function(t2) {
     v$2 && v$2(t2);
-    var i2 = t2.__c;
-    i2 && i2.__H && (i2.__H.__h.length && (c$2.push(i2) !== 1 && o$2 === l$3.requestAnimationFrame || ((o$2 = l$3.requestAnimationFrame) || function(n2) {
-      var t3, u2 = function() {
-        clearTimeout(r2), g$3 && cancelAnimationFrame(t3), setTimeout(n2);
-      }, r2 = setTimeout(u2, 100);
-      g$3 && (t3 = requestAnimationFrame(u2));
-    })(b$1)), i2.__H.__.forEach(function(n2) {
-      n2.u && (n2.__H = n2.u), n2.__V !== f$2 && (n2.__ = n2.__V), n2.u = void 0, n2.__V = f$2;
-    })), r$2 = u$2 = null;
-  }, l$3.__c = function(t2, u2) {
-    u2.some(function(t3) {
+    var o2 = t2.__c;
+    o2 && o2.__H && (o2.__H.__h.length && (1 !== f$2.push(o2) && i$2 === l$3.requestAnimationFrame || ((i$2 = l$3.requestAnimationFrame) || j$3)(b$2)), o2.__H.__.forEach(function(n2) {
+      n2.i && (n2.__H = n2.i), n2.__V !== c$2 && (n2.__ = n2.__V), n2.i = void 0, n2.__V = c$2;
+    })), u$2 = r$1 = null;
+  }, l$3.__c = function(t2, r2) {
+    r2.some(function(t3) {
       try {
-        t3.__h.forEach(j$2), t3.__h = t3.__h.filter(function(n2) {
-          return !n2.__ || k$1(n2);
+        t3.__h.forEach(k$3), t3.__h = t3.__h.filter(function(n2) {
+          return !n2.__ || w$3(n2);
         });
-      } catch (r2) {
-        u2.some(function(n2) {
+      } catch (u2) {
+        r2.some(function(n2) {
           n2.__h && (n2.__h = []);
-        }), u2 = [], l$3.__e(r2, t3.__v);
+        }), r2 = [], l$3.__e(u2, t3.__v);
       }
-    }), l$2 && l$2(t2, u2);
+    }), l$2 && l$2(t2, r2);
   }, l$3.unmount = function(t2) {
     m$1 && m$1(t2);
-    var u2, r2 = t2.__c;
-    r2 && r2.__H && (r2.__H.__.forEach(function(n2) {
+    var r2, u2 = t2.__c;
+    u2 && u2.__H && (u2.__H.__.forEach(function(n2) {
       try {
-        j$2(n2);
+        k$3(n2);
       } catch (n3) {
-        u2 = n3;
+        r2 = n3;
       }
-    }), u2 && l$3.__e(u2, r2.__v));
+    }), u2.__H = void 0, r2 && l$3.__e(r2, u2.__v));
   };
-  var g$3 = typeof requestAnimationFrame == "function";
-  function j$2(n2) {
-    var t2 = u$2, r2 = n2.__c;
-    typeof r2 == "function" && (n2.__c = void 0, r2()), u$2 = t2;
+  var g$3 = "function" == typeof requestAnimationFrame;
+  function j$3(n2) {
+    var t2, r2 = function() {
+      clearTimeout(u2), g$3 && cancelAnimationFrame(t2), setTimeout(n2);
+    }, u2 = setTimeout(r2, 100);
+    g$3 && (t2 = requestAnimationFrame(r2));
   }
-  function k$1(n2) {
-    var t2 = u$2;
-    n2.__c = n2.__(), u$2 = t2;
+  function k$3(n2) {
+    var t2 = r$1, u2 = n2.__c;
+    "function" == typeof u2 && (n2.__c = void 0, u2()), r$1 = t2;
   }
-  function w$2(n2, t2) {
-    return !n2 || n2.length !== t2.length || t2.some(function(t3, u2) {
-      return t3 !== n2[u2];
+  function w$3(n2) {
+    var t2 = r$1;
+    n2.__c = n2.__(), r$1 = t2;
+  }
+  function z$2(n2, t2) {
+    return !n2 || n2.length !== t2.length || t2.some(function(t3, r2) {
+      return t3 !== n2[r2];
     });
   }
-  function z$1(n2, t2) {
-    return typeof t2 == "function" ? t2(n2) : t2;
+  function B$2(n2, t2) {
+    return "function" == typeof t2 ? t2(n2) : t2;
   }
   function n$1(n2) {
     for (var r2 = arguments.length, t2 = Array(r2 > 1 ? r2 - 1 : 0), e2 = 1; e2 < r2; e2++)
@@ -5502,23 +5710,24 @@
       return "'" + n3 + "'";
     }).join(",") : "") + ". Find the full error at: https://bit.ly/3cXEKWf");
   }
-  function r$1(n2) {
+  function r(n2) {
     return !!n2 && !!n2[Q$1];
   }
   function t(n2) {
+    var r2;
     return !!n2 && (function(n3) {
-      if (!n3 || typeof n3 != "object")
+      if (!n3 || "object" != typeof n3)
         return false;
-      var r2 = Object.getPrototypeOf(n3);
-      if (r2 === null)
+      var r3 = Object.getPrototypeOf(n3);
+      if (null === r3)
         return true;
-      var t2 = Object.hasOwnProperty.call(r2, "constructor") && r2.constructor;
-      return t2 === Object || typeof t2 == "function" && Function.toString.call(t2) === Z$1;
-    }(n2) || Array.isArray(n2) || !!n2[L$1] || !!n2.constructor[L$1] || s$1(n2) || v$1(n2));
+      var t2 = Object.hasOwnProperty.call(r3, "constructor") && r3.constructor;
+      return t2 === Object || "function" == typeof t2 && Function.toString.call(t2) === Z$1;
+    }(n2) || Array.isArray(n2) || !!n2[L$1] || !!(null === (r2 = n2.constructor) || void 0 === r2 ? void 0 : r2[L$1]) || s$1(n2) || v$1(n2));
   }
   function i$1(n2, r2, t2) {
-    t2 === void 0 && (t2 = false), o$1(n2) === 0 ? (t2 ? Object.keys : nn)(n2).forEach(function(e2) {
-      t2 && typeof e2 == "symbol" || r2(e2, n2[e2], n2);
+    void 0 === t2 && (t2 = false), 0 === o$1(n2) ? (t2 ? Object.keys : nn$1)(n2).forEach(function(e2) {
+      t2 && "symbol" == typeof e2 || r2(e2, n2[e2], n2);
     }) : n2.forEach(function(t3, e2) {
       return r2(e2, t3, n2);
     });
@@ -5528,20 +5737,20 @@
     return r2 ? r2.i > 3 ? r2.i - 4 : r2.i : Array.isArray(n2) ? 1 : s$1(n2) ? 2 : v$1(n2) ? 3 : 0;
   }
   function u$1(n2, r2) {
-    return o$1(n2) === 2 ? n2.has(r2) : Object.prototype.hasOwnProperty.call(n2, r2);
+    return 2 === o$1(n2) ? n2.has(r2) : Object.prototype.hasOwnProperty.call(n2, r2);
   }
   function a$1(n2, r2) {
-    return o$1(n2) === 2 ? n2.get(r2) : n2[r2];
+    return 2 === o$1(n2) ? n2.get(r2) : n2[r2];
   }
   function f$1(n2, r2, t2) {
     var e2 = o$1(n2);
-    e2 === 2 ? n2.set(r2, t2) : e2 === 3 ? (n2.delete(r2), n2.add(t2)) : n2[r2] = t2;
+    2 === e2 ? n2.set(r2, t2) : 3 === e2 ? n2.add(t2) : n2[r2] = t2;
   }
   function c$1(n2, r2) {
-    return n2 === r2 ? n2 !== 0 || 1 / n2 == 1 / r2 : n2 != n2 && r2 != r2;
+    return n2 === r2 ? 0 !== n2 || 1 / n2 == 1 / r2 : n2 != n2 && r2 != r2;
   }
   function s$1(n2) {
-    return X && n2 instanceof Map;
+    return X$1 && n2 instanceof Map;
   }
   function v$1(n2) {
     return q$1 && n2 instanceof Set;
@@ -5552,55 +5761,55 @@
   function l$1(n2) {
     if (Array.isArray(n2))
       return Array.prototype.slice.call(n2);
-    var r2 = rn(n2);
+    var r2 = rn$1(n2);
     delete r2[Q$1];
-    for (var t2 = nn(r2), e2 = 0; e2 < t2.length; e2++) {
+    for (var t2 = nn$1(r2), e2 = 0; e2 < t2.length; e2++) {
       var i2 = t2[e2], o2 = r2[i2];
-      o2.writable === false && (o2.writable = true, o2.configurable = true), (o2.get || o2.set) && (r2[i2] = { configurable: true, writable: true, enumerable: o2.enumerable, value: n2[i2] });
+      false === o2.writable && (o2.writable = true, o2.configurable = true), (o2.get || o2.set) && (r2[i2] = { configurable: true, writable: true, enumerable: o2.enumerable, value: n2[i2] });
     }
     return Object.create(Object.getPrototypeOf(n2), r2);
   }
   function d$1(n2, e2) {
-    return e2 === void 0 && (e2 = false), y(n2) || r$1(n2) || !t(n2) ? n2 : (o$1(n2) > 1 && (n2.set = n2.add = n2.clear = n2.delete = h$1), Object.freeze(n2), e2 && i$1(n2, function(n3, r2) {
+    return void 0 === e2 && (e2 = false), y$1(n2) || r(n2) || !t(n2) || (o$1(n2) > 1 && (n2.set = n2.add = n2.clear = n2.delete = h$1), Object.freeze(n2), e2 && i$1(n2, function(n3, r2) {
       return d$1(r2, true);
-    }, true), n2);
+    }, true)), n2;
   }
   function h$1() {
     n$1(2);
   }
-  function y(n2) {
-    return n2 == null || typeof n2 != "object" || Object.isFrozen(n2);
+  function y$1(n2) {
+    return null == n2 || "object" != typeof n2 || Object.isFrozen(n2);
   }
-  function b(r2) {
+  function b$1(r2) {
     var t2 = tn[r2];
     return t2 || n$1(18, r2), t2;
   }
   function _$1() {
-    return U;
+    return U$1;
   }
-  function j$1(n2, r2) {
-    r2 && (b("Patches"), n2.u = [], n2.s = [], n2.v = r2);
-  }
-  function O$1(n2) {
-    g$2(n2), n2.p.forEach(S$1), n2.p = null;
+  function j$2(n2, r2) {
+    r2 && (b$1("Patches"), n2.u = [], n2.s = [], n2.v = r2);
   }
   function g$2(n2) {
-    n2 === U && (U = n2.l);
+    O$1(n2), n2.p.forEach(S$1), n2.p = null;
   }
-  function w$1(n2) {
-    return U = { p: [], l: U, h: n2, m: true, _: 0 };
+  function O$1(n2) {
+    n2 === U$1 && (U$1 = n2.l);
+  }
+  function w$2(n2) {
+    return U$1 = { p: [], l: U$1, h: n2, m: true, _: 0 };
   }
   function S$1(n2) {
     var r2 = n2[Q$1];
-    r2.i === 0 || r2.i === 1 ? r2.j() : r2.O = true;
+    0 === r2.i || 1 === r2.i ? r2.j() : r2.g = true;
   }
   function P$1(r2, e2) {
     e2._ = e2.p.length;
-    var i2 = e2.p[0], o2 = r2 !== void 0 && r2 !== i2;
-    return e2.h.g || b("ES5").S(e2, r2, o2), o2 ? (i2[Q$1].P && (O$1(e2), n$1(4)), t(r2) && (r2 = M$1(e2, r2), e2.l || x$2(e2, r2)), e2.u && b("Patches").M(i2[Q$1].t, r2, e2.u, e2.s)) : r2 = M$1(e2, i2, []), O$1(e2), e2.u && e2.v(e2.u, e2.s), r2 !== H$1 ? r2 : void 0;
+    var i2 = e2.p[0], o2 = void 0 !== r2 && r2 !== i2;
+    return e2.h.O || b$1("ES5").S(e2, r2, o2), o2 ? (i2[Q$1].P && (g$2(e2), n$1(4)), t(r2) && (r2 = M(e2, r2), e2.l || x$2(e2, r2)), e2.u && b$1("Patches").M(i2[Q$1].t, r2, e2.u, e2.s)) : r2 = M(e2, i2, []), g$2(e2), e2.u && e2.v(e2.u, e2.s), r2 !== H$1 ? r2 : void 0;
   }
-  function M$1(n2, r2, t2) {
-    if (y(r2))
+  function M(n2, r2, t2) {
+    if (y$1(r2))
       return r2;
     var e2 = r2[Q$1];
     if (!e2)
@@ -5613,30 +5822,31 @@
       return x$2(n2, e2.t, true), e2.t;
     if (!e2.I) {
       e2.I = true, e2.A._--;
-      var o2 = e2.i === 4 || e2.i === 5 ? e2.o = l$1(e2.k) : e2.o;
-      i$1(e2.i === 3 ? new Set(o2) : o2, function(r3, i2) {
-        return A$1(n2, e2, o2, r3, i2, t2);
-      }), x$2(n2, o2, false), t2 && n2.u && b("Patches").R(e2, t2, n2.u, n2.s);
+      var o2 = 4 === e2.i || 5 === e2.i ? e2.o = l$1(e2.k) : e2.o, u2 = o2, a2 = false;
+      3 === e2.i && (u2 = new Set(o2), o2.clear(), a2 = true), i$1(u2, function(r3, i2) {
+        return A$1(n2, e2, o2, r3, i2, t2, a2);
+      }), x$2(n2, o2, false), t2 && n2.u && b$1("Patches").N(e2, t2, n2.u, n2.s);
     }
     return e2.o;
   }
-  function A$1(e2, i2, o2, a2, c2, s2) {
-    if (r$1(c2)) {
-      var v2 = M$1(e2, c2, s2 && i2 && i2.i !== 3 && !u$1(i2.D, a2) ? s2.concat(a2) : void 0);
-      if (f$1(o2, a2, v2), !r$1(v2))
+  function A$1(e2, i2, o2, a2, c2, s2, v2) {
+    if (r(c2)) {
+      var p2 = M(e2, c2, s2 && i2 && 3 !== i2.i && !u$1(i2.R, a2) ? s2.concat(a2) : void 0);
+      if (f$1(o2, a2, p2), !r(p2))
         return;
       e2.m = false;
-    }
-    if (t(c2) && !y(c2)) {
-      if (!e2.h.F && e2._ < 1)
+    } else
+      v2 && o2.add(c2);
+    if (t(c2) && !y$1(c2)) {
+      if (!e2.h.D && e2._ < 1)
         return;
-      M$1(e2, c2), i2 && i2.A.l || x$2(e2, c2);
+      M(e2, c2), i2 && i2.A.l || x$2(e2, c2);
     }
   }
   function x$2(n2, r2, t2) {
-    t2 === void 0 && (t2 = false), n2.h.F && n2.m && d$1(r2, t2);
+    void 0 === t2 && (t2 = false), !n2.l && n2.h.D && n2.m && d$1(r2, t2);
   }
-  function z(n2, r2) {
+  function z$1(n2, r2) {
     var t2 = n2[Q$1];
     return (t2 ? p$1(t2) : n2)[r2];
   }
@@ -5649,38 +5859,38 @@
         t2 = Object.getPrototypeOf(t2);
       }
   }
-  function k(n2) {
-    n2.P || (n2.P = true, n2.l && k(n2.l));
+  function k$2(n2) {
+    n2.P || (n2.P = true, n2.l && k$2(n2.l));
   }
-  function E$1(n2) {
+  function E(n2) {
     n2.o || (n2.o = l$1(n2.t));
   }
-  function R$1(n2, r2, t2) {
-    var e2 = s$1(r2) ? b("MapSet").N(r2, t2) : v$1(r2) ? b("MapSet").T(r2, t2) : n2.g ? function(n3, r3) {
-      var t3 = Array.isArray(n3), e3 = { i: t3 ? 1 : 0, A: r3 ? r3.A : _$1(), P: false, I: false, D: {}, l: r3, t: n3, k: null, o: null, j: null, C: false }, i2 = e3, o2 = en;
-      t3 && (i2 = [e3], o2 = on);
+  function N$1(n2, r2, t2) {
+    var e2 = s$1(r2) ? b$1("MapSet").F(r2, t2) : v$1(r2) ? b$1("MapSet").T(r2, t2) : n2.O ? function(n3, r3) {
+      var t3 = Array.isArray(n3), e3 = { i: t3 ? 1 : 0, A: r3 ? r3.A : _$1(), P: false, I: false, R: {}, l: r3, t: n3, k: null, o: null, j: null, C: false }, i2 = e3, o2 = en$1;
+      t3 && (i2 = [e3], o2 = on$1);
       var u2 = Proxy.revocable(i2, o2), a2 = u2.revoke, f2 = u2.proxy;
       return e3.k = f2, e3.j = a2, f2;
-    }(r2, t2) : b("ES5").J(r2, t2);
+    }(r2, t2) : b$1("ES5").J(r2, t2);
     return (t2 ? t2.A : _$1()).p.push(e2), e2;
   }
-  function D$1(e2) {
-    return r$1(e2) || n$1(22, e2), function n2(r2) {
+  function R$1(e2) {
+    return r(e2) || n$1(22, e2), function n2(r2) {
       if (!t(r2))
         return r2;
       var e3, u2 = r2[Q$1], c2 = o$1(r2);
       if (u2) {
-        if (!u2.P && (u2.i < 4 || !b("ES5").K(u2)))
+        if (!u2.P && (u2.i < 4 || !b$1("ES5").K(u2)))
           return u2.t;
-        u2.I = true, e3 = F$1(r2, c2), u2.I = false;
+        u2.I = true, e3 = D$1(r2, c2), u2.I = false;
       } else
-        e3 = F$1(r2, c2);
+        e3 = D$1(r2, c2);
       return i$1(e3, function(r3, t2) {
         u2 && a$1(u2.t, r3) === t2 || f$1(e3, r3, n2(t2));
-      }), c2 === 3 ? new Set(e3) : e3;
+      }), 3 === c2 ? new Set(e3) : e3;
     }(e2);
   }
-  function F$1(n2, r2) {
+  function D$1(n2, r2) {
     switch (r2) {
       case 2:
         return new Map(n2);
@@ -5689,73 +5899,73 @@
     }
     return l$1(n2);
   }
-  var G, U, W$1 = typeof Symbol != "undefined" && typeof Symbol("x") == "symbol", X = typeof Map != "undefined", q$1 = typeof Set != "undefined", B = typeof Proxy != "undefined" && Proxy.revocable !== void 0 && typeof Reflect != "undefined", H$1 = W$1 ? Symbol.for("immer-nothing") : ((G = {})["immer-nothing"] = true, G), L$1 = W$1 ? Symbol.for("immer-draftable") : "__$immer_draftable", Q$1 = W$1 ? Symbol.for("immer-state") : "__$immer_state", Z$1 = "" + Object.prototype.constructor, nn = typeof Reflect != "undefined" && Reflect.ownKeys ? Reflect.ownKeys : Object.getOwnPropertySymbols !== void 0 ? function(n2) {
+  var G, U$1, W$1 = "undefined" != typeof Symbol && "symbol" == typeof Symbol("x"), X$1 = "undefined" != typeof Map, q$1 = "undefined" != typeof Set, B$1 = "undefined" != typeof Proxy && void 0 !== Proxy.revocable && "undefined" != typeof Reflect, H$1 = W$1 ? Symbol.for("immer-nothing") : ((G = {})["immer-nothing"] = true, G), L$1 = W$1 ? Symbol.for("immer-draftable") : "__$immer_draftable", Q$1 = W$1 ? Symbol.for("immer-state") : "__$immer_state", Z$1 = "" + Object.prototype.constructor, nn$1 = "undefined" != typeof Reflect && Reflect.ownKeys ? Reflect.ownKeys : void 0 !== Object.getOwnPropertySymbols ? function(n2) {
     return Object.getOwnPropertyNames(n2).concat(Object.getOwnPropertySymbols(n2));
-  } : Object.getOwnPropertyNames, rn = Object.getOwnPropertyDescriptors || function(n2) {
+  } : Object.getOwnPropertyNames, rn$1 = Object.getOwnPropertyDescriptors || function(n2) {
     var r2 = {};
-    return nn(n2).forEach(function(t2) {
+    return nn$1(n2).forEach(function(t2) {
       r2[t2] = Object.getOwnPropertyDescriptor(n2, t2);
     }), r2;
-  }, tn = {}, en = { get: function(n2, r2) {
+  }, tn = {}, en$1 = { get: function(n2, r2) {
     if (r2 === Q$1)
       return n2;
     var e2 = p$1(n2);
     if (!u$1(e2, r2))
       return function(n3, r3, t2) {
         var e3, i3 = I$1(r3, t2);
-        return i3 ? "value" in i3 ? i3.value : (e3 = i3.get) === null || e3 === void 0 ? void 0 : e3.call(n3.k) : void 0;
+        return i3 ? "value" in i3 ? i3.value : null === (e3 = i3.get) || void 0 === e3 ? void 0 : e3.call(n3.k) : void 0;
       }(n2, e2, r2);
     var i2 = e2[r2];
-    return n2.I || !t(i2) ? i2 : i2 === z(n2.t, r2) ? (E$1(n2), n2.o[r2] = R$1(n2.A.h, i2, n2)) : i2;
+    return n2.I || !t(i2) ? i2 : i2 === z$1(n2.t, r2) ? (E(n2), n2.o[r2] = N$1(n2.A.h, i2, n2)) : i2;
   }, has: function(n2, r2) {
     return r2 in p$1(n2);
   }, ownKeys: function(n2) {
     return Reflect.ownKeys(p$1(n2));
   }, set: function(n2, r2, t2) {
     var e2 = I$1(p$1(n2), r2);
-    if (e2 == null ? void 0 : e2.set)
+    if (null == e2 ? void 0 : e2.set)
       return e2.set.call(n2.k, t2), true;
     if (!n2.P) {
-      var i2 = z(p$1(n2), r2), o2 = i2 == null ? void 0 : i2[Q$1];
+      var i2 = z$1(p$1(n2), r2), o2 = null == i2 ? void 0 : i2[Q$1];
       if (o2 && o2.t === t2)
-        return n2.o[r2] = t2, n2.D[r2] = false, true;
-      if (c$1(t2, i2) && (t2 !== void 0 || u$1(n2.t, r2)))
+        return n2.o[r2] = t2, n2.R[r2] = false, true;
+      if (c$1(t2, i2) && (void 0 !== t2 || u$1(n2.t, r2)))
         return true;
-      E$1(n2), k(n2);
+      E(n2), k$2(n2);
     }
-    return n2.o[r2] === t2 && typeof t2 != "number" && (t2 !== void 0 || r2 in n2.o) || (n2.o[r2] = t2, n2.D[r2] = true, true);
+    return n2.o[r2] === t2 && (void 0 !== t2 || r2 in n2.o) || Number.isNaN(t2) && Number.isNaN(n2.o[r2]) || (n2.o[r2] = t2, n2.R[r2] = true), true;
   }, deleteProperty: function(n2, r2) {
-    return z(n2.t, r2) !== void 0 || r2 in n2.t ? (n2.D[r2] = false, E$1(n2), k(n2)) : delete n2.D[r2], n2.o && delete n2.o[r2], true;
+    return void 0 !== z$1(n2.t, r2) || r2 in n2.t ? (n2.R[r2] = false, E(n2), k$2(n2)) : delete n2.R[r2], n2.o && delete n2.o[r2], true;
   }, getOwnPropertyDescriptor: function(n2, r2) {
     var t2 = p$1(n2), e2 = Reflect.getOwnPropertyDescriptor(t2, r2);
-    return e2 ? { writable: true, configurable: n2.i !== 1 || r2 !== "length", enumerable: e2.enumerable, value: t2[r2] } : e2;
+    return e2 ? { writable: true, configurable: 1 !== n2.i || "length" !== r2, enumerable: e2.enumerable, value: t2[r2] } : e2;
   }, defineProperty: function() {
     n$1(11);
   }, getPrototypeOf: function(n2) {
     return Object.getPrototypeOf(n2.t);
   }, setPrototypeOf: function() {
     n$1(12);
-  } }, on = {};
-  i$1(en, function(n2, r2) {
-    on[n2] = function() {
+  } }, on$1 = {};
+  i$1(en$1, function(n2, r2) {
+    on$1[n2] = function() {
       return arguments[0] = arguments[0][0], r2.apply(this, arguments);
     };
-  }), on.deleteProperty = function(r2, t2) {
-    return on.set.call(this, r2, t2, void 0);
-  }, on.set = function(r2, t2, e2) {
-    return en.set.call(this, r2[0], t2, e2, r2[0]);
+  }), on$1.deleteProperty = function(r2, t2) {
+    return on$1.set.call(this, r2, t2, void 0);
+  }, on$1.set = function(r2, t2, e2) {
+    return en$1.set.call(this, r2[0], t2, e2, r2[0]);
   };
   var un$1 = function() {
     function e2(r2) {
       var e3 = this;
-      this.g = B, this.F = true, this.produce = function(r3, i3, o2) {
-        if (typeof r3 == "function" && typeof i3 != "function") {
+      this.O = B$1, this.D = true, this.produce = function(r3, i3, o2) {
+        if ("function" == typeof r3 && "function" != typeof i3) {
           var u2 = i3;
           i3 = r3;
           var a2 = e3;
           return function(n2) {
             var r4 = this;
-            n2 === void 0 && (n2 = u2);
+            void 0 === n2 && (n2 = u2);
             for (var t2 = arguments.length, e4 = Array(t2 > 1 ? t2 - 1 : 0), o3 = 1; o3 < t2; o3++)
               e4[o3 - 1] = arguments[o3];
             return a2.produce(n2, function(n3) {
@@ -5765,29 +5975,29 @@
           };
         }
         var f2;
-        if (typeof i3 != "function" && n$1(6), o2 !== void 0 && typeof o2 != "function" && n$1(7), t(r3)) {
-          var c2 = w$1(e3), s2 = R$1(e3, r3, void 0), v2 = true;
+        if ("function" != typeof i3 && n$1(6), void 0 !== o2 && "function" != typeof o2 && n$1(7), t(r3)) {
+          var c2 = w$2(e3), s2 = N$1(e3, r3, void 0), v2 = true;
           try {
             f2 = i3(s2), v2 = false;
           } finally {
-            v2 ? O$1(c2) : g$2(c2);
+            v2 ? g$2(c2) : O$1(c2);
           }
-          return typeof Promise != "undefined" && f2 instanceof Promise ? f2.then(function(n2) {
-            return j$1(c2, o2), P$1(n2, c2);
+          return "undefined" != typeof Promise && f2 instanceof Promise ? f2.then(function(n2) {
+            return j$2(c2, o2), P$1(n2, c2);
           }, function(n2) {
-            throw O$1(c2), n2;
-          }) : (j$1(c2, o2), P$1(f2, c2));
+            throw g$2(c2), n2;
+          }) : (j$2(c2, o2), P$1(f2, c2));
         }
-        if (!r3 || typeof r3 != "object") {
-          if ((f2 = i3(r3)) === void 0 && (f2 = r3), f2 === H$1 && (f2 = void 0), e3.F && d$1(f2, true), o2) {
+        if (!r3 || "object" != typeof r3) {
+          if (void 0 === (f2 = i3(r3)) && (f2 = r3), f2 === H$1 && (f2 = void 0), e3.D && d$1(f2, true), o2) {
             var p2 = [], l2 = [];
-            b("Patches").M(r3, f2, p2, l2), o2(p2, l2);
+            b$1("Patches").M(r3, f2, p2, l2), o2(p2, l2);
           }
           return f2;
         }
         n$1(21, r3);
       }, this.produceWithPatches = function(n2, r3) {
-        if (typeof n2 == "function")
+        if ("function" == typeof n2)
           return function(r4) {
             for (var t3 = arguments.length, i4 = Array(t3 > 1 ? t3 - 1 : 0), o3 = 1; o3 < t3; o3++)
               i4[o3 - 1] = arguments[o3];
@@ -5798,36 +6008,36 @@
         var t2, i3, o2 = e3.produce(n2, r3, function(n3, r4) {
           t2 = n3, i3 = r4;
         });
-        return typeof Promise != "undefined" && o2 instanceof Promise ? o2.then(function(n3) {
+        return "undefined" != typeof Promise && o2 instanceof Promise ? o2.then(function(n3) {
           return [n3, t2, i3];
         }) : [o2, t2, i3];
-      }, typeof (r2 == null ? void 0 : r2.useProxies) == "boolean" && this.setUseProxies(r2.useProxies), typeof (r2 == null ? void 0 : r2.autoFreeze) == "boolean" && this.setAutoFreeze(r2.autoFreeze);
+      }, "boolean" == typeof (null == r2 ? void 0 : r2.useProxies) && this.setUseProxies(r2.useProxies), "boolean" == typeof (null == r2 ? void 0 : r2.autoFreeze) && this.setAutoFreeze(r2.autoFreeze);
     }
     var i2 = e2.prototype;
     return i2.createDraft = function(e3) {
-      t(e3) || n$1(8), r$1(e3) && (e3 = D$1(e3));
-      var i3 = w$1(this), o2 = R$1(this, e3, void 0);
-      return o2[Q$1].C = true, g$2(i3), o2;
+      t(e3) || n$1(8), r(e3) && (e3 = R$1(e3));
+      var i3 = w$2(this), o2 = N$1(this, e3, void 0);
+      return o2[Q$1].C = true, O$1(i3), o2;
     }, i2.finishDraft = function(r2, t2) {
       var e3 = r2 && r2[Q$1];
       var i3 = e3.A;
-      return j$1(i3, t2), P$1(void 0, i3);
+      return j$2(i3, t2), P$1(void 0, i3);
     }, i2.setAutoFreeze = function(n2) {
-      this.F = n2;
+      this.D = n2;
     }, i2.setUseProxies = function(r2) {
-      r2 && !B && n$1(20), this.g = r2;
+      r2 && !B$1 && n$1(20), this.O = r2;
     }, i2.applyPatches = function(n2, t2) {
       var e3;
       for (e3 = t2.length - 1; e3 >= 0; e3--) {
         var i3 = t2[e3];
-        if (i3.path.length === 0 && i3.op === "replace") {
+        if (0 === i3.path.length && "replace" === i3.op) {
           n2 = i3.value;
           break;
         }
       }
       e3 > -1 && (t2 = t2.slice(e3 + 1));
-      var o2 = b("Patches").$;
-      return r$1(n2) ? o2(n2, t2) : this.produce(n2, function(n3) {
+      var o2 = b$1("Patches").$;
+      return r(n2) ? o2(n2, t2) : this.produce(n2, function(n3) {
         return o2(n3, t2);
       });
     }, e2;
@@ -6123,7 +6333,9 @@
   }
   function calculateTimezoneOffset(timezoneName, targetDate = new TZDate()) {
     if (!isIntlDateTimeFormatSupported()) {
-      logger.warn("Intl.DateTimeFormat is not fully supported. So It will return the local timezone offset only.\nYou can use a polyfill to fix this issue.");
+      logger.warn(
+        "Intl.DateTimeFormat is not fully supported. So It will return the local timezone offset only.\nYou can use a polyfill to fix this issue."
+      );
       return -targetDate.toDate().getTimezoneOffset();
     }
     validateIANATimezoneName(timezoneName);
@@ -6138,7 +6350,10 @@
     const jan = new TZDate(targetDate.getFullYear(), 0, 1);
     const jul = new TZDate(targetDate.getFullYear(), 6, 1);
     if (timezoneName) {
-      return Math.max(-calculateTimezoneOffset(timezoneName, jan), -calculateTimezoneOffset(timezoneName, jul)) !== -calculateTimezoneOffset(timezoneName, targetDate);
+      return Math.max(
+        -calculateTimezoneOffset(timezoneName, jan),
+        -calculateTimezoneOffset(timezoneName, jul)
+      ) !== -calculateTimezoneOffset(timezoneName, targetDate);
     }
     return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset()) !== targetDate.toDate().getTimezoneOffset();
   }
@@ -6325,7 +6540,9 @@
         const tzOffset = isString_1(tzValue) ? calculateTimezoneOffset(tzValue, this) : tzValue;
         return new TZDate(this.getTime() + getTZOffsetMSDifference(tzOffset));
       }
-      return new TZDate(this.getTime() + (isPresent(this.tzOffset) ? getTZOffsetMSDifference(this.tzOffset) : 0));
+      return new TZDate(
+        this.getTime() + (isPresent(this.tzOffset) ? getTZOffsetMSDifference(this.tzOffset) : 0)
+      );
     }
   }
   function pick(obj, ...propNames) {
@@ -6347,7 +6564,10 @@
       const targetKey = k2;
       const sourceKey = k2;
       if (!Array.isArray(source[sourceKey]) && isObject_1(target[targetKey]) && isObject_1(source[sourceKey]) && !(source[sourceKey] instanceof TZDate)) {
-        target[targetKey] = mergeObject(target[targetKey], source[sourceKey]);
+        target[targetKey] = mergeObject(
+          target[targetKey],
+          source[sourceKey]
+        );
       } else {
         target[targetKey] = source[sourceKey];
       }
@@ -6489,7 +6709,10 @@
   function compareEventsASC(a2, b2) {
     const modelA = a2 instanceof EventUIModel ? a2.model : a2;
     const modelB = b2 instanceof EventUIModel ? b2.model : b2;
-    const alldayCompare = compareBooleansASC(modelA.isAllday || modelA.hasMultiDates, modelB.isAllday || modelB.hasMultiDates);
+    const alldayCompare = compareBooleansASC(
+      modelA.isAllday || modelA.hasMultiDates,
+      modelB.isAllday || modelB.hasMultiDates
+    );
     if (alldayCompare) {
       return alldayCompare;
     }
@@ -6739,7 +6962,15 @@
       ymd = [result.substr(0, 4), result.substr(4, 2), result.substr(6, 2)];
       hms = [0, 0, 0];
     }
-    return new TZDate().setWithRaw(Number(ymd[0]), Number(ymd[1]) + fixMonth, Number(ymd[2]), Number(hms[0]), Number(hms[1]), Number(hms[2]), 0);
+    return new TZDate().setWithRaw(
+      Number(ymd[0]),
+      Number(ymd[1]) + fixMonth,
+      Number(ymd[2]),
+      Number(hms[0]),
+      Number(hms[1]),
+      Number(hms[2]),
+      0
+    );
   }
   function toEndOfDay(date2) {
     const d2 = date2 ? new TZDate(date2) : new TZDate();
@@ -7345,51 +7576,72 @@
   }
   function createCalendarDispatchers(set) {
     return {
-      createEvents: (events) => set(produce((state) => {
-        createEvents(state.calendar, events);
-      })),
-      updateEvent: ({ event, eventData }) => set(produce((state) => {
-        updateEvent(state.calendar, event.id, event.calendarId, eventData);
-      })),
-      deleteEvent: (event) => set(produce((state) => {
-        deleteEvent(state.calendar, event);
-      })),
-      clearEvents: () => set(produce((state) => {
-        clearEvents(state.calendar);
-      })),
-      setCalendars: (calendars) => set(produce((state) => {
-        state.calendar.calendars = calendars;
-      })),
-      setCalendarColor: (calendarId, colorOptions) => set(produce((state) => {
-        const calendars = state.calendar.calendars.map((calendar) => {
-          if (calendar.id === calendarId) {
-            return __spreadValues(__spreadValues({}, calendar), colorOptions);
-          }
-          return calendar;
-        });
-        const events = state.calendar.events.toArray().map((event) => {
-          var _a, _b, _c, _d;
-          if (event.calendarId === calendarId) {
-            event.color = (_a = colorOptions.color) != null ? _a : event.color;
-            event.backgroundColor = (_b = colorOptions.backgroundColor) != null ? _b : event.backgroundColor;
-            event.borderColor = (_c = colorOptions.borderColor) != null ? _c : event.borderColor;
-            event.dragBackgroundColor = (_d = colorOptions.dragBackgroundColor) != null ? _d : event.dragBackgroundColor;
-          }
-          return event;
-        });
-        const collection = createEventCollection(...events);
-        state.calendar.calendars = calendars;
-        state.calendar.events = collection;
-      })),
-      setCalendarVisibility: (calendarIds, isVisible) => set(produce((state) => {
-        const events = state.calendar.events.toArray();
-        state.calendar.events = createEventCollection(...events.map((event) => {
-          if (calendarIds.includes(event.calendarId)) {
-            event.isVisible = isVisible;
-          }
-          return event;
-        }));
-      }))
+      createEvents: (events) => set(
+        produce((state) => {
+          createEvents(state.calendar, events);
+        })
+      ),
+      updateEvent: ({ event, eventData }) => set(
+        produce((state) => {
+          updateEvent(
+            state.calendar,
+            event.id,
+            event.calendarId,
+            eventData
+          );
+        })
+      ),
+      deleteEvent: (event) => set(
+        produce((state) => {
+          deleteEvent(state.calendar, event);
+        })
+      ),
+      clearEvents: () => set(
+        produce((state) => {
+          clearEvents(state.calendar);
+        })
+      ),
+      setCalendars: (calendars) => set(
+        produce((state) => {
+          state.calendar.calendars = calendars;
+        })
+      ),
+      setCalendarColor: (calendarId, colorOptions) => set(
+        produce((state) => {
+          const calendars = state.calendar.calendars.map((calendar) => {
+            if (calendar.id === calendarId) {
+              return __spreadValues(__spreadValues({}, calendar), colorOptions);
+            }
+            return calendar;
+          });
+          const events = state.calendar.events.toArray().map((event) => {
+            var _a, _b, _c, _d;
+            if (event.calendarId === calendarId) {
+              event.color = (_a = colorOptions.color) != null ? _a : event.color;
+              event.backgroundColor = (_b = colorOptions.backgroundColor) != null ? _b : event.backgroundColor;
+              event.borderColor = (_c = colorOptions.borderColor) != null ? _c : event.borderColor;
+              event.dragBackgroundColor = (_d = colorOptions.dragBackgroundColor) != null ? _d : event.dragBackgroundColor;
+            }
+            return event;
+          });
+          const collection = createEventCollection(...events);
+          state.calendar.calendars = calendars;
+          state.calendar.events = collection;
+        })
+      ),
+      setCalendarVisibility: (calendarIds, isVisible) => set(
+        produce((state) => {
+          const events = state.calendar.events.toArray();
+          state.calendar.events = createEventCollection(
+            ...events.map((event) => {
+              if (calendarIds.includes(event.calendarId)) {
+                event.isVisible = isVisible;
+              }
+              return event;
+            })
+          );
+        })
+      )
     };
   }
   var DraggingState = /* @__PURE__ */ ((DraggingState2) => {
@@ -7415,35 +7667,45 @@
   function createDndDispatchers(set) {
     return {
       initDrag: (initState) => {
-        set(produce((state) => {
-          state.dnd = __spreadProps(__spreadValues(__spreadValues({}, state.dnd), initState), {
-            draggingState: 1
-          });
-        }));
+        set(
+          produce((state) => {
+            state.dnd = __spreadProps(__spreadValues(__spreadValues({}, state.dnd), initState), {
+              draggingState: 1
+            });
+          })
+        );
       },
       setDragging: (newState) => {
-        set(produce((state) => {
-          state.dnd = __spreadProps(__spreadValues(__spreadValues({}, state.dnd), newState), {
-            draggingState: 2
-          });
-        }));
+        set(
+          produce((state) => {
+            state.dnd = __spreadProps(__spreadValues(__spreadValues({}, state.dnd), newState), {
+              draggingState: 2
+            });
+          })
+        );
       },
       cancelDrag: () => {
-        set(produce((state) => {
-          state.dnd = createDndSlice().dnd;
-          state.dnd.draggingState = 3;
-        }));
+        set(
+          produce((state) => {
+            state.dnd = createDndSlice().dnd;
+            state.dnd.draggingState = 3;
+          })
+        );
       },
       reset: () => {
-        set(produce((state) => {
-          state.dnd = createDndSlice().dnd;
-        }));
+        set(
+          produce((state) => {
+            state.dnd = createDndSlice().dnd;
+          })
+        );
       },
       setDraggingEventUIModel: (eventUIModel) => {
-        set(produce((state) => {
-          var _a;
-          state.dnd.draggingEventUIModel = (_a = eventUIModel == null ? void 0 : eventUIModel.clone()) != null ? _a : null;
-        }));
+        set(
+          produce((state) => {
+            var _a;
+            state.dnd.draggingEventUIModel = (_a = eventUIModel == null ? void 0 : eventUIModel.clone()) != null ? _a : null;
+          })
+        );
       }
     };
   }
@@ -7462,24 +7724,30 @@
   function createGridSelectionDispatchers(set) {
     return {
       setGridSelection: (type, gridSelection) => {
-        set(produce((state) => {
-          state.gridSelection[type] = gridSelection;
-        }));
+        set(
+          produce((state) => {
+            state.gridSelection[type] = gridSelection;
+          })
+        );
       },
       addGridSelection: (type, gridSelection) => {
-        set(produce((state) => {
-          if (type === "dayGridMonth" && gridSelection) {
-            state.gridSelection.accumulated[type] = [
-              ...state.gridSelection.accumulated[type],
-              gridSelection
-            ];
-            state.gridSelection.dayGridMonth = null;
-          }
-        }));
+        set(
+          produce((state) => {
+            if (type === "dayGridMonth" && gridSelection) {
+              state.gridSelection.accumulated[type] = [
+                ...state.gridSelection.accumulated[type],
+                gridSelection
+              ];
+              state.gridSelection.dayGridMonth = null;
+            }
+          })
+        );
       },
-      clearAll: () => set(produce((state) => {
-        state.gridSelection = createGridSelectionSlice().gridSelection;
-      }))
+      clearAll: () => set(
+        produce((state) => {
+          state.gridSelection = createGridSelectionSlice().gridSelection;
+        })
+      )
     };
   }
   const DEFAULT_RESIZER_LENGTH = 3;
@@ -7505,39 +7773,65 @@
   function createWeekViewLayoutDispatchers(set) {
     return {
       setLastPanelType: (type) => {
-        set(produce((state) => {
-          state.weekViewLayout.lastPanelType = type;
-          if (type) {
-            state.weekViewLayout.dayGridRows[type].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, type, state.layout);
-          }
-        }));
+        set(
+          produce((state) => {
+            state.weekViewLayout.lastPanelType = type;
+            if (type) {
+              state.weekViewLayout.dayGridRows[type].height = getRestPanelHeight(
+                state.weekViewLayout.dayGridRows,
+                type,
+                state.layout
+              );
+            }
+          })
+        );
       },
-      updateLayoutHeight: (height) => set(produce((state) => {
-        const { lastPanelType } = state.weekViewLayout;
-        state.layout = height;
-        if (lastPanelType) {
-          state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, lastPanelType, height);
-        }
-      })),
-      updateDayGridRowHeight: ({ rowName, height }) => set(produce((state) => {
-        const { lastPanelType } = state.weekViewLayout;
-        state.weekViewLayout.dayGridRows[rowName] = { height };
-        if (lastPanelType) {
-          state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, lastPanelType, state.layout);
-        }
-      })),
-      updateDayGridRowHeightByDiff: ({ rowName, diff }) => set(produce((state) => {
-        var _a, _b, _c;
-        const { lastPanelType } = state.weekViewLayout;
-        const height = (_c = (_b = (_a = state.weekViewLayout.dayGridRows) == null ? void 0 : _a[rowName]) == null ? void 0 : _b.height) != null ? _c : DEFAULT_PANEL_HEIGHT;
-        state.weekViewLayout.dayGridRows[rowName] = { height: height + diff };
-        if (lastPanelType) {
-          state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, lastPanelType, state.layout);
-        }
-      })),
-      setSelectedDuplicateEventCid: (cid) => set(produce((state) => {
-        state.weekViewLayout.selectedDuplicateEventCid = cid != null ? cid : DEFAULT_DUPLICATE_EVENT_CID;
-      }))
+      updateLayoutHeight: (height) => set(
+        produce((state) => {
+          const { lastPanelType } = state.weekViewLayout;
+          state.layout = height;
+          if (lastPanelType) {
+            state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(
+              state.weekViewLayout.dayGridRows,
+              lastPanelType,
+              height
+            );
+          }
+        })
+      ),
+      updateDayGridRowHeight: ({ rowName, height }) => set(
+        produce((state) => {
+          const { lastPanelType } = state.weekViewLayout;
+          state.weekViewLayout.dayGridRows[rowName] = { height };
+          if (lastPanelType) {
+            state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(
+              state.weekViewLayout.dayGridRows,
+              lastPanelType,
+              state.layout
+            );
+          }
+        })
+      ),
+      updateDayGridRowHeightByDiff: ({ rowName, diff }) => set(
+        produce((state) => {
+          var _a, _b, _c;
+          const { lastPanelType } = state.weekViewLayout;
+          const height = (_c = (_b = (_a = state.weekViewLayout.dayGridRows) == null ? void 0 : _a[rowName]) == null ? void 0 : _b.height) != null ? _c : DEFAULT_PANEL_HEIGHT;
+          state.weekViewLayout.dayGridRows[rowName] = { height: height + diff };
+          if (lastPanelType) {
+            state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(
+              state.weekViewLayout.dayGridRows,
+              lastPanelType,
+              state.layout
+            );
+          }
+        })
+      ),
+      setSelectedDuplicateEventCid: (cid) => set(
+        produce((state) => {
+          state.weekViewLayout.selectedDuplicateEventCid = cid != null ? cid : DEFAULT_DUPLICATE_EVENT_CID;
+        })
+      )
     };
   }
   function capitalize(str) {
@@ -7566,7 +7860,9 @@
       return false;
     }
     const initialCollapseDuplicateEvents = {
-      getDuplicateEvents: (targetEvent, events) => events.filter((event) => event.title === targetEvent.title && compare(event.start, targetEvent.start) === 0 && compare(event.end, targetEvent.end) === 0).sort((a2, b2) => a2.calendarId > b2.calendarId ? 1 : -1),
+      getDuplicateEvents: (targetEvent, events) => events.filter(
+        (event) => event.title === targetEvent.title && compare(event.start, targetEvent.start) === 0 && compare(event.end, targetEvent.end) === 0
+      ).sort((a2, b2) => a2.calendarId > b2.calendarId ? 1 : -1),
       getMainEvent: (events) => last(events)
     };
     if (isBoolean_1(options)) {
@@ -7645,16 +7941,20 @@
   }
   function createOptionsDispatchers(set) {
     return {
-      setOptions: (newOptions = {}) => set(produce((state) => {
-        var _a;
-        if (newOptions.gridSelection) {
-          newOptions.gridSelection = initializeGridSelectionOptions(newOptions.gridSelection);
-        }
-        if ((_a = newOptions.week) == null ? void 0 : _a.collapseDuplicateEvents) {
-          newOptions.week.collapseDuplicateEvents = initializeCollapseDuplicateEvents(newOptions.week.collapseDuplicateEvents);
-        }
-        mergeObject(state.options, newOptions);
-      }))
+      setOptions: (newOptions = {}) => set(
+        produce((state) => {
+          var _a;
+          if (newOptions.gridSelection) {
+            newOptions.gridSelection = initializeGridSelectionOptions(newOptions.gridSelection);
+          }
+          if ((_a = newOptions.week) == null ? void 0 : _a.collapseDuplicateEvents) {
+            newOptions.week.collapseDuplicateEvents = initializeCollapseDuplicateEvents(
+              newOptions.week.collapseDuplicateEvents
+            );
+          }
+          mergeObject(state.options, newOptions);
+        })
+      )
     };
   }
   var PopupType = /* @__PURE__ */ ((PopupType2) => {
@@ -7674,37 +7974,51 @@
   }
   function createPopupDispatchers(set) {
     return {
-      showSeeMorePopup: (param) => set(produce((state) => {
-        state.popup["seeMore"] = param;
-        state.popup["form"] = null;
-        state.popup["detail"] = null;
-      })),
-      showFormPopup: (param) => set(produce((state) => {
-        state.popup["form"] = param;
-        state.popup["seeMore"] = null;
-        state.popup["detail"] = null;
-      })),
-      showDetailPopup: (param, isOpenedInSeeMorePopup) => set(produce((state) => {
-        state.popup["detail"] = param;
-        state.popup["form"] = null;
-        if (!isOpenedInSeeMorePopup) {
+      showSeeMorePopup: (param) => set(
+        produce((state) => {
+          state.popup["seeMore"] = param;
+          state.popup["form"] = null;
+          state.popup["detail"] = null;
+        })
+      ),
+      showFormPopup: (param) => set(
+        produce((state) => {
+          state.popup["form"] = param;
           state.popup["seeMore"] = null;
-        }
-      })),
-      hideSeeMorePopup: () => set(produce((state) => {
-        state.popup["seeMore"] = null;
-      })),
-      hideFormPopup: () => set(produce((state) => {
-        state.popup["form"] = null;
-      })),
-      hideDetailPopup: () => set(produce((state) => {
-        state.popup["detail"] = null;
-      })),
-      hideAllPopup: () => set(produce((state) => {
-        state.popup["seeMore"] = null;
-        state.popup["form"] = null;
-        state.popup["detail"] = null;
-      }))
+          state.popup["detail"] = null;
+        })
+      ),
+      showDetailPopup: (param, isOpenedInSeeMorePopup) => set(
+        produce((state) => {
+          state.popup["detail"] = param;
+          state.popup["form"] = null;
+          if (!isOpenedInSeeMorePopup) {
+            state.popup["seeMore"] = null;
+          }
+        })
+      ),
+      hideSeeMorePopup: () => set(
+        produce((state) => {
+          state.popup["seeMore"] = null;
+        })
+      ),
+      hideFormPopup: () => set(
+        produce((state) => {
+          state.popup["form"] = null;
+        })
+      ),
+      hideDetailPopup: () => set(
+        produce((state) => {
+          state.popup["detail"] = null;
+        })
+      ),
+      hideAllPopup: () => set(
+        produce((state) => {
+          state.popup["seeMore"] = null;
+          state.popup["form"] = null;
+          state.popup["detail"] = null;
+        })
+      )
     };
   }
   const noop = () => {
@@ -7751,16 +8065,16 @@
   const templates = {
     milestone(model) {
       const classNames2 = cls("icon", "ic-milestone");
-      return /* @__PURE__ */ h$3(p$3, null, /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("span", {
         className: classNames2
-      }), /* @__PURE__ */ h$3("span", {
+      }), /* @__PURE__ */ y$3("span", {
         style: {
           background: model.backgroundColor
         }
       }, stripTags(model.title)));
     },
     milestoneTitle() {
-      return /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3("span", {
         className: cls("left-content")
       }, "Milestone");
     },
@@ -7768,12 +8082,12 @@
       return `#${model.title}`;
     },
     taskTitle() {
-      return /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3("span", {
         className: cls("left-content")
       }, "Task");
     },
     alldayTitle() {
-      return /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3("span", {
         className: cls("left-content")
       }, "All Day");
     },
@@ -7783,7 +8097,7 @@
     time(model) {
       const { start, title } = model;
       if (start) {
-        return /* @__PURE__ */ h$3("span", null, /* @__PURE__ */ h$3("strong", null, toFormat(start, "HH:mm")), "\xA0", /* @__PURE__ */ h$3("span", null, stripTags(title)));
+        return /* @__PURE__ */ y$3("span", null, /* @__PURE__ */ y$3("strong", null, toFormat(start, "HH:mm")), "\xA0", /* @__PURE__ */ y$3("span", null, stripTags(title)));
       }
       return stripTags(title);
     },
@@ -7804,9 +8118,9 @@
       const classNameDay = cls("more-title-date");
       const classNameDayLabel = cls("more-title-day");
       const dayName = capitalize(getDayName(day));
-      return /* @__PURE__ */ h$3(p$3, null, /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("span", {
         className: classNameDay
-      }, date2), /* @__PURE__ */ h$3("span", {
+      }, date2), /* @__PURE__ */ y$3("span", {
         className: classNameDayLabel
       }, dayName));
     },
@@ -7816,13 +8130,13 @@
     monthGridHeader(model) {
       const date2 = parseInt(model.date.split("-")[2], 10);
       const classNames2 = cls("weekday-grid-date", { "weekday-grid-date-decorator": model.isToday });
-      return /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3("span", {
         className: classNames2
       }, date2);
     },
     monthGridHeaderExceed(hiddenEvents) {
       const className2 = cls("weekday-grid-more-events");
-      return /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3("span", {
         className: className2
       }, hiddenEvents, " more");
     },
@@ -7838,9 +8152,9 @@
     weekDayName(model) {
       const classDate = cls("day-name__date");
       const className2 = cls("day-name__name");
-      return /* @__PURE__ */ h$3(p$3, null, /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("span", {
         className: classDate
-      }, model.date), "\xA0\xA0", /* @__PURE__ */ h$3("span", {
+      }, model.date), "\xA0\xA0", /* @__PURE__ */ y$3("span", {
         className: className2
       }, model.dayName));
     },
@@ -7849,7 +8163,7 @@
     },
     collapseBtnTitle() {
       const className2 = cls("collapse-btn-icon");
-      return /* @__PURE__ */ h$3("span", {
+      return /* @__PURE__ */ y$3("span", {
         className: className2
       });
     },
@@ -7911,7 +8225,7 @@
       return title;
     },
     popupDetailDate({ isAllday: isAllday2, start, end }) {
-      const dayFormat = "YYYY.MM.DD";
+      const dayFormat = "DD-MM-YYYY";
       const timeFormat = "hh:mm tt";
       const detailFormat = `${dayFormat} ${timeFormat}`;
       const startDate = toFormat(start, isAllday2 ? dayFormat : timeFormat);
@@ -7944,9 +8258,11 @@
   }
   function createTemplateDispatchers(set) {
     return {
-      setTemplate: (template) => set(produce((state) => {
-        state.template = __spreadValues(__spreadValues({}, state.template), template);
-      }))
+      setTemplate: (template) => set(
+        produce((state) => {
+          state.template = __spreadValues(__spreadValues({}, state.template), template);
+        })
+      )
     };
   }
   function createViewSlice(initialView = "week") {
@@ -7961,36 +8277,40 @@
   }
   function createViewDispatchers(set) {
     return {
-      changeView: (nextView) => set(produce((state) => {
-        state.view.currentView = nextView;
-      })),
-      setRenderDate: (date2) => set(produce((state) => {
-        state.view.renderDate = toStartOfDay(date2);
-      }))
+      changeView: (nextView) => set(
+        produce((state) => {
+          state.view.currentView = nextView;
+        })
+      ),
+      setRenderDate: (date2) => set(
+        produce((state) => {
+          state.view.renderDate = toStartOfDay(date2);
+        })
+      )
     };
   }
   const isSSR = isUndefined_1(window) || !window.navigator;
-  const useIsomorphicLayoutEffect = isSSR ? _$2 : h$2;
+  const useIsomorphicLayoutEffect = isSSR ? p$2 : y$2;
   function createStoreContext() {
-    const StoreContext = B$1(null);
+    const StoreContext = F$3(null);
     function StoreProvider2({
       children,
       store
     }) {
-      return h$3(StoreContext.Provider, { value: store, children });
+      return y$3(StoreContext.Provider, { value: store, children });
     }
     const useStore2 = (selector, equalityFn = Object.is) => {
       const storeCtx = q$2(StoreContext);
       if (isNil(storeCtx)) {
         throw new Error("StoreProvider is not found");
       }
-      const [, notify] = d$2((notifyCount) => notifyCount + 1, 0);
+      const [, notify] = s$2((notifyCount) => notifyCount + 1, 0);
       const state = storeCtx.getState();
-      const stateRef = s$2(state);
-      const selectorRef = s$2(selector);
-      const equalityFnRef = s$2(equalityFn);
-      const hasErrorRef = s$2(false);
-      const currentSliceRef = s$2();
+      const stateRef = _$2(state);
+      const selectorRef = _$2(selector);
+      const equalityFnRef = _$2(equalityFn);
+      const hasErrorRef = _$2(false);
+      const currentSliceRef = _$2();
       if (isUndefined_1(currentSliceRef.current)) {
         currentSliceRef.current = selector(state);
       }
@@ -8010,13 +8330,16 @@
         equalityFnRef.current = equalityFn;
         hasErrorRef.current = false;
       });
-      const stateBeforeSubscriptionRef = s$2(state);
+      const stateBeforeSubscriptionRef = _$2(state);
       useIsomorphicLayoutEffect(() => {
         const listener = () => {
           try {
             const nextState = storeCtx.getState();
             const nextStateSlice = selectorRef.current(nextState);
-            const shouldUpdateState = !equalityFnRef.current(currentSliceRef.current, nextStateSlice);
+            const shouldUpdateState = !equalityFnRef.current(
+              currentSliceRef.current,
+              nextStateSlice
+            );
             if (shouldUpdateState) {
               stateRef.current = nextState;
               currentSliceRef.current = newStateSlice;
@@ -8100,34 +8423,41 @@
   const initCalendarStore = (options = {}) => createStore(storeCreator(options));
   const { StoreProvider, useStore, useInternalStore } = createStoreContext();
   function useDispatch(group) {
-    return useStore(T$1((state) => {
-      if (!group) {
-        return state.dispatch;
-      }
-      return state.dispatch[group];
-    }, [group]));
+    return useStore(
+      T$1(
+        (state) => {
+          if (!group) {
+            return state.dispatch;
+          }
+          return state.dispatch[group];
+        },
+        [group]
+      )
+    );
   }
   function topLevelStateSelector(group) {
     return (state) => state[group];
   }
   const calendarSelector = topLevelStateSelector("calendar");
-  const weekViewLayoutSelector = topLevelStateSelector("weekViewLayout");
+  const weekViewLayoutSelector = topLevelStateSelector(
+    "weekViewLayout"
+  );
   const templateSelector = topLevelStateSelector("template");
   const viewSelector = topLevelStateSelector("view");
   const optionsSelector = topLevelStateSelector("options");
   const dndSelector = topLevelStateSelector("dnd");
   var purify = { exports: {} };
-  /*! @license DOMPurify 2.3.8 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.3.8/LICENSE */
+  /*! @license DOMPurify 2.4.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.5/LICENSE */
   (function(module2, exports2) {
     (function(global2, factory) {
       module2.exports = factory();
     })(commonjsGlobal, function() {
       function _typeof(obj) {
         "@babel/helpers - typeof";
-        return _typeof = typeof Symbol == "function" && typeof Symbol.iterator == "symbol" ? function(obj2) {
+        return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj2) {
           return typeof obj2;
         } : function(obj2) {
-          return obj2 && typeof Symbol == "function" && obj2.constructor === Symbol && obj2 !== Symbol.prototype ? "symbol" : typeof obj2;
+          return obj2 && "function" == typeof Symbol && obj2.constructor === Symbol && obj2 !== Symbol.prototype ? "symbol" : typeof obj2;
         }, _typeof(obj);
       }
       function _setPrototypeOf(o2, p2) {
@@ -8229,6 +8559,7 @@
       var arrayPop = unapply(Array.prototype.pop);
       var arrayPush = unapply(Array.prototype.push);
       var stringToLowerCase = unapply(String.prototype.toLowerCase);
+      var stringToString = unapply(String.prototype.toString);
       var stringMatch = unapply(String.prototype.match);
       var stringReplace = unapply(String.prototype.replace);
       var stringIndexOf = unapply(String.prototype.indexOf);
@@ -8251,7 +8582,8 @@
           return construct(func, args);
         };
       }
-      function addToSet(set, array2) {
+      function addToSet(set, array2, transformCaseFunc) {
+        transformCaseFunc = transformCaseFunc ? transformCaseFunc : stringToLowerCase;
         if (setPrototypeOf) {
           setPrototypeOf(set, null);
         }
@@ -8259,7 +8591,7 @@
         while (l2--) {
           var element = array2[l2];
           if (typeof element === "string") {
-            var lcElement = stringToLowerCase(element);
+            var lcElement = transformCaseFunc(element);
             if (lcElement !== element) {
               if (!isFrozen(array2)) {
                 array2[l2] = lcElement;
@@ -8275,7 +8607,7 @@
         var newObject = create(null);
         var property;
         for (property in object) {
-          if (apply(hasOwnProperty, object, [property])) {
+          if (apply(hasOwnProperty, object, [property]) === true) {
             newObject[property] = object[property];
           }
         }
@@ -8313,11 +8645,16 @@
       var xml = freeze(["xlink:href", "xml:id", "xlink:title", "xml:space", "xmlns:xlink"]);
       var MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm);
       var ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+      var TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
       var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/);
       var ARIA_ATTR = seal(/^aria-[\-\w]+$/);
-      var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
+      var IS_ALLOWED_URI = seal(
+        /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+      );
       var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
-      var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g);
+      var ATTR_WHITESPACE = seal(
+        /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g
+      );
       var DOCTYPE_NAME = seal(/^html$/i);
       var getGlobal = function getGlobal2() {
         return typeof window === "undefined" ? null : window;
@@ -8336,6 +8673,9 @@
           return trustedTypes.createPolicy(policyName, {
             createHTML: function createHTML(html2) {
               return html2;
+            },
+            createScriptURL: function createScriptURL(scriptUrl) {
+              return scriptUrl;
             }
           });
         } catch (_2) {
@@ -8348,7 +8688,7 @@
         var DOMPurify = function DOMPurify2(root) {
           return createDOMPurify(root);
         };
-        DOMPurify.version = "2.3.8";
+        DOMPurify.version = "2.4.5";
         DOMPurify.removed = [];
         if (!window2 || !window2.document || window2.document.nodeType !== 9) {
           DOMPurify.isSupported = false;
@@ -8379,7 +8719,7 @@
         }
         var hooks = {};
         DOMPurify.isSupported = typeof getParentNode === "function" && implementation && typeof implementation.createHTMLDocument !== "undefined" && documentMode !== 9;
-        var MUSTACHE_EXPR$1 = MUSTACHE_EXPR, ERB_EXPR$1 = ERB_EXPR, DATA_ATTR$1 = DATA_ATTR, ARIA_ATTR$1 = ARIA_ATTR, IS_SCRIPT_OR_DATA$1 = IS_SCRIPT_OR_DATA, ATTR_WHITESPACE$1 = ATTR_WHITESPACE;
+        var MUSTACHE_EXPR$1 = MUSTACHE_EXPR, ERB_EXPR$1 = ERB_EXPR, TMPLIT_EXPR$1 = TMPLIT_EXPR, DATA_ATTR$1 = DATA_ATTR, ARIA_ATTR$1 = ARIA_ATTR, IS_SCRIPT_OR_DATA$1 = IS_SCRIPT_OR_DATA, ATTR_WHITESPACE$1 = ATTR_WHITESPACE;
         var IS_ALLOWED_URI$1 = IS_ALLOWED_URI;
         var ALLOWED_TAGS = null;
         var DEFAULT_ALLOWED_TAGS = addToSet({}, [].concat(_toConsumableArray(html$1), _toConsumableArray(svg$1), _toConsumableArray(svgFilters), _toConsumableArray(mathMl$1), _toConsumableArray(text)));
@@ -8410,6 +8750,7 @@
         var ALLOW_ARIA_ATTR = true;
         var ALLOW_DATA_ATTR = true;
         var ALLOW_UNKNOWN_PROTOCOLS = false;
+        var ALLOW_SELF_CLOSE_IN_ATTR = true;
         var SAFE_FOR_TEMPLATES = false;
         var WHOLE_DOCUMENT = false;
         var SET_CONFIG = false;
@@ -8418,6 +8759,8 @@
         var RETURN_DOM_FRAGMENT = false;
         var RETURN_TRUSTED_TYPE = false;
         var SANITIZE_DOM = true;
+        var SANITIZE_NAMED_PROPS = false;
+        var SANITIZE_NAMED_PROPS_PREFIX = "user-content-";
         var KEEP_CONTENT = true;
         var IN_PLACE = false;
         var USE_PROFILES = {};
@@ -8432,6 +8775,8 @@
         var HTML_NAMESPACE = "http://www.w3.org/1999/xhtml";
         var NAMESPACE = HTML_NAMESPACE;
         var IS_EMPTY_INPUT = false;
+        var ALLOWED_NAMESPACES = null;
+        var DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
         var PARSER_MEDIA_TYPE;
         var SUPPORTED_PARSER_MEDIA_TYPES = ["application/xhtml+xml", "text/html"];
         var DEFAULT_PARSER_MEDIA_TYPE = "text/html";
@@ -8449,17 +8794,29 @@
             cfg = {};
           }
           cfg = clone2(cfg);
-          ALLOWED_TAGS = "ALLOWED_TAGS" in cfg ? addToSet({}, cfg.ALLOWED_TAGS) : DEFAULT_ALLOWED_TAGS;
-          ALLOWED_ATTR = "ALLOWED_ATTR" in cfg ? addToSet({}, cfg.ALLOWED_ATTR) : DEFAULT_ALLOWED_ATTR;
-          URI_SAFE_ATTRIBUTES = "ADD_URI_SAFE_ATTR" in cfg ? addToSet(clone2(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR) : DEFAULT_URI_SAFE_ATTRIBUTES;
-          DATA_URI_TAGS = "ADD_DATA_URI_TAGS" in cfg ? addToSet(clone2(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS) : DEFAULT_DATA_URI_TAGS;
-          FORBID_CONTENTS = "FORBID_CONTENTS" in cfg ? addToSet({}, cfg.FORBID_CONTENTS) : DEFAULT_FORBID_CONTENTS;
-          FORBID_TAGS = "FORBID_TAGS" in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
-          FORBID_ATTR = "FORBID_ATTR" in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
+          PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE;
+          transformCaseFunc = PARSER_MEDIA_TYPE === "application/xhtml+xml" ? stringToString : stringToLowerCase;
+          ALLOWED_TAGS = "ALLOWED_TAGS" in cfg ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
+          ALLOWED_ATTR = "ALLOWED_ATTR" in cfg ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+          ALLOWED_NAMESPACES = "ALLOWED_NAMESPACES" in cfg ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
+          URI_SAFE_ATTRIBUTES = "ADD_URI_SAFE_ATTR" in cfg ? addToSet(
+            clone2(DEFAULT_URI_SAFE_ATTRIBUTES),
+            cfg.ADD_URI_SAFE_ATTR,
+            transformCaseFunc
+          ) : DEFAULT_URI_SAFE_ATTRIBUTES;
+          DATA_URI_TAGS = "ADD_DATA_URI_TAGS" in cfg ? addToSet(
+            clone2(DEFAULT_DATA_URI_TAGS),
+            cfg.ADD_DATA_URI_TAGS,
+            transformCaseFunc
+          ) : DEFAULT_DATA_URI_TAGS;
+          FORBID_CONTENTS = "FORBID_CONTENTS" in cfg ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
+          FORBID_TAGS = "FORBID_TAGS" in cfg ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
+          FORBID_ATTR = "FORBID_ATTR" in cfg ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
           USE_PROFILES = "USE_PROFILES" in cfg ? cfg.USE_PROFILES : false;
           ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false;
           ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false;
           ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false;
+          ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false;
           SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false;
           WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false;
           RETURN_DOM = cfg.RETURN_DOM || false;
@@ -8467,10 +8824,12 @@
           RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false;
           FORCE_BODY = cfg.FORCE_BODY || false;
           SANITIZE_DOM = cfg.SANITIZE_DOM !== false;
+          SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false;
           KEEP_CONTENT = cfg.KEEP_CONTENT !== false;
           IN_PLACE = cfg.IN_PLACE || false;
           IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$1;
           NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+          CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
           if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
             CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
           }
@@ -8480,10 +8839,6 @@
           if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === "boolean") {
             CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
           }
-          PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE;
-          transformCaseFunc = PARSER_MEDIA_TYPE === "application/xhtml+xml" ? function(x2) {
-            return x2;
-          } : stringToLowerCase;
           if (SAFE_FOR_TEMPLATES) {
             ALLOW_DATA_ATTR = false;
           }
@@ -8517,22 +8872,22 @@
             if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
               ALLOWED_TAGS = clone2(ALLOWED_TAGS);
             }
-            addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
+            addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
           }
           if (cfg.ADD_ATTR) {
             if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
               ALLOWED_ATTR = clone2(ALLOWED_ATTR);
             }
-            addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+            addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
           }
           if (cfg.ADD_URI_SAFE_ATTR) {
-            addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
+            addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
           }
           if (cfg.FORBID_CONTENTS) {
             if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
               FORBID_CONTENTS = clone2(FORBID_CONTENTS);
             }
-            addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS);
+            addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
           }
           if (KEEP_CONTENT) {
             ALLOWED_TAGS["#text"] = true;
@@ -8561,12 +8916,15 @@
           var parent = getParentNode(element);
           if (!parent || !parent.tagName) {
             parent = {
-              namespaceURI: HTML_NAMESPACE,
+              namespaceURI: NAMESPACE,
               tagName: "template"
             };
           }
           var tagName = stringToLowerCase(element.tagName);
           var parentTagName = stringToLowerCase(parent.tagName);
+          if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+            return false;
+          }
           if (element.namespaceURI === SVG_NAMESPACE) {
             if (parent.namespaceURI === HTML_NAMESPACE) {
               return tagName === "svg";
@@ -8593,6 +8951,9 @@
               return false;
             }
             return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+          }
+          if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && ALLOWED_NAMESPACES[element.namespaceURI]) {
+            return true;
           }
           return false;
         };
@@ -8646,7 +9007,7 @@
             var matches = stringMatch(dirty, /^[\r\n\t ]+/);
             leadingWhitespace = matches && matches[0];
           }
-          if (PARSER_MEDIA_TYPE === "application/xhtml+xml") {
+          if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && NAMESPACE === HTML_NAMESPACE) {
             dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + "</body></html>";
           }
           var dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
@@ -8659,7 +9020,7 @@
           if (!doc || !doc.documentElement) {
             doc = implementation.createDocument(NAMESPACE, "template", null);
             try {
-              doc.documentElement.innerHTML = IS_EMPTY_INPUT ? "" : dirtyPayload;
+              doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
             } catch (_2) {
             }
           }
@@ -8673,10 +9034,16 @@
           return WHOLE_DOCUMENT ? doc.documentElement : body;
         };
         var _createIterator = function _createIterator2(root) {
-          return createNodeIterator.call(root.ownerDocument || root, root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null, false);
+          return createNodeIterator.call(
+            root.ownerDocument || root,
+            root,
+            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
+            null,
+            false
+          );
         };
         var _isClobbered = function _isClobbered2(elm) {
-          return elm instanceof HTMLFormElement && (typeof elm.nodeName !== "string" || typeof elm.textContent !== "string" || typeof elm.removeChild !== "function" || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== "function" || typeof elm.setAttribute !== "function" || typeof elm.namespaceURI !== "string" || typeof elm.insertBefore !== "function");
+          return elm instanceof HTMLFormElement && (typeof elm.nodeName !== "string" || typeof elm.textContent !== "string" || typeof elm.removeChild !== "function" || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== "function" || typeof elm.setAttribute !== "function" || typeof elm.namespaceURI !== "string" || typeof elm.insertBefore !== "function" || typeof elm.hasChildNodes !== "function");
         };
         var _isNode = function _isNode2(object) {
           return _typeof(Node) === "object" ? object instanceof Node : object && _typeof(object) === "object" && typeof object.nodeType === "number" && typeof object.nodeName === "string";
@@ -8745,6 +9112,7 @@
             content = currentNode.textContent;
             content = stringReplace(content, MUSTACHE_EXPR$1, " ");
             content = stringReplace(content, ERB_EXPR$1, " ");
+            content = stringReplace(content, TMPLIT_EXPR$1, " ");
             if (currentNode.textContent !== content) {
               arrayPush(DOMPurify.removed, {
                 element: currentNode.cloneNode()
@@ -8822,17 +9190,36 @@
             if (!hookEvent.keepAttr) {
               continue;
             }
-            if (regExpTest(/\/>/i, value)) {
+            if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
               _removeAttribute(name, currentNode);
               continue;
             }
             if (SAFE_FOR_TEMPLATES) {
               value = stringReplace(value, MUSTACHE_EXPR$1, " ");
               value = stringReplace(value, ERB_EXPR$1, " ");
+              value = stringReplace(value, TMPLIT_EXPR$1, " ");
             }
             var lcTag = transformCaseFunc(currentNode.nodeName);
             if (!_isValidAttribute(lcTag, lcName, value)) {
               continue;
+            }
+            if (SANITIZE_NAMED_PROPS && (lcName === "id" || lcName === "name")) {
+              _removeAttribute(name, currentNode);
+              value = SANITIZE_NAMED_PROPS_PREFIX + value;
+            }
+            if (trustedTypesPolicy && _typeof(trustedTypes) === "object" && typeof trustedTypes.getAttributeType === "function") {
+              if (namespaceURI)
+                ;
+              else {
+                switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+                  case "TrustedHTML":
+                    value = trustedTypesPolicy.createHTML(value);
+                    break;
+                  case "TrustedScriptURL":
+                    value = trustedTypesPolicy.createScriptURL(value);
+                    break;
+                }
+              }
             }
             try {
               if (namespaceURI) {
@@ -8862,7 +9249,8 @@
           }
           _executeHook("afterSanitizeShadowDOM", fragment, null);
         };
-        DOMPurify.sanitize = function(dirty, cfg) {
+        DOMPurify.sanitize = function(dirty) {
+          var cfg = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
           var body;
           var importedNode;
           var currentNode;
@@ -8956,7 +9344,7 @@
             } else {
               returnNode = body;
             }
-            if (ALLOWED_ATTR.shadowroot) {
+            if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmod) {
               returnNode = importNode.call(originalDocument, returnNode, true);
             }
             return returnNode;
@@ -8968,6 +9356,7 @@
           if (SAFE_FOR_TEMPLATES) {
             serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR$1, " ");
             serializedHTML = stringReplace(serializedHTML, ERB_EXPR$1, " ");
+            serializedHTML = stringReplace(serializedHTML, TMPLIT_EXPR$1, " ");
           }
           return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
         };
@@ -9050,16 +9439,18 @@
       return null;
     }
     const htmlOrVnode = templateFunc(param);
-    return isString_1(htmlOrVnode) ? h$3(tagName, {
+    return isString_1(htmlOrVnode) ? y$3(tagName, {
       className: cls(`template-${template}`),
       dangerouslySetInnerHTML: {
         __html: sanitize(htmlOrVnode)
       }
-    }) : q$3(htmlOrVnode, {
+    }) : E$1(htmlOrVnode, {
       className: `${(_a = htmlOrVnode.props.className) != null ? _a : ""} ${cls(`template-${template}`)}`
     });
   }
-  const EventBusContext = B$1(null);
+  const EventBusContext = F$3(
+    null
+  );
   const EventBusProvider = EventBusContext.Provider;
   const useEventBus = () => {
     const eventBus = q$2(EventBusContext);
@@ -9083,12 +9474,20 @@
   function useTZConverter() {
     const customOffsetCalculator = useStore(customOffsetCalculatorSelector);
     const hasCustomOffsetCalculator = isPresent(customOffsetCalculator);
-    return T$1((timezoneName, tzDate = new TZDate()) => tzDate.tz(hasCustomOffsetCalculator ? customOffsetCalculator(timezoneName, tzDate.getTime()) : timezoneName), [customOffsetCalculator, hasCustomOffsetCalculator]);
+    return T$1(
+      (timezoneName, tzDate = new TZDate()) => tzDate.tz(
+        hasCustomOffsetCalculator ? customOffsetCalculator(timezoneName, tzDate.getTime()) : timezoneName
+      ),
+      [customOffsetCalculator, hasCustomOffsetCalculator]
+    );
   }
   function usePrimaryTimezone() {
     const primaryTimezoneName = useStore(primaryTimezoneSelector);
     const tzConverter = useTZConverter();
-    const getNow = T$1(() => tzConverter(primaryTimezoneName), [primaryTimezoneName, tzConverter]);
+    const getNow = T$1(
+      () => tzConverter(primaryTimezoneName),
+      [primaryTimezoneName, tzConverter]
+    );
     return [primaryTimezoneName, getNow];
   }
   function isWeekDayName(type, dayName) {
@@ -9142,15 +9541,15 @@
         eventBus.fire("clickDayName", { date: toFormat(dayName.dateInstance, "YYYY-MM-DD") });
       }
     };
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("day-name-item", type),
       style
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: cls({ [`holiday-${getDayName(day)}`]: isWeekend(day) }),
       style: { color },
       onClick: handleClick,
       "data-testid": `dayName-${type}-${getDayName(day)}`
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: templateType,
       param: dayName
     })));
@@ -9289,26 +9688,34 @@
   function createThemeDispatch(set) {
     return {
       setTheme: (theme) => {
-        set(produce((state) => {
-          state.common = mergeObject(state.common, theme.common);
-          state.week = mergeObject(state.week, theme.week);
-          state.month = mergeObject(state.month, theme.month);
-        }));
+        set(
+          produce((state) => {
+            state.common = mergeObject(state.common, theme.common);
+            state.week = mergeObject(state.week, theme.week);
+            state.month = mergeObject(state.month, theme.month);
+          })
+        );
       },
       setCommonTheme: (commonTheme) => {
-        set(produce((state) => {
-          state.common = mergeObject(state.common, commonTheme);
-        }));
+        set(
+          produce((state) => {
+            state.common = mergeObject(state.common, commonTheme);
+          })
+        );
       },
       setWeekTheme: (weekTheme) => {
-        set(produce((state) => {
-          state.week = mergeObject(state.week, weekTheme);
-        }));
+        set(
+          produce((state) => {
+            state.week = mergeObject(state.week, weekTheme);
+          })
+        );
       },
       setMonthTheme: (monthTheme) => {
-        set(produce((state) => {
-          state.month = mergeObject(state.month, monthTheme);
-        }));
+        set(
+          produce((state) => {
+            state.month = mergeObject(state.month, monthTheme);
+          })
+        );
       }
     };
   }
@@ -9377,7 +9784,7 @@
     const theme = useTheme(type === "month" ? monthDayNameSelector : weekDayNameSelector);
     const _c = (_b = (_a = theme[type]) == null ? void 0 : _a.dayName) != null ? _b : {}, { backgroundColor = "white", borderLeft = null } = _c, rest = __objRest(_c, ["backgroundColor", "borderLeft"]);
     const { borderTop = null, borderBottom = null } = rest;
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       "data-testid": `grid-header-${type}`,
       className: cls("day-names", type),
       style: {
@@ -9385,10 +9792,10 @@
         borderTop,
         borderBottom
       }
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: cls("day-name-container"),
       style: { marginLeft }
-    }, dayNames.map((dayName, index) => /* @__PURE__ */ h$3(DayName, {
+    }, dayNames.map((dayName, index) => /* @__PURE__ */ y$3(DayName, {
       type,
       key: `dayNames-${dayName.day}`,
       dayName,
@@ -9415,7 +9822,9 @@
     collisionGroups[0] = [events[0].cid()];
     events.slice(1).forEach((event, index) => {
       previousEventList = events.slice(0, index + 1).reverse();
-      const found = previousEventList.find((previous) => event.collidesWith(previous, usingTravelTime));
+      const found = previousEventList.find(
+        (previous) => event.collidesWith(previous, usingTravelTime)
+      );
       if (!found) {
         collisionGroups.push([event.cid()]);
       } else {
@@ -9478,7 +9887,9 @@
     };
   }
   function positionUIModels(start, end, matrices, iteratee) {
-    const ymdListToRender = makeDateRange(start, end, MS_PER_DAY).map((date2) => toFormat(date2, "YYYYMMDD"));
+    const ymdListToRender = makeDateRange(start, end, MS_PER_DAY).map(
+      (date2) => toFormat(date2, "YYYYMMDD")
+    );
     matrices.forEach((matrix) => {
       matrix.forEach((column) => {
         column.forEach((uiModel, index) => {
@@ -9486,7 +9897,11 @@
             return;
           }
           const ymd = toFormat(uiModel.getStarts(), "YYYYMMDD");
-          const dateLength = makeDateRange(toStartOfDay(uiModel.getStarts()), toEndOfDay(uiModel.getEnds()), MS_PER_DAY).length;
+          const dateLength = makeDateRange(
+            toStartOfDay(uiModel.getStarts()),
+            toEndOfDay(uiModel.getEnds()),
+            MS_PER_DAY
+          ).length;
           uiModel.top = index;
           uiModel.left = ymdListToRender.indexOf(ymd);
           uiModel.width = dateLength;
@@ -9562,7 +9977,11 @@
       const eventYMD = toFormat(timeUIModel.getStarts(), "YYYYMMDD");
       let alldayMaxTopInYMD = maxIndexInYMD[eventYMD];
       if (isUndefined_1(alldayMaxTopInYMD)) {
-        alldayMaxTopInYMD = maxIndexInYMD[eventYMD] = _getAlldayMaxTopIndexAtYMD(idsOfDay, eventYMD, vAlldayColl);
+        alldayMaxTopInYMD = maxIndexInYMD[eventYMD] = _getAlldayMaxTopIndexAtYMD(
+          idsOfDay,
+          eventYMD,
+          vAlldayColl
+        );
       }
       maxIndexInYMD[eventYMD] = timeUIModel.top = alldayMaxTopInYMD + 1;
     });
@@ -9713,26 +10132,29 @@
     const filterFn = Collection.and(...[getEventInDateRangeFilter(start, end)].concat(andFilters));
     const uiModelColl = convertToUIModel(events.filter(filterFn));
     const group = uiModelColl.groupBy(filterByCategory);
-    return panels.reduce((acc, cur) => {
-      const { name, type } = cur;
-      if (isNil(group[name])) {
-        return acc;
+    return panels.reduce(
+      (acc, cur) => {
+        const { name, type } = cur;
+        if (isNil(group[name])) {
+          return acc;
+        }
+        return __spreadProps(__spreadValues({}, acc), {
+          [name]: type === "daygrid" ? getUIModelForAlldayView(start, end, group[name]) : getUIModelForTimeView(idsOfDay, {
+            start,
+            end,
+            uiModelTimeColl: group[name],
+            hourStart,
+            hourEnd
+          })
+        });
+      },
+      {
+        milestone: [],
+        task: [],
+        allday: [],
+        time: {}
       }
-      return __spreadProps(__spreadValues({}, acc), {
-        [name]: type === "daygrid" ? getUIModelForAlldayView(start, end, group[name]) : getUIModelForTimeView(idsOfDay, {
-          start,
-          end,
-          uiModelTimeColl: group[name],
-          hourStart,
-          hourEnd
-        })
-      });
-    }, {
-      milestone: [],
-      task: [],
-      allday: [],
-      time: {}
-    });
+    );
   }
   function limit(value, minArr, maxArr) {
     const v2 = Math.max(value, ...minArr);
@@ -9777,7 +10199,10 @@
       }
       return isWeekend(day) ? widthPerDay : widthPerDay * 2;
     });
-    const leftList = widthList.reduce((acc, _2, index) => index ? [...acc, acc[index - 1] + widthList[index - 1]] : [0], []);
+    const leftList = widthList.reduce(
+      (acc, _2, index) => index ? [...acc, acc[index - 1] + widthList[index - 1]] : [0],
+      []
+    );
     return {
       widthList,
       leftList
@@ -9844,11 +10269,14 @@
       const cid = uiModel.model.cid();
       idEventModelMap[cid] = getEventUIModelWithPosition(uiModel, row, narrowWeekend);
     });
-    const gridDateEventModelMap = Object.keys(idsOfDay).reduce((acc, ymd) => {
-      const ids = idsOfDay[ymd];
-      acc[ymd] = ids.map((cid) => idEventModelMap[cid]).filter((vm) => !!vm);
-      return acc;
-    }, {});
+    const gridDateEventModelMap = Object.keys(idsOfDay).reduce(
+      (acc, ymd) => {
+        const ids = idsOfDay[ymd];
+        acc[ymd] = ids.map((cid) => idEventModelMap[cid]).filter((vm) => !!vm);
+        return acc;
+      },
+      {}
+    );
     return {
       uiModels: Object.values(idEventModelMap),
       gridDateEventModelMap
@@ -9869,7 +10297,14 @@
   function flattenMatrix3d(matrices) {
     return matrices.flatMap((matrix) => matrix.flatMap((models) => getModels(models)));
   }
-  const getTimeGridEventModels = (eventMatrix) => Array.from(new Set(Object.values(eventMatrix).reduce((result, matrix3d) => result.concat(...flattenMatrix3d(matrix3d)), [])));
+  const getTimeGridEventModels = (eventMatrix) => Array.from(
+    new Set(
+      Object.values(eventMatrix).reduce(
+        (result, matrix3d) => result.concat(...flattenMatrix3d(matrix3d)),
+        []
+      )
+    )
+  );
   const getWeekViewEvents = (row, calendarData, {
     narrowWeekend,
     hourStart,
@@ -9909,17 +10344,20 @@
         hourEnd
       }
     });
-    return Object.keys(eventModels).reduce((acc, cur) => {
-      const events = eventModels[cur];
-      return __spreadProps(__spreadValues({}, acc), {
-        [cur]: Array.isArray(events) ? getDayGridEventModels(events, row, narrowWeekend) : getTimeGridEventModels(events)
-      });
-    }, {
-      milestone: [],
-      allday: [],
-      task: [],
-      time: []
-    });
+    return Object.keys(eventModels).reduce(
+      (acc, cur) => {
+        const events = eventModels[cur];
+        return __spreadProps(__spreadValues({}, acc), {
+          [cur]: Array.isArray(events) ? getDayGridEventModels(events, row, narrowWeekend) : getTimeGridEventModels(events)
+        });
+      },
+      {
+        milestone: [],
+        allday: [],
+        task: [],
+        time: []
+      }
+    );
   };
   function createDateMatrixOfMonth(renderTargetDate, {
     workweek = false,
@@ -9930,7 +10368,10 @@
     const targetDate = new TZDate(renderTargetDate);
     const shouldApplyVisibleWeeksCount = visibleWeeksCount > 0;
     const baseDate = shouldApplyVisibleWeeksCount ? targetDate : toStartOfMonth(targetDate);
-    const firstDateOfMatrix = subtractDate(baseDate, baseDate.getDay() - startDayOfWeek + (baseDate.getDay() < startDayOfWeek ? WEEK_DAYS : 0));
+    const firstDateOfMatrix = subtractDate(
+      baseDate,
+      baseDate.getDay() - startDayOfWeek + (baseDate.getDay() < startDayOfWeek ? WEEK_DAYS : 0)
+    );
     const dayOfFirstDateOfMatrix = firstDateOfMatrix.getDay();
     const totalDatesCountOfMonth = toEndOfMonth(targetDate).getDate();
     const initialDifference = getDateDifference(firstDateOfMatrix, baseDate);
@@ -9941,15 +10382,17 @@
     } else if (isAlways6Weeks === false) {
       totalWeeksOfMatrix = Math.ceil(totalDatesOfMatrix / WEEK_DAYS);
     }
-    return range_1(0, totalWeeksOfMatrix).map((weekIndex) => range_1(0, WEEK_DAYS).reduce((weekRow, dayOfWeek) => {
-      const steps = weekIndex * WEEK_DAYS + dayOfWeek;
-      const currentDay = (steps + dayOfFirstDateOfMatrix) % WEEK_DAYS;
-      if (!workweek || workweek && !isWeekend(currentDay)) {
-        const date2 = addDate(firstDateOfMatrix, steps);
-        weekRow.push(date2);
-      }
-      return weekRow;
-    }, []));
+    return range_1(0, totalWeeksOfMatrix).map(
+      (weekIndex) => range_1(0, WEEK_DAYS).reduce((weekRow, dayOfWeek) => {
+        const steps = weekIndex * WEEK_DAYS + dayOfWeek;
+        const currentDay = (steps + dayOfFirstDateOfMatrix) % WEEK_DAYS;
+        if (!workweek || workweek && !isWeekend(currentDay)) {
+          const date2 = addDate(firstDateOfMatrix, steps);
+          weekRow.push(date2);
+        }
+        return weekRow;
+      }, [])
+    );
   }
   function getWeekDates(renderDate, { startDayOfWeek = Day$2.SUN, workweek }) {
     const now = toStartOfDay(renderDate);
@@ -9992,7 +10435,10 @@
       const isOdd = index % 2 === 1;
       const hour = options.hourStart + Math.floor(step / 2);
       const startTime = `${hour}:${isOdd ? "30" : "00"}`.padStart(5, "0");
-      const endTime = (isOdd ? `${hour + 1}:00` : `${hour}:30`).padStart(5, "0");
+      const endTime = (isOdd ? `${hour + 1}:00` : `${hour}:30`).padStart(
+        5,
+        "0"
+      );
       return {
         top: baseHeight * index,
         height: baseHeight,
@@ -10022,7 +10468,9 @@
     if (isNil(container)) {
       return () => null;
     }
-    const dayRange = range_1(startDayOfWeek, startDayOfWeek + columnsCount).map((day) => day % WEEK_DAYS);
+    const dayRange = range_1(startDayOfWeek, startDayOfWeek + columnsCount).map(
+      (day) => day % WEEK_DAYS
+    );
     const narrowColumnCount = narrowWeekend ? dayRange.filter((day) => isWeekend(day)).length : 0;
     return function gridPositionFinder(mousePosition) {
       const {
@@ -10041,7 +10489,9 @@
         return null;
       }
       const unitWidth = narrowWeekend ? containerWidth / (columnsCount - narrowColumnCount + 1) : containerWidth / columnsCount;
-      const columnWidthList = dayRange.map((dayOfWeek) => narrowWeekend && isWeekend(dayOfWeek) ? unitWidth / 2 : unitWidth);
+      const columnWidthList = dayRange.map(
+        (dayOfWeek) => narrowWeekend && isWeekend(dayOfWeek) ? unitWidth / 2 : unitWidth
+      );
       const columnLeftList = [];
       columnWidthList.forEach((width, index) => {
         if (index === 0) {
@@ -10063,7 +10513,12 @@
   function GridSelection$1({ type, gridSelectionData, weekDates, narrowWeekend }) {
     const { backgroundColor, border } = useTheme(commonGridSelectionSelector);
     const { startCellIndex, endCellIndex } = gridSelectionData;
-    const { left, width } = getLeftAndWidth(Math.min(startCellIndex, endCellIndex), Math.max(startCellIndex, endCellIndex), weekDates, narrowWeekend);
+    const { left, width } = getLeftAndWidth(
+      Math.min(startCellIndex, endCellIndex),
+      Math.max(startCellIndex, endCellIndex),
+      weekDates,
+      narrowWeekend
+    );
     const style = {
       left: toPercent(left),
       width: toPercent(width),
@@ -10071,7 +10526,7 @@
       backgroundColor,
       border
     };
-    return width > 0 ? /* @__PURE__ */ h$3("div", {
+    return width > 0 ? /* @__PURE__ */ y$3("div", {
       className: cls(type, "grid-selection"),
       style
     }) : null;
@@ -10119,8 +10574,14 @@
     },
     getDateFromCollection: (dateCollection, gridSelection) => {
       const timeGridData = dateCollection;
-      const startDate = setTimeStrToDate(timeGridData.columns[gridSelection.startColumnIndex].date, timeGridData.rows[gridSelection.startRowIndex].startTime);
-      const endDate = setTimeStrToDate(timeGridData.columns[gridSelection.endColumnIndex].date, timeGridData.rows[gridSelection.endRowIndex].endTime);
+      const startDate = setTimeStrToDate(
+        timeGridData.columns[gridSelection.startColumnIndex].date,
+        timeGridData.rows[gridSelection.startRowIndex].startTime
+      );
+      const endDate = setTimeStrToDate(
+        timeGridData.columns[gridSelection.endColumnIndex].date,
+        timeGridData.rows[gridSelection.endRowIndex].endTime
+      );
       return [startDate, endDate];
     },
     calculateSelection: calculateTimeGridSelectionByCurrentIndex
@@ -10130,7 +10591,11 @@
       return null;
     }
     const { startRowIndex, startColumnIndex, endRowIndex, endColumnIndex } = gridSelection;
-    if (!isBetween$1(currentIndex, Math.min(startRowIndex, endRowIndex), Math.max(startRowIndex, endRowIndex))) {
+    if (!isBetween$1(
+      currentIndex,
+      Math.min(startRowIndex, endRowIndex),
+      Math.max(startRowIndex, endRowIndex)
+    )) {
       return null;
     }
     let startCellIndex = startColumnIndex;
@@ -10182,82 +10647,94 @@
     if (isNil(calculatedGridSelection)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(GridSelection$1, {
+    return /* @__PURE__ */ y$3(GridSelection$1, {
       type: "allday",
       gridSelectionData: calculatedGridSelection,
       weekDates,
       narrowWeekend
     });
   }
-  function S(n2, t2) {
+  function g$1(n2, t2) {
     for (var e2 in t2)
       n2[e2] = t2[e2];
     return n2;
   }
-  function C(n2, t2) {
+  function C$1(n2, t2) {
     for (var e2 in n2)
-      if (e2 !== "__source" && !(e2 in t2))
+      if ("__source" !== e2 && !(e2 in t2))
         return true;
     for (var r2 in t2)
-      if (r2 !== "__source" && n2[r2] !== t2[r2])
+      if ("__source" !== r2 && n2[r2] !== t2[r2])
         return true;
     return false;
   }
-  function E(n2) {
+  function w$1(n2) {
     this.props = n2;
   }
-  function g$1(n2, t2) {
-    function e2(n3) {
-      var e3 = this.props.ref, r3 = e3 == n3.ref;
-      return !r3 && e3 && (e3.call ? e3(null) : e3.current = null), t2 ? !t2(this.props, n3) || !r3 : C(this.props, n3);
+  function x$1(n2, e2) {
+    function r2(n3) {
+      var t2 = this.props.ref, r3 = t2 == n3.ref;
+      return !r3 && t2 && (t2.call ? t2(null) : t2.current = null), e2 ? !e2(this.props, n3) || !r3 : C$1(this.props, n3);
     }
-    function r2(t3) {
-      return this.shouldComponentUpdate = e2, h$3(n2, t3);
+    function u2(e3) {
+      return this.shouldComponentUpdate = r2, y$3(n2, e3);
     }
-    return r2.displayName = "Memo(" + (n2.displayName || n2.name) + ")", r2.prototype.isReactComponent = true, r2.__f = true, r2;
+    return u2.displayName = "Memo(" + (n2.displayName || n2.name) + ")", u2.prototype.isReactComponent = true, u2.__f = true, u2;
   }
-  (E.prototype = new d$3()).isPureReactComponent = true, E.prototype.shouldComponentUpdate = function(n2, t2) {
-    return C(this.props, n2) || C(this.state, t2);
+  (w$1.prototype = new k$4()).isPureReactComponent = true, w$1.prototype.shouldComponentUpdate = function(n2, t2) {
+    return C$1(this.props, n2) || C$1(this.state, t2);
   };
-  var w = l$3.__b;
+  var R = l$3.__b;
   l$3.__b = function(n2) {
-    n2.type && n2.type.__f && n2.ref && (n2.props.ref = n2.ref, n2.ref = null), w && w(n2);
+    n2.type && n2.type.__f && n2.ref && (n2.props.ref = n2.ref, n2.ref = null), R && R(n2);
   };
-  var x$1 = typeof Symbol != "undefined" && Symbol.for && Symbol.for("react.forward_ref") || 3911;
-  function R(n2) {
+  var N = "undefined" != typeof Symbol && Symbol.for && Symbol.for("react.forward_ref") || 3911;
+  function k$1(n2) {
     function t2(t3) {
-      var e2 = S({}, t3);
+      var e2 = g$1({}, t3);
       return delete e2.ref, n2(e2, t3.ref || null);
     }
-    return t2.$$typeof = x$1, t2.render = t2, t2.prototype.isReactComponent = t2.__f = true, t2.displayName = "ForwardRef(" + (n2.displayName || n2.name) + ")", t2;
+    return t2.$$typeof = N, t2.render = t2, t2.prototype.isReactComponent = t2.__f = true, t2.displayName = "ForwardRef(" + (n2.displayName || n2.name) + ")", t2;
   }
-  var A = l$3.__e;
+  var T = l$3.__e;
   l$3.__e = function(n2, t2, e2, r2) {
     if (n2.then) {
       for (var u2, o2 = t2; o2 = o2.__; )
         if ((u2 = o2.__c) && u2.__c)
-          return t2.__e == null && (t2.__e = e2.__e, t2.__k = e2.__k), u2.__c(n2, t2);
+          return null == t2.__e && (t2.__e = e2.__e, t2.__k = e2.__k), u2.__c(n2, t2);
     }
-    A(n2, t2, e2, r2);
+    T(n2, t2, e2, r2);
   };
-  var O = l$3.unmount;
-  function T() {
+  var I = l$3.unmount;
+  function L(n2, t2, e2) {
+    return n2 && (n2.__c && n2.__c.__H && (n2.__c.__H.__.forEach(function(n3) {
+      "function" == typeof n3.__c && n3.__c();
+    }), n2.__c.__H = null), null != (n2 = g$1({}, n2)).__c && (n2.__c.__P === e2 && (n2.__c.__P = t2), n2.__c = null), n2.__k = n2.__k && n2.__k.map(function(n3) {
+      return L(n3, t2, e2);
+    })), n2;
+  }
+  function U(n2, t2, e2) {
+    return n2 && (n2.__v = null, n2.__k = n2.__k && n2.__k.map(function(n3) {
+      return U(n3, t2, e2);
+    }), n2.__c && n2.__c.__P === t2 && (n2.__e && e2.insertBefore(n2.__e, n2.__d), n2.__c.__e = true, n2.__c.__P = e2)), n2;
+  }
+  function D() {
     this.__u = 0, this.t = null, this.__b = null;
   }
-  function L(n2) {
+  function F$1(n2) {
     var t2 = n2.__.__c;
     return t2 && t2.__a && t2.__a(n2);
   }
-  function D() {
+  function V() {
     this.u = null, this.o = null;
   }
   l$3.unmount = function(n2) {
     var t2 = n2.__c;
-    t2 && t2.__R && t2.__R(), t2 && n2.__h === true && (n2.type = null), O && O(n2);
-  }, (T.prototype = new d$3()).__c = function(n2, t2) {
+    t2 && t2.__R && t2.__R(), t2 && true === n2.__h && (n2.type = null), I && I(n2);
+  }, (D.prototype = new k$4()).__c = function(n2, t2) {
     var e2 = t2.__c, r2 = this;
-    r2.t == null && (r2.t = []), r2.t.push(e2);
-    var u2 = L(r2.__v), o2 = false, i2 = function() {
+    null == r2.t && (r2.t = []), r2.t.push(e2);
+    var u2 = F$1(r2.__v), o2 = false, i2 = function() {
       o2 || (o2 = true, e2.__R = null, u2 ? u2(l2) : l2());
     };
     e2.__R = i2;
@@ -10265,39 +10742,29 @@
       if (!--r2.__u) {
         if (r2.state.__a) {
           var n3 = r2.state.__a;
-          r2.__v.__k[0] = function n4(t4, e3, r3) {
-            return t4 && (t4.__v = null, t4.__k = t4.__k && t4.__k.map(function(t5) {
-              return n4(t5, e3, r3);
-            }), t4.__c && t4.__c.__P === e3 && (t4.__e && r3.insertBefore(t4.__e, t4.__d), t4.__c.__e = true, t4.__c.__P = r3)), t4;
-          }(n3, n3.__c.__P, n3.__c.__O);
+          r2.__v.__k[0] = U(n3, n3.__c.__P, n3.__c.__O);
         }
         var t3;
         for (r2.setState({ __a: r2.__b = null }); t3 = r2.t.pop(); )
           t3.forceUpdate();
       }
-    }, f2 = t2.__h === true;
-    r2.__u++ || f2 || r2.setState({ __a: r2.__b = r2.__v.__k[0] }), n2.then(i2, i2);
-  }, T.prototype.componentWillUnmount = function() {
+    }, c2 = true === t2.__h;
+    r2.__u++ || c2 || r2.setState({ __a: r2.__b = r2.__v.__k[0] }), n2.then(i2, i2);
+  }, D.prototype.componentWillUnmount = function() {
     this.t = [];
-  }, T.prototype.render = function(n2, t2) {
+  }, D.prototype.render = function(n2, e2) {
     if (this.__b) {
       if (this.__v.__k) {
-        var e2 = document.createElement("div"), r2 = this.__v.__k[0].__c;
-        this.__v.__k[0] = function n3(t3, e3, r3) {
-          return t3 && (t3.__c && t3.__c.__H && (t3.__c.__H.__.forEach(function(n4) {
-            typeof n4.__c == "function" && n4.__c();
-          }), t3.__c.__H = null), (t3 = S({}, t3)).__c != null && (t3.__c.__P === r3 && (t3.__c.__P = e3), t3.__c = null), t3.__k = t3.__k && t3.__k.map(function(t4) {
-            return n3(t4, e3, r3);
-          })), t3;
-        }(this.__b, e2, r2.__O = r2.__P);
+        var r2 = document.createElement("div"), o2 = this.__v.__k[0].__c;
+        this.__v.__k[0] = L(this.__b, r2, o2.__O = o2.__P);
       }
       this.__b = null;
     }
-    var u2 = t2.__a && h$3(p$3, null, n2.fallback);
-    return u2 && (u2.__h = null), [h$3(p$3, null, t2.__a ? null : n2.children), u2];
+    var i2 = e2.__a && y$3(_$3, null, n2.fallback);
+    return i2 && (i2.__h = null), [y$3(_$3, null, e2.__a ? null : n2.children), i2];
   };
-  var F = function(n2, t2, e2) {
-    if (++e2[1] === e2[0] && n2.o.delete(t2), n2.props.revealOrder && (n2.props.revealOrder[0] !== "t" || !n2.o.size))
+  var W = function(n2, t2, e2) {
+    if (++e2[1] === e2[0] && n2.o.delete(t2), n2.props.revealOrder && ("t" !== n2.props.revealOrder[0] || !n2.o.size))
       for (e2 = n2.u; e2; ) {
         for (; e2.length > 3; )
           e2.pop()();
@@ -10306,113 +10773,120 @@
         n2.u = e2 = e2[2];
       }
   };
-  function I(n2) {
+  function P(n2) {
     return this.getChildContext = function() {
       return n2.context;
     }, n2.children;
   }
-  function M(n2) {
-    var t2 = this, e2 = n2.i;
-    t2.componentWillUnmount = function() {
-      P$2(null, t2.l), t2.l = null, t2.i = null;
-    }, t2.i && t2.i !== e2 && t2.componentWillUnmount(), n2.__v ? (t2.l || (t2.i = e2, t2.l = { nodeType: 1, parentNode: e2, childNodes: [], appendChild: function(n3) {
-      this.childNodes.push(n3), t2.i.appendChild(n3);
-    }, insertBefore: function(n3, e3) {
-      this.childNodes.push(n3), t2.i.appendChild(n3);
+  function j$1(n2) {
+    var e2 = this, r2 = n2.i;
+    e2.componentWillUnmount = function() {
+      B$3(null, e2.l), e2.l = null, e2.i = null;
+    }, e2.i && e2.i !== r2 && e2.componentWillUnmount(), n2.__v ? (e2.l || (e2.i = r2, e2.l = { nodeType: 1, parentNode: r2, childNodes: [], appendChild: function(n3) {
+      this.childNodes.push(n3), e2.i.appendChild(n3);
+    }, insertBefore: function(n3, t2) {
+      this.childNodes.push(n3), e2.i.appendChild(n3);
     }, removeChild: function(n3) {
-      this.childNodes.splice(this.childNodes.indexOf(n3) >>> 1, 1), t2.i.removeChild(n3);
-    } }), P$2(h$3(I, { context: t2.context }, n2.__v), t2.l)) : t2.l && t2.componentWillUnmount();
+      this.childNodes.splice(this.childNodes.indexOf(n3) >>> 1, 1), e2.i.removeChild(n3);
+    } }), B$3(y$3(P, { context: e2.context }, n2.__v), e2.l)) : e2.l && e2.componentWillUnmount();
   }
-  function V(n2, t2) {
-    var e2 = h$3(M, { __v: n2, i: t2 });
-    return e2.containerInfo = t2, e2;
+  function z(n2, e2) {
+    var r2 = y$3(j$1, { __v: n2, i: e2 });
+    return r2.containerInfo = e2, r2;
   }
-  (D.prototype = new d$3()).__a = function(n2) {
-    var t2 = this, e2 = L(t2.__v), r2 = t2.o.get(n2);
+  (V.prototype = new k$4()).__a = function(n2) {
+    var t2 = this, e2 = F$1(t2.__v), r2 = t2.o.get(n2);
     return r2[0]++, function(u2) {
       var o2 = function() {
-        t2.props.revealOrder ? (r2.push(u2), F(t2, n2, r2)) : u2();
+        t2.props.revealOrder ? (r2.push(u2), W(t2, n2, r2)) : u2();
       };
       e2 ? e2(o2) : o2();
     };
-  }, D.prototype.render = function(n2) {
+  }, V.prototype.render = function(n2) {
     this.u = null, this.o = /* @__PURE__ */ new Map();
-    var t2 = x$3(n2.children);
-    n2.revealOrder && n2.revealOrder[0] === "b" && t2.reverse();
+    var t2 = P$2(n2.children);
+    n2.revealOrder && "b" === n2.revealOrder[0] && t2.reverse();
     for (var e2 = t2.length; e2--; )
       this.o.set(t2[e2], this.u = [1, 0, this.u]);
     return n2.children;
-  }, D.prototype.componentDidUpdate = D.prototype.componentDidMount = function() {
+  }, V.prototype.componentDidUpdate = V.prototype.componentDidMount = function() {
     var n2 = this;
     this.o.forEach(function(t2, e2) {
-      F(n2, e2, t2);
+      W(n2, e2, t2);
     });
   };
-  var W = typeof Symbol != "undefined" && Symbol.for && Symbol.for("react.element") || 60103, P = /^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|marker(?!H|W|U)|overline|paint|shape|stop|strikethrough|stroke|text(?!L)|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/, $ = typeof document != "undefined", j = function(n2) {
-    return (typeof Symbol != "undefined" && typeof Symbol() == "symbol" ? /fil|che|rad/i : /fil|che|ra/i).test(n2);
+  var B = "undefined" != typeof Symbol && Symbol.for && Symbol.for("react.element") || 60103, H = /^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|image|letter|lighting|marker(?!H|W|U)|overline|paint|pointer|shape|stop|strikethrough|stroke|text(?!L)|transform|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/, Z = /^on(Ani|Tra|Tou|BeforeInp|Compo)/, Y = /[A-Z0-9]/g, $ = "undefined" != typeof document, q = function(n2) {
+    return ("undefined" != typeof Symbol && "symbol" == typeof Symbol() ? /fil|che|rad/ : /fil|che|ra/).test(n2);
   };
-  d$3.prototype.isReactComponent = {}, ["componentWillMount", "componentWillReceiveProps", "componentWillUpdate"].forEach(function(n2) {
-    Object.defineProperty(d$3.prototype, n2, { configurable: true, get: function() {
-      return this["UNSAFE_" + n2];
-    }, set: function(t2) {
-      Object.defineProperty(this, n2, { configurable: true, writable: true, value: t2 });
+  k$4.prototype.isReactComponent = {}, ["componentWillMount", "componentWillReceiveProps", "componentWillUpdate"].forEach(function(t2) {
+    Object.defineProperty(k$4.prototype, t2, { configurable: true, get: function() {
+      return this["UNSAFE_" + t2];
+    }, set: function(n2) {
+      Object.defineProperty(this, t2, { configurable: true, writable: true, value: n2 });
     } });
   });
-  var H = l$3.event;
-  function Z() {
+  var K = l$3.event;
+  function Q() {
   }
-  function Y() {
+  function X() {
     return this.cancelBubble;
   }
-  function q() {
+  function nn() {
     return this.defaultPrevented;
   }
   l$3.event = function(n2) {
-    return H && (n2 = H(n2)), n2.persist = Z, n2.isPropagationStopped = Y, n2.isDefaultPrevented = q, n2.nativeEvent = n2;
+    return K && (n2 = K(n2)), n2.persist = Q, n2.isPropagationStopped = X, n2.isDefaultPrevented = nn, n2.nativeEvent = n2;
   };
-  var J = { configurable: true, get: function() {
+  var en = { enumerable: false, configurable: true, get: function() {
     return this.class;
-  } }, K = l$3.vnode;
+  } }, rn = l$3.vnode;
   l$3.vnode = function(n2) {
-    var t2 = n2.type, e2 = n2.props, r2 = e2;
-    if (typeof t2 == "string") {
-      var u2 = t2.indexOf("-") === -1;
-      for (var o2 in r2 = {}, e2) {
-        var i2 = e2[o2];
-        $ && o2 === "children" && t2 === "noscript" || o2 === "value" && "defaultValue" in e2 && i2 == null || (o2 === "defaultValue" && "value" in e2 && e2.value == null ? o2 = "value" : o2 === "download" && i2 === true ? i2 = "" : /ondoubleclick/i.test(o2) ? o2 = "ondblclick" : /^onchange(textarea|input)/i.test(o2 + t2) && !j(e2.type) ? o2 = "oninput" : /^onfocus$/i.test(o2) ? o2 = "onfocusin" : /^onblur$/i.test(o2) ? o2 = "onfocusout" : /^on(Ani|Tra|Tou|BeforeInp|Compo)/.test(o2) ? o2 = o2.toLowerCase() : u2 && P.test(o2) ? o2 = o2.replace(/[A-Z0-9]/, "-$&").toLowerCase() : i2 === null && (i2 = void 0), /^oninput$/i.test(o2) && (o2 = o2.toLowerCase(), r2[o2] && (o2 = "oninputCapture")), r2[o2] = i2);
+    "string" == typeof n2.type && function(n3) {
+      var t2 = n3.props, e2 = n3.type, u2 = {};
+      for (var o2 in t2) {
+        var i2 = t2[o2];
+        if (!("value" === o2 && "defaultValue" in t2 && null == i2 || $ && "children" === o2 && "noscript" === e2 || "class" === o2 || "className" === o2)) {
+          var l2 = o2.toLowerCase();
+          "defaultValue" === o2 && "value" in t2 && null == t2.value ? o2 = "value" : "download" === o2 && true === i2 ? i2 = "" : "ondoubleclick" === l2 ? o2 = "ondblclick" : "onchange" !== l2 || "input" !== e2 && "textarea" !== e2 || q(t2.type) ? "onfocus" === l2 ? o2 = "onfocusin" : "onblur" === l2 ? o2 = "onfocusout" : Z.test(o2) ? o2 = l2 : -1 === e2.indexOf("-") && H.test(o2) ? o2 = o2.replace(Y, "-$&").toLowerCase() : null === i2 && (i2 = void 0) : l2 = o2 = "oninput", "oninput" === l2 && u2[o2 = l2] && (o2 = "oninputCapture"), u2[o2] = i2;
+        }
       }
-      t2 == "select" && r2.multiple && Array.isArray(r2.value) && (r2.value = x$3(e2.children).forEach(function(n3) {
-        n3.props.selected = r2.value.indexOf(n3.props.value) != -1;
-      })), t2 == "select" && r2.defaultValue != null && (r2.value = x$3(e2.children).forEach(function(n3) {
-        n3.props.selected = r2.multiple ? r2.defaultValue.indexOf(n3.props.value) != -1 : r2.defaultValue == n3.props.value;
-      })), n2.props = r2, e2.class != e2.className && (J.enumerable = "className" in e2, e2.className != null && (r2.class = e2.className), Object.defineProperty(r2, "className", J));
-    }
-    n2.$$typeof = W, K && K(n2);
+      "select" == e2 && u2.multiple && Array.isArray(u2.value) && (u2.value = P$2(t2.children).forEach(function(n4) {
+        n4.props.selected = -1 != u2.value.indexOf(n4.props.value);
+      })), "select" == e2 && null != u2.defaultValue && (u2.value = P$2(t2.children).forEach(function(n4) {
+        n4.props.selected = u2.multiple ? -1 != u2.defaultValue.indexOf(n4.props.value) : u2.defaultValue == n4.props.value;
+      })), t2.class && !t2.className ? (u2.class = t2.class, Object.defineProperty(u2, "className", en)) : (t2.className && !t2.class || t2.class && t2.className) && (u2.class = u2.className = t2.className), n3.props = u2;
+    }(n2), n2.$$typeof = B, rn && rn(n2);
   };
-  var Q = l$3.__r;
+  var un = l$3.__r;
   l$3.__r = function(n2) {
-    Q && Q(n2), n2.__c;
+    un && un(n2), n2.__c;
   };
-  function un(n2) {
-    return !!n2.__k && (P$2(null, n2), true);
+  var on = l$3.diffed;
+  l$3.diffed = function(n2) {
+    on && on(n2);
+    var t2 = n2.props, e2 = n2.__e;
+    null != e2 && "textarea" === n2.type && "value" in t2 && t2.value !== e2.value && (e2.value = null == t2.value ? "" : t2.value);
+  };
+  function hn(n2) {
+    return !!n2.__k && (B$3(null, n2), true);
   }
   function ExceedCount({ index, exceedCount, isClicked, onClickExceedCount }) {
     const clickExceedCount = () => onClickExceedCount(index);
     const style = { display: isClicked ? "none" : "" };
-    return exceedCount && !isClicked ? /* @__PURE__ */ h$3("span", {
+    return exceedCount && !isClicked ? /* @__PURE__ */ y$3("span", {
       className: cls("weekday-exceed-in-week"),
       onClick: clickExceedCount,
       style
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "weekGridFooterExceed",
       param: exceedCount
     })) : null;
   }
   function CollapseButton({ isClicked, isClickedIndex, onClickCollapseButton }) {
-    return isClicked && isClickedIndex ? /* @__PURE__ */ h$3("span", {
+    return isClicked && isClickedIndex ? /* @__PURE__ */ y$3("span", {
       className: cls("weekday-exceed-in-week"),
       onClick: onClickCollapseButton
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "collapseBtnTitle"
     })) : null;
   }
@@ -10434,21 +10908,21 @@
       borderRight: isLastCell ? "none" : borderRight,
       backgroundColor
     };
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("panel-grid"),
       style
-    }, /* @__PURE__ */ h$3(ExceedCount, {
+    }, /* @__PURE__ */ y$3(ExceedCount, {
       index,
       exceedCount,
       isClicked,
       onClickExceedCount
-    }), /* @__PURE__ */ h$3(CollapseButton, {
+    }), /* @__PURE__ */ y$3(CollapseButton, {
       isClickedIndex,
       isClicked,
       onClickCollapseButton
     }));
   }
-  const GridCells = g$1(function GridCells2({
+  const GridCells = x$1(function GridCells2({
     uiModels,
     weekDates,
     narrowWeekend,
@@ -10459,16 +10933,20 @@
     onClickCollapseButton
   }) {
     const eventTopMargin = 2;
-    const { widthList, leftList } = getGridWidthAndLeftPercentValues(weekDates, narrowWeekend, TOTAL_WIDTH);
+    const { widthList, leftList } = getGridWidthAndLeftPercentValues(
+      weekDates,
+      narrowWeekend,
+      TOTAL_WIDTH
+    );
     const lastCellIndex = weekDates.length - 1;
-    return /* @__PURE__ */ h$3(p$3, null, weekDates.map((cell, index) => {
+    return /* @__PURE__ */ y$3(_$3, null, weekDates.map((cell, index) => {
       const width = toPercent(widthList[index]);
       const left = toPercent(leftList[index]);
       const uiModelsInCell = uiModels.filter(isInGrid(cell));
       const exceedCount = getExceedCount(uiModelsInCell, height, EVENT_HEIGHT + eventTopMargin);
       const isClickedIndex = index === clickedIndex;
       const isLastCell = index === lastCellIndex;
-      return /* @__PURE__ */ h$3(GridCell$1, {
+      return /* @__PURE__ */ y$3(GridCell$1, {
         key: `panel-grid-${cell.getDate()}`,
         width,
         left,
@@ -10483,15 +10961,15 @@
     }));
   });
   function HorizontalEventResizeIcon({ onMouseDown }) {
-    return /* @__PURE__ */ h$3("span", {
+    return /* @__PURE__ */ y$3("span", {
       className: `${cls("weekday-resize-handle")} ${cls("handle-y")}`,
       onMouseDown,
       "data-testid": "horizontal-event-resize-icon"
-    }, /* @__PURE__ */ h$3("i", {
+    }, /* @__PURE__ */ y$3("i", {
       className: `${cls("icon")} ${cls("ic-handle-y")}`
     }));
   }
-  const LayoutContainerContext = B$1(null);
+  const LayoutContainerContext = F$3(null);
   const LayoutContainerProvider = LayoutContainerContext.Provider;
   const useLayoutContainer = () => {
     const ref = q$2(LayoutContainerContext);
@@ -10509,17 +10987,25 @@
     gridSelection: (type) => `gridSelection/${type}`
   };
   function useCalendarById(calendarId) {
-    return useStore(T$1((state) => state.calendar.calendars.find((cal) => cal.id === calendarId), [calendarId]));
+    return useStore(
+      T$1(
+        (state) => state.calendar.calendars.find((cal) => cal.id === calendarId),
+        [calendarId]
+      )
+    );
   }
   function useCalendarColor(model) {
     var _a;
     const calendar = useCalendarById((_a = model == null ? void 0 : model.calendarId) != null ? _a : null);
-    return F$2(() => ({
-      color: calendar == null ? void 0 : calendar.color,
-      borderColor: calendar == null ? void 0 : calendar.borderColor,
-      backgroundColor: calendar == null ? void 0 : calendar.backgroundColor,
-      dragBackgroundColor: calendar == null ? void 0 : calendar.dragBackgroundColor
-    }), [calendar]);
+    return F$2(
+      () => ({
+        color: calendar == null ? void 0 : calendar.color,
+        borderColor: calendar == null ? void 0 : calendar.borderColor,
+        backgroundColor: calendar == null ? void 0 : calendar.backgroundColor,
+        dragBackgroundColor: calendar == null ? void 0 : calendar.dragBackgroundColor
+      }),
+      [calendar]
+    );
   }
   var KEY = /* @__PURE__ */ ((KEY2) => {
     KEY2["ESCAPE"] = "Escape";
@@ -10531,13 +11017,19 @@
   const MINIMUM_DRAG_MOUSE_DISTANCE = 3;
   function useTransientUpdate(selector, subscriber) {
     const store = useInternalStore();
-    const selectorRef = s$2(selector);
-    const subscriberRef = s$2(subscriber);
-    _$2(() => {
+    const selectorRef = _$2(selector);
+    const subscriberRef = _$2(subscriber);
+    p$2(() => {
       selectorRef.current = selector;
       subscriberRef.current = subscriber;
     }, [selector, subscriber]);
-    _$2(() => store.subscribe((slice) => subscriberRef.current(slice), (state) => selectorRef.current(state)), [selector, store]);
+    p$2(
+      () => store.subscribe(
+        (slice) => subscriberRef.current(slice),
+        (state) => selectorRef.current(state)
+      ),
+      [selector, store]
+    );
   }
   function isKeyPressed(e2, key) {
     return e2.key ? e2.key === key : e2.keyCode === KEYCODE[key];
@@ -10551,76 +11043,88 @@
   function useDrag(draggingItemType, { onInit, onDragStart, onDrag, onMouseUp, onPressESCKey } = {}) {
     const { initDrag, setDragging, cancelDrag, reset } = useDispatch("dnd");
     const store = useInternalStore();
-    const dndSliceRef = s$2(store.getState().dnd);
+    const dndSliceRef = _$2(store.getState().dnd);
     useTransientUpdate(dndSelector, (dndState) => {
       dndSliceRef.current = dndState;
     });
-    const [isStarted, setStarted] = y$1(false);
-    const handleMouseMoveRef = s$2(null);
-    const handleMouseUpRef = s$2(null);
-    const handleKeyDownRef = s$2(null);
-    const handleMouseDown = T$1((e2) => {
-      if (!isLeftClick(e2.button)) {
-        return;
-      }
-      if (e2.currentTarget) {
-        e2.currentTarget.ondragstart = function() {
-          return false;
-        };
-      }
-      e2.preventDefault();
-      setStarted(true);
-      initDrag({
-        draggingItemType,
-        initX: e2.clientX,
-        initY: e2.clientY
-      });
-      onInit == null ? void 0 : onInit(e2, dndSliceRef.current);
-    }, [onInit, draggingItemType, initDrag]);
-    const handleMouseMove = T$1((e2) => {
-      const {
-        initX,
-        initY,
-        draggingState,
-        draggingItemType: currentDraggingItemType
-      } = dndSliceRef.current;
-      if (currentDraggingItemType !== draggingItemType) {
-        setStarted(false);
-        reset();
-        return;
-      }
-      if (isPresent(initX) && isPresent(initY) && !isMouseMoved(initX, initY, e2.clientX, e2.clientY)) {
-        return;
-      }
-      if (draggingState <= DraggingState.INIT) {
+    const [isStarted, setStarted] = h$2(false);
+    const handleMouseMoveRef = _$2(null);
+    const handleMouseUpRef = _$2(null);
+    const handleKeyDownRef = _$2(null);
+    const handleMouseDown = T$1(
+      (e2) => {
+        if (!isLeftClick(e2.button)) {
+          return;
+        }
+        if (e2.currentTarget) {
+          e2.currentTarget.ondragstart = function() {
+            return false;
+          };
+        }
+        e2.preventDefault();
+        setStarted(true);
+        initDrag({
+          draggingItemType,
+          initX: e2.clientX,
+          initY: e2.clientY
+        });
+        onInit == null ? void 0 : onInit(e2, dndSliceRef.current);
+      },
+      [onInit, draggingItemType, initDrag]
+    );
+    const handleMouseMove = T$1(
+      (e2) => {
+        const {
+          initX,
+          initY,
+          draggingState,
+          draggingItemType: currentDraggingItemType
+        } = dndSliceRef.current;
+        if (currentDraggingItemType !== draggingItemType) {
+          setStarted(false);
+          reset();
+          return;
+        }
+        if (isPresent(initX) && isPresent(initY) && !isMouseMoved(initX, initY, e2.clientX, e2.clientY)) {
+          return;
+        }
+        if (draggingState <= DraggingState.INIT) {
+          setDragging({ x: e2.clientX, y: e2.clientY });
+          onDragStart == null ? void 0 : onDragStart(e2, dndSliceRef.current);
+          return;
+        }
         setDragging({ x: e2.clientX, y: e2.clientY });
-        onDragStart == null ? void 0 : onDragStart(e2, dndSliceRef.current);
-        return;
-      }
-      setDragging({ x: e2.clientX, y: e2.clientY });
-      onDrag == null ? void 0 : onDrag(e2, dndSliceRef.current);
-    }, [draggingItemType, onDrag, onDragStart, setDragging, reset]);
-    const handleMouseUp = T$1((e2) => {
-      e2.stopPropagation();
-      if (isStarted) {
-        onMouseUp == null ? void 0 : onMouseUp(e2, dndSliceRef.current);
-        setStarted(false);
-        reset();
-      }
-    }, [isStarted, onMouseUp, reset]);
-    const handleKeyDown = T$1((e2) => {
-      if (isKeyPressed(e2, KEY.ESCAPE)) {
-        setStarted(false);
-        cancelDrag();
-        onPressESCKey == null ? void 0 : onPressESCKey(e2, dndSliceRef.current);
-      }
-    }, [onPressESCKey, cancelDrag]);
-    _$2(() => {
+        onDrag == null ? void 0 : onDrag(e2, dndSliceRef.current);
+      },
+      [draggingItemType, onDrag, onDragStart, setDragging, reset]
+    );
+    const handleMouseUp = T$1(
+      (e2) => {
+        e2.stopPropagation();
+        if (isStarted) {
+          onMouseUp == null ? void 0 : onMouseUp(e2, dndSliceRef.current);
+          setStarted(false);
+          reset();
+        }
+      },
+      [isStarted, onMouseUp, reset]
+    );
+    const handleKeyDown = T$1(
+      (e2) => {
+        if (isKeyPressed(e2, KEY.ESCAPE)) {
+          setStarted(false);
+          cancelDrag();
+          onPressESCKey == null ? void 0 : onPressESCKey(e2, dndSliceRef.current);
+        }
+      },
+      [onPressESCKey, cancelDrag]
+    );
+    p$2(() => {
       handleMouseMoveRef.current = handleMouseMove;
       handleMouseUpRef.current = handleMouseUp;
       handleKeyDownRef.current = handleKeyDown;
     }, [handleKeyDown, handleMouseMove, handleMouseUp]);
-    _$2(() => {
+    p$2(() => {
       const wrappedHandleMouseMove = (e2) => {
         var _a;
         return (_a = handleMouseMoveRef.current) == null ? void 0 : _a.call(handleMouseMoveRef, e2);
@@ -10669,7 +11173,10 @@
     calendarColor
   }) {
     const { exceedLeft, exceedRight } = uiModel;
-    const { color, backgroundColor, dragBackgroundColor, borderColor } = getEventColors(uiModel, calendarColor);
+    const { color, backgroundColor, dragBackgroundColor, borderColor } = getEventColors(
+      uiModel,
+      calendarColor
+    );
     const defaultItemStyle = {
       color,
       backgroundColor: isDraggingTarget ? dragBackgroundColor : backgroundColor,
@@ -10733,8 +11240,8 @@
     const layoutContainer = useLayoutContainer();
     const eventBus = useEventBus();
     const calendarColor = useCalendarColor(uiModel.model);
-    const [isDraggingTarget, setIsDraggingTarget] = y$1(false);
-    const eventContainerRef = s$2(null);
+    const [isDraggingTarget, setIsDraggingTarget] = h$2(false);
+    const eventContainerRef = _$2(null);
     const { isReadOnly, id, calendarId } = uiModel.model;
     const isDraggingGuideEvent = isPresent(resizingWidth) || isPresent(movingLeft);
     const isDraggableEvent2 = !isReadOnlyCalendar && !isReadOnly && !isDraggingGuideEvent;
@@ -10753,7 +11260,7 @@
         setIsDraggingTarget(false);
       }
     });
-    _$2(() => {
+    p$2(() => {
       if (!isDraggingGuideEvent) {
         eventBus.fire("afterRenderEvent", uiModel.model.toEventObject());
       }
@@ -10773,10 +11280,13 @@
         endDragEvent(classNames$k.moveEvent);
         const isClick = draggingState <= DraggingState.INIT;
         if (isClick && useDetailPopup && eventContainerRef.current) {
-          showDetailPopup({
-            event: uiModel.model,
-            eventRect: eventContainerRef.current.getBoundingClientRect()
-          }, flat);
+          showDetailPopup(
+            {
+              event: uiModel.model,
+              eventRect: eventContainerRef.current.getBoundingClientRect()
+            },
+            flat
+          );
         }
         if (isClick) {
           eventBus.fire("clickEvent", { event: uiModel.model.toEventObject(), nativeEvent: e2 });
@@ -10811,7 +11321,7 @@
       isDraggingTarget,
       calendarColor
     });
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("weekday-event-block", {
         "weekday-exceed-left": uiModel.exceedLeft,
         "weekday-exceed-right": uiModel.exceedRight
@@ -10821,31 +11331,31 @@
       "data-calendar-id": calendarId,
       "data-event-id": id,
       ref: eventContainerRef
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: classNames$k.eventBody,
       style: __spreadProps(__spreadValues({}, eventItemStyle), {
         background: isDotEvent ? null : eventItemStyle.backgroundColor,
         borderLeft: isDotEvent ? null : eventItemStyle.borderLeft
       }),
       onMouseDown: handleMoveStart
-    }, isDotEvent ? /* @__PURE__ */ h$3("span", {
+    }, isDotEvent ? /* @__PURE__ */ y$3("span", {
       className: classNames$k.eventDot,
       style: { background: eventItemStyle.backgroundColor }
-    }) : null, /* @__PURE__ */ h$3("span", {
+    }) : null, /* @__PURE__ */ y$3("span", {
       className: classNames$k.eventTitle
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: uiModel.model.category,
       param: uiModel.model
-    })), !shouldHideResizeHandler ? /* @__PURE__ */ h$3(HorizontalEventResizeIcon, {
+    })), !shouldHideResizeHandler ? /* @__PURE__ */ y$3(HorizontalEventResizeIcon, {
       onMouseDown: handleResizeStart
     }) : null));
   }
   function useWhen(callback, condition) {
-    const callbackRef = s$2(callback);
-    _$2(() => {
+    const callbackRef = _$2(callback);
+    p$2(() => {
       callbackRef.current = callback;
     }, [callback]);
-    _$2(() => {
+    p$2(() => {
       const invoke = () => callbackRef.current();
       if (condition) {
         invoke();
@@ -10853,7 +11363,7 @@
     }, [condition]);
   }
   function useCurrentPointerPositionInGrid(gridPositionFinder) {
-    const [currentGridPos, setCurrentGridPos] = y$1(null);
+    const [currentGridPos, setCurrentGridPos] = h$2(null);
     useTransientUpdate(dndSelector, (dndState) => {
       if (isPresent(dndState.x) && isPresent(dndState.y)) {
         const gridPosition = gridPositionFinder({
@@ -10878,9 +11388,9 @@
     return isEventDraggingType(itemType) ? last(itemType.split("/")) : null;
   };
   function useDraggingEvent(area, behavior) {
-    const [isDraggingEnd, setIsDraggingEnd] = y$1(false);
-    const [isDraggingCanceled, setIsDraggingCanceled] = y$1(false);
-    const [draggingEvent, setDraggingEvent] = y$1(null);
+    const [isDraggingEnd, setIsDraggingEnd] = h$2(false);
+    const [isDraggingCanceled, setIsDraggingCanceled] = h$2(false);
+    const [draggingEvent, setDraggingEvent] = h$2(null);
     useTransientUpdate(dndSelector, ({ draggingItemType, draggingEventUIModel, draggingState }) => {
       const targetEventId = getTargetEventId(draggingItemType, area, behavior);
       const hasMatchingTargetEvent = Number(targetEventId) === (draggingEventUIModel == null ? void 0 : draggingEventUIModel.cid());
@@ -10914,10 +11424,13 @@
       draggingEvent: movingEvent,
       clearDraggingEvent
     } = useDraggingEvent("dayGrid", "move");
-    const startGridXRef = s$2(null);
+    const startGridXRef = _$2(null);
     const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
     const { columnIndex } = currentGridPos != null ? currentGridPos : {};
-    const targetEventStartGridX = F$2(() => isNil(movingEvent) ? null : rowStyleInfo.findIndex(({ left }) => left === movingEvent.left), [rowStyleInfo, movingEvent]);
+    const targetEventStartGridX = F$2(
+      () => isNil(movingEvent) ? null : rowStyleInfo.findIndex(({ left }) => left === movingEvent.left),
+      [rowStyleInfo, movingEvent]
+    );
     const currentMovingLeft = F$2(() => {
       if (isNil(columnIndex) || isNil(startGridXRef.current) || isNil(targetEventStartGridX)) {
         return null;
@@ -10925,7 +11438,7 @@
       const newColumnIndex = targetEventStartGridX + columnIndex - startGridXRef.current;
       return newColumnIndex < 0 ? -rowStyleInfo[-newColumnIndex].left : rowStyleInfo[newColumnIndex].left;
     }, [columnIndex, rowStyleInfo, targetEventStartGridX]);
-    _$2(() => {
+    p$2(() => {
       if (isNil(startGridXRef.current) && isPresent(columnIndex)) {
         startGridXRef.current = columnIndex;
       }
@@ -10950,10 +11463,13 @@
       clearCurrentGridPos();
       startGridXRef.current = null;
     }, isDraggingEnd);
-    return F$2(() => ({
-      movingEvent,
-      movingLeft: currentMovingLeft
-    }), [currentMovingLeft, movingEvent]);
+    return F$2(
+      () => ({
+        movingEvent,
+        movingLeft: currentMovingLeft
+      }),
+      [currentMovingLeft, movingEvent]
+    );
   }
   function MovingEventShadow$2({
     rowStyleInfo,
@@ -10966,7 +11482,7 @@
     if (isNil(movingEvent)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(HorizontalEvent, {
+    return /* @__PURE__ */ y$3(HorizontalEvent, {
       uiModel: movingEvent,
       eventHeight: EVENT_HEIGHT,
       headerHeight: 0,
@@ -11016,10 +11532,13 @@
       clearCurrentGridPos();
       clearDraggingEvent();
     }, isDraggingEnd);
-    return F$2(() => ({
-      resizingEvent,
-      resizingWidth
-    }), [resizingWidth, resizingEvent]);
+    return F$2(
+      () => ({
+        resizingEvent,
+        resizingWidth
+      }),
+      [resizingWidth, resizingEvent]
+    );
   }
   function ResizingEventShadow({ weekDates, gridColWidthMap, gridPositionFinder }) {
     const { resizingEvent, resizingWidth } = useAlldayGridRowEventResize({
@@ -11030,7 +11549,7 @@
     if (isNil(resizingEvent)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(HorizontalEvent, {
+    return /* @__PURE__ */ y$3(HorizontalEvent, {
       uiModel: resizingEvent,
       eventHeight: EVENT_HEIGHT,
       headerHeight: 0,
@@ -11038,7 +11557,7 @@
     });
   }
   function useDOMNode() {
-    const [node, setNode] = y$1(null);
+    const [node, setNode] = h$2(null);
     const setNodeRef = T$1((ref) => {
       if (ref) {
         setNode(ref);
@@ -11047,17 +11566,20 @@
     return [node, setNodeRef];
   }
   function useGridRowHeightController(maxTop, category) {
-    const [clickedIndex, setClickedIndex] = y$1(0);
-    const [isClickedCount, setClickedCount] = y$1(false);
+    const [clickedIndex, setClickedIndex] = h$2(0);
+    const [isClickedCount, setClickedCount] = h$2(false);
     const { updateDayGridRowHeight } = useDispatch("weekViewLayout");
-    const onClickExceedCount = T$1((index) => {
-      setClickedCount(true);
-      setClickedIndex(index);
-      updateDayGridRowHeight({
-        rowName: category,
-        height: (maxTop + 1) * EVENT_HEIGHT
-      });
-    }, [category, maxTop, updateDayGridRowHeight]);
+    const onClickExceedCount = T$1(
+      (index) => {
+        setClickedCount(true);
+        setClickedIndex(index);
+        updateDayGridRowHeight({
+          rowName: category,
+          height: (maxTop + 1) * EVENT_HEIGHT
+        });
+      },
+      [category, maxTop, updateDayGridRowHeight]
+    );
     const onClickCollapseButton = T$1(() => {
       setClickedCount(false);
       updateDayGridRowHeight({
@@ -11095,14 +11617,14 @@
     onDblClick,
     delay = 300
   }) {
-    const cancelCallback = s$2(noop);
+    const cancelCallback = _$2(noop);
     const registerCancel = (fn2) => {
       cancelCallback.current = fn2;
     };
     const cancelScheduledWork = () => {
       cancelCallback.current();
     };
-    _$2(() => cancelScheduledWork, []);
+    p$2(() => cancelScheduledWork, []);
     const handleClick = (e2) => {
       cancelScheduledWork();
       requestTimeout(onClick.bind(null, e2), delay, registerCancel);
@@ -11135,13 +11657,16 @@
     const { hideAllPopup, showFormPopup } = useDispatch("popup");
     const eventBus = useEventBus();
     const layoutContainer = useLayoutContainer();
-    const [initMousePosition, setInitMousePosition] = y$1(null);
-    const [initGridPosition, setInitGridPosition] = y$1(null);
-    const isSelectingGridRef = s$2(false);
-    const gridSelectionRef = s$2(null);
-    useTransientUpdate(T$1((state) => state.gridSelection[type], [type]), (gridSelection) => {
-      gridSelectionRef.current = gridSelection;
-    });
+    const [initMousePosition, setInitMousePosition] = h$2(null);
+    const [initGridPosition, setInitGridPosition] = h$2(null);
+    const isSelectingGridRef = _$2(false);
+    const gridSelectionRef = _$2(null);
+    useTransientUpdate(
+      T$1((state) => state.gridSelection[type], [type]),
+      (gridSelection) => {
+        gridSelectionRef.current = gridSelection;
+      }
+    );
     useTransientUpdate(dndSelector, ({ draggingState, draggingItemType }) => {
       isSelectingGridRef.current = draggingItemType === currentGridSelectionType && draggingState >= DraggingState.INIT;
     });
@@ -11186,7 +11711,9 @@
         setGridSelectionByPosition(e2);
       }
       if (isPresent(gridSelectionRef.current)) {
-        const [startDate, endDate] = sortDates(...dateGetter(dateCollection, gridSelectionRef.current));
+        const [startDate, endDate] = sortDates(
+          ...dateGetter(dateCollection, gridSelectionRef.current)
+        );
         if (useFormPopup && isPresent(initMousePosition)) {
           const popupArrowPointPosition = {
             top: (e2.clientY + initMousePosition.y) / 2,
@@ -11204,8 +11731,12 @@
             close: clearAll
           });
         }
-        const gridSelectionSelector = `.${cls(GRID_SELECTION_TYPE_MAP[type])}.${cls("grid-selection")}`;
-        const gridSelectionElements = Array.from((_a = layoutContainer == null ? void 0 : layoutContainer.querySelectorAll(gridSelectionSelector)) != null ? _a : []);
+        const gridSelectionSelector = `.${cls(GRID_SELECTION_TYPE_MAP[type])}.${cls(
+          "grid-selection"
+        )}`;
+        const gridSelectionElements = Array.from(
+          (_a = layoutContainer == null ? void 0 : layoutContainer.querySelectorAll(gridSelectionSelector)) != null ? _a : []
+        );
         eventBus.fire("selectDateTime", {
           start: startDate.toDate(),
           end: endDate.toDate(),
@@ -11256,7 +11787,7 @@
       },
       onPressESCKey: clearGridSelection
     });
-    _$2(() => clearGridSelection, [clearGridSelection]);
+    p$2(() => clearGridSelection, [clearGridSelection]);
     return onMouseDown;
   }
   const rowTitleTemplate = `alldayTitle`;
@@ -11273,20 +11804,26 @@
     const [panelContainer, setPanelContainerRef] = useDOMNode();
     const { narrowWeekend = false, startDayOfWeek = Day$2.SUN } = options;
     const maxTop = F$2(() => Math.max(0, ...events.map(({ top }) => top)), [events]);
-    const gridPositionFinder = F$2(() => createGridPositionFinder({
-      container: panelContainer,
-      rowsCount: 1,
-      columnsCount: weekDates.length,
-      narrowWeekend,
-      startDayOfWeek
-    }), [panelContainer, weekDates.length, narrowWeekend, startDayOfWeek]);
+    const gridPositionFinder = F$2(
+      () => createGridPositionFinder({
+        container: panelContainer,
+        rowsCount: 1,
+        columnsCount: weekDates.length,
+        narrowWeekend,
+        startDayOfWeek
+      }),
+      [panelContainer, weekDates.length, narrowWeekend, startDayOfWeek]
+    );
     const { clickedIndex, isClickedCount, onClickExceedCount, onClickCollapseButton } = useGridRowHeightController(maxTop, "allday");
-    const horizontalEvents = F$2(() => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ h$3(HorizontalEvent, {
-      key: `allday-DayEvent-${uiModel.cid()}`,
-      uiModel,
-      eventHeight: EVENT_HEIGHT,
-      headerHeight: 0
-    })), [events, height]);
+    const horizontalEvents = F$2(
+      () => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
+        key: `allday-DayEvent-${uiModel.cid()}`,
+        uiModel,
+        eventHeight: EVENT_HEIGHT,
+        headerHeight: 0
+      })),
+      [events, height]
+    );
     const startGridSelection = useGridSelection({
       type: "dayGridWeek",
       gridPositionFinder,
@@ -11301,19 +11838,19 @@
       }
       startGridSelection(e2);
     };
-    return /* @__PURE__ */ h$3(p$3, null, /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("div", {
       className: cls("panel-title"),
       style: dayGridLeftTheme
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: rowTitleTemplate,
       param: "alldayTitle"
-    })), /* @__PURE__ */ h$3("div", {
+    })), /* @__PURE__ */ y$3("div", {
       className: cls("allday-panel"),
       ref: setPanelContainerRef,
       onMouseDown
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: cls("panel-grid-wrapper")
-    }, /* @__PURE__ */ h$3(GridCells, {
+    }, /* @__PURE__ */ y$3(GridCells, {
       uiModels: events,
       weekDates,
       narrowWeekend,
@@ -11322,16 +11859,16 @@
       isClickedCount,
       onClickExceedCount,
       onClickCollapseButton
-    })), /* @__PURE__ */ h$3("div", {
+    })), /* @__PURE__ */ y$3("div", {
       className: cls(`panel-allday-events`)
-    }, horizontalEvents), /* @__PURE__ */ h$3(ResizingEventShadow, {
+    }, horizontalEvents), /* @__PURE__ */ y$3(ResizingEventShadow, {
       weekDates,
       gridPositionFinder,
       gridColWidthMap
-    }), /* @__PURE__ */ h$3(MovingEventShadow$2, {
+    }), /* @__PURE__ */ y$3(MovingEventShadow$2, {
       rowStyleInfo,
       gridPositionFinder
-    }), /* @__PURE__ */ h$3(AlldayGridSelection, {
+    }), /* @__PURE__ */ y$3(AlldayGridSelection, {
       weekDates,
       narrowWeekend
     })));
@@ -11348,23 +11885,26 @@
     const { narrowWeekend = false } = options;
     const rowTitleTemplate2 = `${category}Title`;
     const { clickedIndex, isClickedCount, onClickExceedCount, onClickCollapseButton } = useGridRowHeightController(maxTop, category);
-    const horizontalEvents = F$2(() => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ h$3(HorizontalEvent, {
-      key: `${category}-DayEvent-${uiModel.cid()}`,
-      uiModel,
-      eventHeight: EVENT_HEIGHT,
-      headerHeight: 0
-    })), [category, events, height]);
-    return /* @__PURE__ */ h$3(p$3, null, /* @__PURE__ */ h$3("div", {
+    const horizontalEvents = F$2(
+      () => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
+        key: `${category}-DayEvent-${uiModel.cid()}`,
+        uiModel,
+        eventHeight: EVENT_HEIGHT,
+        headerHeight: 0
+      })),
+      [category, events, height]
+    );
+    return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("div", {
       className: cls("panel-title"),
       style: dayGridLeftTheme
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: rowTitleTemplate2,
       param: category
-    })), /* @__PURE__ */ h$3("div", {
+    })), /* @__PURE__ */ y$3("div", {
       className: cls("allday-panel")
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: cls("panel-grid-wrapper")
-    }, /* @__PURE__ */ h$3(GridCells, {
+    }, /* @__PURE__ */ y$3(GridCells, {
       uiModels: events,
       weekDates,
       narrowWeekend,
@@ -11373,7 +11913,7 @@
       isClickedCount,
       onClickExceedCount,
       onClickCollapseButton
-    })), /* @__PURE__ */ h$3("div", {
+    })), /* @__PURE__ */ y$3("div", {
       className: cls(`panel-${category}-events`)
     }, horizontalEvents)));
   }
@@ -11387,7 +11927,7 @@
     repeatIcon: cls("icon", "ic-repeat-b"),
     userIcon: cls("icon", "ic-user-b"),
     stateIcon: cls("icon", "ic-state-b"),
-    calendarDotIcon: cls("icon", "calendar-dot")
+    calendarDotIcon: cls("icon", "ic-close")
   };
   function EventDetailSectionDetail({ event, userData }) {
     var _a;
@@ -11399,70 +11939,80 @@
         return true;
       return false;
     });
-    return /* @__PURE__ */ h$3("div", {
-      className: classNames$j.sectionDetail,
-      style: { maxHeight: "1000px", overflow: "auto" }
-    }, (currentUserData == null ? void 0 : currentUserData.qr_code) && /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
+      className: `${classNames$j.sectionDetail}`,
+      style: { maxHeight: "1000px", overflow: "auto", "font-size": "13px" }
+    }, (currentUserData == null ? void 0 : currentUserData.qr_code) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("img", {
+    }, /* @__PURE__ */ y$3("img", {
       style: { maxWidth: "50%", aspectRatio: 1, margin: "auto", display: "block", marginTop: "10px", marginBottom: "10px" },
       src: currentUserData == null ? void 0 : currentUserData.qr_code
-    }))), (currentUserData == null ? void 0 : currentUserData.image_file) && /* @__PURE__ */ h$3("div", {
+    }))), (currentUserData == null ? void 0 : currentUserData.image_file) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("img", {
-      style: { maxWidth: "100%", aspectRatio: 1, marginTop: "10px", marginBottom: "10px" },
+    }, /* @__PURE__ */ y$3("img", {
+      style: { maxWidth: "100%", aspectRatio: 1, margin: "auto", display: "block", marginTop: "10px", marginBottom: "10px" },
       src: currentUserData == null ? void 0 : currentUserData.image_file
-    }))), (currentUserData == null ? void 0 : currentUserData.description) && /* @__PURE__ */ h$3("div", {
+    }))), /* @__PURE__ */ y$3("div", {
+      className: "row"
+    }, /* @__PURE__ */ y$3("div", {
+      className: "col"
+    }, (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-regular fa-calendar"
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Description:"), " ", currentUserData == null ? void 0 : currentUserData.description)), (currentUserData == null ? void 0 : currentUserData.category_relation) && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("b", null, " Register By:"), " ", currentUserData == null ? void 0 : currentUserData.register_by_timestamp)), (currentUserData == null ? void 0 : currentUserData.registration_count) >= 0 && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$j.stateIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-solid fa-rotate"
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Category:"), " ", (_a = currentUserData == null ? void 0 : currentUserData.category_relation) == null ? void 0 : _a.title)), (currentUserData == null ? void 0 : currentUserData.attendance_type) && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("b", null, " Registration Count:"), " ", currentUserData == null ? void 0 : currentUserData.registration_count))), /* @__PURE__ */ y$3("div", {
+      className: "col"
+    }, (currentUserData == null ? void 0 : currentUserData.slots_total) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$j.stateIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-regular fa-square-plus"
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Attendance Type:"), " ", currentUserData == null ? void 0 : currentUserData.attendance_type)), (currentUserData == null ? void 0 : currentUserData.attendance_point) && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("b", null, " Slots Total:"), " ", currentUserData == null ? void 0 : currentUserData.slots_total)), (currentUserData == null ? void 0 : currentUserData.slots_remain) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$j.repeatIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-solid fa-plus-minus"
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Attendance Point:"), " ", currentUserData == null ? void 0 : currentUserData.attendance_point)), (currentUserData == null ? void 0 : currentUserData.slots_total) && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("b", null, " Slots Remain:"), " ", currentUserData == null ? void 0 : currentUserData.slots_remain)))), (currentUserData == null ? void 0 : currentUserData.category_relation) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$j.repeatIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-regular fa-rectangle-list"
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Slots Total:"), " ", currentUserData == null ? void 0 : currentUserData.slots_total)), (currentUserData == null ? void 0 : currentUserData.slots_remain) && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("b", null, " Category:"), " ", (_a = currentUserData == null ? void 0 : currentUserData.category_relation) == null ? void 0 : _a.title)), (currentUserData == null ? void 0 : currentUserData.attendance_type) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$j.repeatIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-solid fa-water"
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Slots Remain:"), " ", currentUserData == null ? void 0 : currentUserData.slots_remain)), (currentUserData == null ? void 0 : currentUserData.registration_count) >= 0 && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("b", null, " Attendance Type:"), " ", currentUserData == null ? void 0 : currentUserData.attendance_type)), (currentUserData == null ? void 0 : currentUserData.qr_content) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$j.repeatIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-solid fa-qrcode"
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Registration Count:"), " ", currentUserData == null ? void 0 : currentUserData.registration_count)), (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("b", null, " QR Code: "), " ", currentUserData == null ? void 0 : currentUserData.qr_content)), (currentUserData == null ? void 0 : currentUserData.description) && /* @__PURE__ */ y$3("div", {
       className: classNames$j.detailItem
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$j.calendarDotIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$j.content
-    }, /* @__PURE__ */ h$3("b", null, "Register By:"), " ", currentUserData == null ? void 0 : currentUserData.register_by_timestamp)));
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-solid fa-circle-info"
+    }), /* @__PURE__ */ y$3("b", null, " Description:"), /* @__PURE__ */ y$3("div", {
+      dangerouslySetInnerHTML: { __html: currentUserData == null ? void 0 : currentUserData.description }
+    }))));
   }
   const classNames$i = {
     sectionHeader: cls("popup-section", "section-header"),
@@ -11470,17 +12020,18 @@
     eventTitle: cls("event-title")
   };
   function EventDetailSectionHeader({ event }) {
-    return /* @__PURE__ */ h$3("div", {
+    console.log({ event });
+    return /* @__PURE__ */ y$3("div", {
       className: classNames$i.sectionHeader
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: classNames$i.eventTitle
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "popupDetailTitle",
       param: event,
       as: "span"
-    })), /* @__PURE__ */ h$3("div", {
+    })), /* @__PURE__ */ y$3("div", {
       className: classNames$i.content
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "popupDetailDate",
       param: event,
       as: "span"
@@ -11508,7 +12059,7 @@
     FormPopupArrowDirection2["bottom"] = "bottom";
     return FormPopupArrowDirection2;
   })(FormPopupArrowDirection || {});
-  const FloatingLayerContext = B$1(null);
+  const FloatingLayerContext = F$3(null);
   function FloatingLayerProvider({ children }) {
     const [containerRef, containerRefCallback] = useDOMNode();
     const [seeMorePopupSlotRef, seeMorePopupSlotRefCallback] = useDOMNode();
@@ -11520,18 +12071,18 @@
       formPopupSlot: formPopupSlotRef,
       detailPopupSlot: detailPopupSlotRef
     };
-    return /* @__PURE__ */ h$3(FloatingLayerContext.Provider, {
+    return /* @__PURE__ */ y$3(FloatingLayerContext.Provider, {
       value: floatingLayer
-    }, children, /* @__PURE__ */ h$3("div", {
+    }, children, /* @__PURE__ */ y$3("div", {
       ref: containerRefCallback,
       className: cls("floating-layer")
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       ref: seeMorePopupSlotRefCallback,
       className: SEE_MORE_POPUP_SLOT_CLASS_NAME
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       ref: formPopupSlotRefCallback,
       className: EVENT_FORM_POPUP_SLOT_CLASS_NAME
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       ref: detailPopupSlotRefCallback,
       className: EVENT_DETAIL_POPUP_SLOT_CLASS_NAME
     })));
@@ -11603,13 +12154,13 @@
         }, e2.throwErr = function(t3) {
           throw t3 = t3.replace(/ +(?= )/g, ""), "SweetAlert: " + (t3 = t3.trim());
         }, e2.isPlainObject = function(t3) {
-          if (Object.prototype.toString.call(t3) !== "[object Object]")
+          if ("[object Object]" !== Object.prototype.toString.call(t3))
             return false;
           var e3 = Object.getPrototypeOf(t3);
-          return e3 === null || e3 === Object.prototype;
+          return null === e3 || e3 === Object.prototype;
         }, e2.ordinalSuffixOf = function(t3) {
           var e3 = t3 % 10, n3 = t3 % 100;
-          return e3 === 1 && n3 !== 11 ? t3 + "st" : e3 === 2 && n3 !== 12 ? t3 + "nd" : e3 === 3 && n3 !== 13 ? t3 + "rd" : t3 + "th";
+          return 1 === e3 && 11 !== n3 ? t3 + "st" : 2 === e3 && 12 !== n3 ? t3 + "nd" : 3 === e3 && 13 !== n3 ? t3 + "rd" : t3 + "th";
         };
       }, function(t2, e2, n2) {
         function o2(t3) {
@@ -11639,7 +12190,7 @@
           }
         }, c2 = function(t3, e3) {
           var n3 = s2(t3);
-          return e3 === true ? Object.assign({}, n3, { visible: true }) : typeof e3 == "string" ? Object.assign({}, n3, { visible: true, text: e3 }) : o2.isPlainObject(e3) ? Object.assign({ visible: true }, n3, e3) : Object.assign({}, n3, { visible: false });
+          return true === e3 ? Object.assign({}, n3, { visible: true }) : "string" == typeof e3 ? Object.assign({}, n3, { visible: true, text: e3 }) : o2.isPlainObject(e3) ? Object.assign({ visible: true }, n3, e3) : Object.assign({}, n3, { visible: false });
         }, l2 = function(t3) {
           for (var e3 = {}, n3 = 0, o3 = Object.keys(t3); n3 < o3.length; n3++) {
             var r3 = o3[n3], a3 = t3[r3], s3 = c2(r3, a3);
@@ -11662,7 +12213,7 @@
         };
         e2.getButtonListOpts = function(t3) {
           var n3 = e2.defaultButtonList;
-          return typeof t3 == "string" ? n3[e2.CONFIRM_KEY] = c2(e2.CONFIRM_KEY, t3) : Array.isArray(t3) ? n3 = u2(t3) : o2.isPlainObject(t3) ? n3 = l2(t3) : t3 === true ? n3 = u2([true, true]) : t3 === false ? n3 = u2([false, false]) : t3 === void 0 && (n3 = e2.defaultButtonList), n3;
+          return "string" == typeof t3 ? n3[e2.CONFIRM_KEY] = c2(e2.CONFIRM_KEY, t3) : Array.isArray(t3) ? n3 = u2(t3) : o2.isPlainObject(t3) ? n3 = l2(t3) : true === t3 ? n3 = u2([true, true]) : false === t3 ? n3 = u2([false, false]) : void 0 === t3 && (n3 = e2.defaultButtonList), n3;
         };
       }, function(t2, e2, n2) {
         Object.defineProperty(e2, "__esModule", { value: true });
@@ -11693,7 +12244,7 @@
         e2.resetState = function() {
           i2 = Object.assign({}, r2);
         }, e2.setActionValue = function(t3) {
-          if (typeof t3 == "string")
+          if ("string" == typeof t3)
             return a2(o2.CONFIRM_KEY, t3);
           for (var e3 in t3)
             a2(e3, t3[e3]);
@@ -11702,7 +12253,7 @@
           i2.actions[t3] || (i2.actions[t3] = {}), Object.assign(i2.actions[t3], { value: e3 });
         };
         e2.setActionOptionsFor = function(t3, e3) {
-          var n3 = (e3 === void 0 ? {} : e3).closeModal, o3 = n3 === void 0 || n3;
+          var n3 = (void 0 === e3 ? {} : e3).closeModal, o3 = void 0 === n3 || n3;
           Object.assign(i2.actions[t3], { closeModal: o3 });
         }, e2.default = i2;
       }, function(t2, e2, n2) {
@@ -11715,9 +12266,9 @@
           o2.getNode(a2).classList.remove(s2), u2.default.isOpen = false;
         };
         e2.onAction = function(t3) {
-          t3 === void 0 && (t3 = r2.CANCEL_KEY);
+          void 0 === t3 && (t3 = r2.CANCEL_KEY);
           var e3 = u2.default.actions[t3], n3 = e3.value;
-          if (e3.closeModal === false) {
+          if (false === e3.closeModal) {
             var i3 = c2 + "--" + t3;
             o2.getNode(i3).classList.add(l2);
           } else
@@ -11739,7 +12290,7 @@
         try {
           n2 = n2 || Function("return this")() || (0, eval)("this");
         } catch (t3) {
-          typeof window == "object" && (n2 = window);
+          "object" == typeof window && (n2 = window);
         }
         t2.exports = n2;
       }, function(t2, e2, n2) {
@@ -11751,12 +12302,12 @@
           t2.exports = e3.swal = n2(10);
         }).call(e2, n2(7));
       }, function(t2, e2, n2) {
-        typeof window != "undefined" && n2(11), n2(16);
+        "undefined" != typeof window && n2(11), n2(16);
         var o2 = n2(23).default;
         t2.exports = o2;
       }, function(t2, e2, n2) {
         var o2 = n2(12);
-        typeof o2 == "string" && (o2 = [[t2.i, o2, ""]]);
+        "string" == typeof o2 && (o2 = [[t2.i, o2, ""]]);
         var r2 = { insertAt: "top" };
         r2.transform = void 0;
         n2(14)(o2, r2);
@@ -11768,7 +12319,7 @@
           var n3 = t3[1] || "", r2 = t3[3];
           if (!r2)
             return n3;
-          if (e3 && typeof btoa == "function") {
+          if (e3 && "function" == typeof btoa) {
             var i2 = o2(r2);
             return [n3].concat(r2.sources.map(function(t4) {
               return "/*# sourceURL=" + r2.sourceRoot + t4 + " */";
@@ -11787,14 +12338,14 @@
               return e4[2] ? "@media " + e4[2] + "{" + o3 + "}" : o3;
             }).join("");
           }, e3.i = function(t4, n3) {
-            typeof t4 == "string" && (t4 = [[null, t4, ""]]);
+            "string" == typeof t4 && (t4 = [[null, t4, ""]]);
             for (var o3 = {}, r2 = 0; r2 < this.length; r2++) {
               var i2 = this[r2][0];
-              typeof i2 == "number" && (o3[i2] = true);
+              "number" == typeof i2 && (o3[i2] = true);
             }
             for (r2 = 0; r2 < t4.length; r2++) {
               var a2 = t4[r2];
-              typeof a2[0] == "number" && o3[a2[0]] || (n3 && !a2[2] ? a2[2] = n3 : n3 && (a2[2] = "(" + a2[2] + ") and (" + n3 + ")"), e3.push(a2));
+              "number" == typeof a2[0] && o3[a2[0]] || (n3 && !a2[2] ? a2[2] = n3 : n3 && (a2[2] = "(" + a2[2] + ") and (" + n3 + ")"), e3.push(a2));
             }
           }, e3;
         };
@@ -11827,16 +12378,16 @@
           if (!n3)
             throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
           var o3 = w2[w2.length - 1];
-          if (t3.insertAt === "top")
+          if ("top" === t3.insertAt)
             o3 ? o3.nextSibling ? n3.insertBefore(e3, o3.nextSibling) : n3.appendChild(e3) : n3.insertBefore(e3, n3.firstChild), w2.push(e3);
           else {
-            if (t3.insertAt !== "bottom")
+            if ("bottom" !== t3.insertAt)
               throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
             n3.appendChild(e3);
           }
         }
         function a2(t3) {
-          if (t3.parentNode === null)
+          if (null === t3.parentNode)
             return false;
           t3.parentNode.removeChild(t3);
           var e3 = w2.indexOf(t3);
@@ -11867,7 +12418,7 @@
             var l3 = h2++;
             n3 = g2 || (g2 = s2(e3)), o3 = f2.bind(null, n3, l3, false), r3 = f2.bind(null, n3, l3, true);
           } else
-            t3.sourceMap && typeof URL == "function" && typeof URL.createObjectURL == "function" && typeof URL.revokeObjectURL == "function" && typeof Blob == "function" && typeof btoa == "function" ? (n3 = c2(e3), o3 = p2.bind(null, n3, e3), r3 = function() {
+            t3.sourceMap && "function" == typeof URL && "function" == typeof URL.createObjectURL && "function" == typeof URL.revokeObjectURL && "function" == typeof Blob && "function" == typeof btoa ? (n3 = c2(e3), o3 = p2.bind(null, n3, e3), r3 = function() {
               a2(n3), n3.href && URL.revokeObjectURL(n3.href);
             }) : (n3 = s2(e3), o3 = d2.bind(null, n3), r3 = function() {
               a2(n3);
@@ -11901,7 +12452,7 @@
           }
         }
         function p2(t3, e3, n3) {
-          var o3 = n3.css, r3 = n3.sourceMap, i3 = e3.convertToAbsoluteUrls === void 0 && r3;
+          var o3 = n3.css, r3 = n3.sourceMap, i3 = void 0 === e3.convertToAbsoluteUrls && r3;
           (e3.convertToAbsoluteUrls || i3) && (o3 = y2(o3)), r3 && (o3 += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(r3)))) + " */");
           var a3 = new Blob([o3], { type: "text/css" }), s3 = t3.href;
           t3.href = URL.createObjectURL(a3), s3 && URL.revokeObjectURL(s3);
@@ -11909,22 +12460,22 @@
         var m2 = {}, b2 = function(t3) {
           var e3;
           return function() {
-            return e3 === void 0 && (e3 = t3.apply(this, arguments)), e3;
+            return void 0 === e3 && (e3 = t3.apply(this, arguments)), e3;
           };
         }(function() {
           return window && document && document.all && !window.atob;
         }), v2 = function(t3) {
           var e3 = {};
           return function(n3) {
-            return e3[n3] === void 0 && (e3[n3] = t3.call(this, n3)), e3[n3];
+            return void 0 === e3[n3] && (e3[n3] = t3.call(this, n3)), e3[n3];
           };
         }(function(t3) {
           return document.querySelector(t3);
         }), g2 = null, h2 = 0, w2 = [], y2 = n2(15);
         t2.exports = function(t3, e3) {
-          if (typeof DEBUG != "undefined" && DEBUG && typeof document != "object")
+          if ("undefined" != typeof DEBUG && DEBUG && "object" != typeof document)
             throw new Error("The style-loader cannot be used in a non-browser environment");
-          e3 = e3 || {}, e3.attrs = typeof e3.attrs == "object" ? e3.attrs : {}, e3.singleton || (e3.singleton = b2()), e3.insertInto || (e3.insertInto = "head"), e3.insertAt || (e3.insertAt = "bottom");
+          e3 = e3 || {}, e3.attrs = "object" == typeof e3.attrs ? e3.attrs : {}, e3.singleton || (e3.singleton = b2()), e3.insertInto || (e3.insertInto = "head"), e3.insertAt || (e3.insertAt = "bottom");
           var n3 = r2(t3, e3);
           return o2(n3, e3), function(t4) {
             for (var i3 = [], a3 = 0; a3 < n3.length; a3++) {
@@ -11936,7 +12487,7 @@
             }
             for (var a3 = 0; a3 < i3.length; a3++) {
               var c3 = i3[a3];
-              if (c3.refs === 0) {
+              if (0 === c3.refs) {
                 for (var l3 = 0; l3 < c3.parts.length; l3++)
                   c3.parts[l3]();
                 delete m2[c3.id];
@@ -11952,10 +12503,10 @@
         }();
       }, function(t2, e2) {
         t2.exports = function(t3) {
-          var e3 = typeof window != "undefined" && window.location;
+          var e3 = "undefined" != typeof window && window.location;
           if (!e3)
             throw new Error("fixUrls requires window.location");
-          if (!t3 || typeof t3 != "string")
+          if (!t3 || "string" != typeof t3)
             return t3;
           var n2 = e3.protocol + "//" + e3.host, o2 = n2 + e3.pathname.replace(/\/[^\/]*$/, "/");
           return t3.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(t4, e4) {
@@ -11967,28 +12518,28 @@
             if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(r2))
               return t4;
             var i2;
-            return i2 = r2.indexOf("//") === 0 ? r2 : r2.indexOf("/") === 0 ? n2 + r2 : o2 + r2.replace(/^\.\//, ""), "url(" + JSON.stringify(i2) + ")";
+            return i2 = 0 === r2.indexOf("//") ? r2 : 0 === r2.indexOf("/") ? n2 + r2 : o2 + r2.replace(/^\.\//, ""), "url(" + JSON.stringify(i2) + ")";
           });
         };
       }, function(t2, e2, n2) {
         var o2 = n2(17);
-        typeof window == "undefined" || window.Promise || (window.Promise = o2), n2(21), String.prototype.includes || (String.prototype.includes = function(t3, e3) {
-          return typeof e3 != "number" && (e3 = 0), !(e3 + t3.length > this.length) && this.indexOf(t3, e3) !== -1;
+        "undefined" == typeof window || window.Promise || (window.Promise = o2), n2(21), String.prototype.includes || (String.prototype.includes = function(t3, e3) {
+          return "number" != typeof e3 && (e3 = 0), !(e3 + t3.length > this.length) && -1 !== this.indexOf(t3, e3);
         }), Array.prototype.includes || Object.defineProperty(Array.prototype, "includes", { value: function(t3, e3) {
-          if (this == null)
+          if (null == this)
             throw new TypeError('"this" is null or not defined');
           var n3 = Object(this), o3 = n3.length >>> 0;
-          if (o3 === 0)
+          if (0 === o3)
             return false;
           for (var r2 = 0 | e3, i2 = Math.max(r2 >= 0 ? r2 : o3 - Math.abs(r2), 0); i2 < o3; ) {
             if (function(t4, e4) {
-              return t4 === e4 || typeof t4 == "number" && typeof e4 == "number" && isNaN(t4) && isNaN(e4);
+              return t4 === e4 || "number" == typeof t4 && "number" == typeof e4 && isNaN(t4) && isNaN(e4);
             }(n3[i2], t3))
               return true;
             i2++;
           }
           return false;
-        } }), typeof window != "undefined" && function(t3) {
+        } }), "undefined" != typeof window && function(t3) {
           t3.forEach(function(t4) {
             t4.hasOwnProperty("remove") || Object.defineProperty(t4, "remove", { configurable: true, enumerable: true, writable: true, value: function() {
               this.parentNode.removeChild(this);
@@ -12006,21 +12557,21 @@
               };
             }
             function i2(t3) {
-              if (typeof this != "object")
+              if ("object" != typeof this)
                 throw new TypeError("Promises must be constructed via new");
-              if (typeof t3 != "function")
+              if ("function" != typeof t3)
                 throw new TypeError("not a function");
               this._state = 0, this._handled = false, this._value = void 0, this._deferreds = [], f2(t3, this);
             }
             function a2(t3, e4) {
-              for (; t3._state === 3; )
+              for (; 3 === t3._state; )
                 t3 = t3._value;
-              if (t3._state === 0)
+              if (0 === t3._state)
                 return void t3._deferreds.push(e4);
               t3._handled = true, i2._immediateFn(function() {
-                var n4 = t3._state === 1 ? e4.onFulfilled : e4.onRejected;
-                if (n4 === null)
-                  return void (t3._state === 1 ? s2 : c2)(e4.promise, t3._value);
+                var n4 = 1 === t3._state ? e4.onFulfilled : e4.onRejected;
+                if (null === n4)
+                  return void (1 === t3._state ? s2 : c2)(e4.promise, t3._value);
                 var o3;
                 try {
                   o3 = n4(t3._value);
@@ -12034,11 +12585,11 @@
               try {
                 if (e4 === t3)
                   throw new TypeError("A promise cannot be resolved with itself.");
-                if (e4 && (typeof e4 == "object" || typeof e4 == "function")) {
+                if (e4 && ("object" == typeof e4 || "function" == typeof e4)) {
                   var n4 = e4.then;
                   if (e4 instanceof i2)
                     return t3._state = 3, t3._value = e4, void l2(t3);
-                  if (typeof n4 == "function")
+                  if ("function" == typeof n4)
                     return void f2(r2(n4, e4), t3);
                 }
                 t3._state = 1, t3._value = e4, l2(t3);
@@ -12050,7 +12601,7 @@
               t3._state = 2, t3._value = e4, l2(t3);
             }
             function l2(t3) {
-              t3._state === 2 && t3._deferreds.length === 0 && i2._immediateFn(function() {
+              2 === t3._state && 0 === t3._deferreds.length && i2._immediateFn(function() {
                 t3._handled || i2._unhandledRejectionFn(t3._value);
               });
               for (var e4 = 0, n4 = t3._deferreds.length; e4 < n4; e4++)
@@ -12058,7 +12609,7 @@
               t3._deferreds = null;
             }
             function u2(t3, e4, n4) {
-              this.onFulfilled = typeof t3 == "function" ? t3 : null, this.onRejected = typeof e4 == "function" ? e4 : null, this.promise = n4;
+              this.onFulfilled = "function" == typeof t3 ? t3 : null, this.onRejected = "function" == typeof e4 ? e4 : null, this.promise = n4;
             }
             function f2(t3, e4) {
               var n4 = false;
@@ -12085,25 +12636,25 @@
               return new i2(function(t4, n4) {
                 function o3(i4, a3) {
                   try {
-                    if (a3 && (typeof a3 == "object" || typeof a3 == "function")) {
+                    if (a3 && ("object" == typeof a3 || "function" == typeof a3)) {
                       var s3 = a3.then;
-                      if (typeof s3 == "function")
+                      if ("function" == typeof s3)
                         return void s3.call(a3, function(t5) {
                           o3(i4, t5);
                         }, n4);
                     }
-                    e4[i4] = a3, --r3 == 0 && t4(e4);
+                    e4[i4] = a3, 0 == --r3 && t4(e4);
                   } catch (t5) {
                     n4(t5);
                   }
                 }
-                if (e4.length === 0)
+                if (0 === e4.length)
                   return t4([]);
                 for (var r3 = e4.length, i3 = 0; i3 < e4.length; i3++)
                   o3(i3, e4[i3]);
               });
             }, i2.resolve = function(t3) {
-              return t3 && typeof t3 == "object" && t3.constructor === i2 ? t3 : new i2(function(e4) {
+              return t3 && "object" == typeof t3 && t3.constructor === i2 ? t3 : new i2(function(e4) {
                 e4(t3);
               });
             }, i2.reject = function(t3) {
@@ -12115,17 +12666,17 @@
                 for (var o3 = 0, r3 = t3.length; o3 < r3; o3++)
                   t3[o3].then(e4, n4);
               });
-            }, i2._immediateFn = typeof e3 == "function" && function(t3) {
+            }, i2._immediateFn = "function" == typeof e3 && function(t3) {
               e3(t3);
             } || function(t3) {
               d2(t3, 0);
             }, i2._unhandledRejectionFn = function(t3) {
-              typeof console != "undefined" && console && console.warn("Possible Unhandled Promise Rejection:", t3);
+              "undefined" != typeof console && console && console.warn("Possible Unhandled Promise Rejection:", t3);
             }, i2._setImmediateFn = function(t3) {
               i2._immediateFn = t3;
             }, i2._setUnhandledRejectionFn = function(t3) {
               i2._unhandledRejectionFn = t3;
-            }, t2 !== void 0 && t2.exports ? t2.exports = i2 : n3.Promise || (n3.Promise = i2);
+            }, void 0 !== t2 && t2.exports ? t2.exports = i2 : n3.Promise || (n3.Promise = i2);
           }(this);
         }).call(e2, n2(18).setImmediate);
       }, function(t2, e2, n2) {
@@ -12157,7 +12708,7 @@
         (function(t3, e3) {
           !function(t4, n3) {
             function o2(t5) {
-              typeof t5 != "function" && (t5 = new Function("" + t5));
+              "function" != typeof t5 && (t5 = new Function("" + t5));
               for (var e4 = new Array(arguments.length - 1), n4 = 0; n4 < e4.length; n4++)
                 e4[n4] = arguments[n4 + 1];
               var o3 = { callback: t5, args: e4 };
@@ -12202,7 +12753,7 @@
             }
             if (!t4.setImmediate) {
               var s2, c2 = 1, l2 = {}, u2 = false, f2 = t4.document, d2 = Object.getPrototypeOf && Object.getPrototypeOf(t4);
-              d2 = d2 && d2.setTimeout ? d2 : t4, {}.toString.call(t4.process) === "[object process]" ? function() {
+              d2 = d2 && d2.setTimeout ? d2 : t4, "[object process]" === {}.toString.call(t4.process) ? function() {
                 s2 = function(t5) {
                   e3.nextTick(function() {
                     a2(t5);
@@ -12217,7 +12768,7 @@
                 }
               }() ? function() {
                 var e4 = "setImmediate$" + Math.random() + "$", n4 = function(n5) {
-                  n5.source === t4 && typeof n5.data == "string" && n5.data.indexOf(e4) === 0 && a2(+n5.data.slice(e4.length));
+                  n5.source === t4 && "string" == typeof n5.data && 0 === n5.data.indexOf(e4) && a2(+n5.data.slice(e4.length));
                 };
                 t4.addEventListener ? t4.addEventListener("message", n4, false) : t4.attachEvent("onmessage", n4), s2 = function(n5) {
                   t4.postMessage(e4 + n5, "*");
@@ -12243,7 +12794,7 @@
                 };
               }(), d2.setImmediate = o2, d2.clearImmediate = r2;
             }
-          }(typeof self == "undefined" ? t3 === void 0 ? this : t3 : self);
+          }("undefined" == typeof self ? void 0 === t3 ? this : t3 : self);
         }).call(e2, n2(7), n2(20));
       }, function(t2, e2) {
         function n2() {
@@ -12305,12 +12856,12 @@
         var u2, f2, d2 = t2.exports = {};
         !function() {
           try {
-            u2 = typeof setTimeout == "function" ? setTimeout : n2;
+            u2 = "function" == typeof setTimeout ? setTimeout : n2;
           } catch (t3) {
             u2 = n2;
           }
           try {
-            f2 = typeof clearTimeout == "function" ? clearTimeout : o2;
+            f2 = "function" == typeof clearTimeout ? clearTimeout : o2;
           } catch (t3) {
             f2 = o2;
           }
@@ -12321,7 +12872,7 @@
           if (arguments.length > 1)
             for (var n3 = 1; n3 < arguments.length; n3++)
               e3[n3 - 1] = arguments[n3];
-          m2.push(new c2(t3, e3)), m2.length !== 1 || b2 || r2(s2);
+          m2.push(new c2(t3, e3)), 1 !== m2.length || b2 || r2(s2);
         }, c2.prototype.run = function() {
           this.fun.apply(null, this.array);
         }, d2.title = "browser", d2.browser = true, d2.env = {}, d2.argv = [], d2.version = "", d2.versions = {}, d2.on = l2, d2.addListener = l2, d2.once = l2, d2.off = l2, d2.removeListener = l2, d2.removeAllListeners = l2, d2.emit = l2, d2.prependListener = l2, d2.prependOnceListener = l2, d2.listeners = function(t3) {
@@ -12339,14 +12890,14 @@
         n2(22).polyfill();
       }, function(t2, e2, n2) {
         function o2(t3, e3) {
-          if (t3 === void 0 || t3 === null)
+          if (void 0 === t3 || null === t3)
             throw new TypeError("Cannot convert first argument to object");
           for (var n3 = Object(t3), o3 = 1; o3 < arguments.length; o3++) {
             var r3 = arguments[o3];
-            if (r3 !== void 0 && r3 !== null)
+            if (void 0 !== r3 && null !== r3)
               for (var i2 = Object.keys(Object(r3)), a2 = 0, s2 = i2.length; a2 < s2; a2++) {
                 var c2 = i2[a2], l2 = Object.getOwnPropertyDescriptor(r3, c2);
-                l2 !== void 0 && l2.enumerable && (n3[c2] = r3[c2]);
+                void 0 !== l2 && l2.enumerable && (n3[c2] = r3[c2]);
               }
           }
           return n3;
@@ -12360,7 +12911,7 @@
         var o2 = n2(24), r2 = n2(6), i2 = n2(5), a2 = n2(36), s2 = function() {
           for (var t3 = [], e3 = 0; e3 < arguments.length; e3++)
             t3[e3] = arguments[e3];
-          if (typeof window != "undefined") {
+          if ("undefined" != typeof window) {
             var n3 = a2.getOpts.apply(void 0, t3);
             return new Promise(function(t4, e4) {
               i2.default.promise = { resolve: t4, reject: e4 }, o2.default(n3), setTimeout(function() {
@@ -12465,7 +13016,7 @@
             var i3 = t3[o3], a3 = d2(o3, i3, e3);
             i3.visible && n3.appendChild(a3);
           }
-          n3.children.length === 0 && n3.remove();
+          0 === n3.children.length && n3.remove();
         };
         e2.default = p2;
       }, function(t2, e2, n2) {
@@ -12475,7 +13026,7 @@
             var e3 = t4.target, n3 = e3.value;
             a2.setActionValue(n3);
           }), t3.addEventListener("keyup", function(t4) {
-            if (t4.key === "Enter")
+            if ("Enter" === t4.key)
               return s2.onAction(o2.CONFIRM_KEY);
           }), setTimeout(function() {
             t3.focus(), a2.setActionValue("");
@@ -12487,11 +13038,11 @@
             var a3 = n3[i3];
             o3[i3] = a3;
           }
-          e3 === "input" && u2(o3), t3.appendChild(o3);
+          "input" === e3 && u2(o3), t3.appendChild(o3);
         }, d2 = function(t3) {
           if (t3) {
             var e3 = r2.injectElIntoModal(i2.contentMarkup), n3 = t3.element, o3 = t3.attributes;
-            typeof n3 == "string" ? f2(e3, n3, o3) : e3.appendChild(n3);
+            "string" == typeof n3 ? f2(e3, n3, o3) : e3.appendChild(n3);
           }
         };
         e2.default = d2;
@@ -12522,7 +13073,7 @@
             }
         }, b2 = function(t3) {
           if (o2.default.isOpen)
-            return t3.key === "Tab" && t3.shiftKey ? d2(t3) : void 0;
+            return "Tab" === t3.key && t3.shiftKey ? d2(t3) : void 0;
         }, v2 = function() {
           var t3 = i2.getNode(l2);
           t3 && (t3.tabIndex = 0, t3.focus());
@@ -12558,29 +13109,29 @@
         };
         var l2 = function(t3) {
           var e3 = t3 && t3.button, n3 = t3 && t3.buttons;
-          return e3 !== void 0 && n3 !== void 0 && o2.throwErr("Cannot set both 'button' and 'buttons' options!"), e3 !== void 0 ? { confirm: e3 } : n3;
+          return void 0 !== e3 && void 0 !== n3 && o2.throwErr("Cannot set both 'button' and 'buttons' options!"), void 0 !== e3 ? { confirm: e3 } : n3;
         }, u2 = function(t3) {
           return o2.ordinalSuffixOf(t3 + 1);
         }, f2 = function(t3, e3) {
           o2.throwErr(u2(e3) + " argument ('" + t3 + "') is invalid");
         }, d2 = function(t3, e3) {
           var n3 = t3 + 1, r3 = e3[n3];
-          o2.isPlainObject(r3) || r3 === void 0 || o2.throwErr("Expected " + u2(n3) + " argument ('" + r3 + "') to be a plain object");
+          o2.isPlainObject(r3) || void 0 === r3 || o2.throwErr("Expected " + u2(n3) + " argument ('" + r3 + "') to be a plain object");
         }, p2 = function(t3, e3) {
           var n3 = t3 + 1, r3 = e3[n3];
-          r3 !== void 0 && o2.throwErr("Unexpected " + u2(n3) + " argument (" + r3 + ")");
+          void 0 !== r3 && o2.throwErr("Unexpected " + u2(n3) + " argument (" + r3 + ")");
         }, m2 = function(t3, e3, n3, r3) {
-          var i3 = typeof e3, a3 = i3 === "string", s3 = e3 instanceof Element;
+          var i3 = typeof e3, a3 = "string" === i3, s3 = e3 instanceof Element;
           if (a3) {
-            if (n3 === 0)
+            if (0 === n3)
               return { text: e3 };
-            if (n3 === 1)
+            if (1 === n3)
               return { text: e3, title: r3[0] };
-            if (n3 === 2)
+            if (2 === n3)
               return d2(n3, r3), { icon: e3 };
             f2(e3, n3);
           } else {
-            if (s3 && n3 === 0)
+            if (s3 && 0 === n3)
               return d2(n3, r3), { content: e3 };
             if (o2.isPlainObject(e3))
               return p2(n3, r3), e3;
@@ -12607,7 +13158,7 @@
         var o2 = n2(1), r2 = { element: "input", attributes: { placeholder: "" } };
         e2.getContentOpts = function(t3) {
           var e3 = {};
-          return o2.isPlainObject(t3) ? Object.assign(e3, t3) : t3 instanceof Element ? { element: t3 } : t3 === "input" ? r2 : null;
+          return o2.isPlainObject(t3) ? Object.assign(e3, t3) : t3 instanceof Element ? { element: t3 } : "input" === t3 ? r2 : null;
         };
       }, function(t2, e2, n2) {
         Object.defineProperty(e2, "__esModule", { value: true }), e2.logDeprecation = function(t3) {
@@ -12638,23 +13189,25 @@
   };
   function calculatePopupPosition$1(eventRect, layoutRect, popupRect) {
     let top = eventRect.top + eventRect.height / 2 - popupRect.height / 2;
-    let left = eventRect.left + eventRect.width;
+    let left = eventRect.left + eventRect.width - 225;
     if (isTopOutOfLayout(top, layoutRect, popupRect)) {
       top = layoutRect.top + layoutRect.height - popupRect.height;
     }
-    if (isLeftOutOfLayout(left, layoutRect, popupRect)) {
+    const outLeftLayout = isLeftOutOfLayout(left, layoutRect, popupRect);
+    if (outLeftLayout) {
       left = eventRect.left - popupRect.width;
     }
     return [
-      Math.max(top, layoutRect.top) + window.scrollY,
-      Math.max(left, layoutRect.left) + window.scrollX
+      Math.max(top, layoutRect.top) + window.scrollY - 110,
+      Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 250 : 25)
     ];
   }
   function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
-    const top = eventRect.top + eventRect.height / 2 + window.scrollY;
+    let top = eventRect.top + eventRect.height / 2 + window.scrollY;
     const popupLeft = eventRect.left + eventRect.width;
     const isOutOfLayout = popupLeft + popupRect.width > layoutRect.left + layoutRect.width;
     const direction = isOutOfLayout ? DetailPopupArrowDirection.right : DetailPopupArrowDirection.left;
+    top = top - 110;
     return { top, direction };
   }
   function EventDetailPopup() {
@@ -12668,21 +13221,27 @@
     const layoutContainer = useLayoutContainer();
     const detailPopupSlot = useFloatingLayer("detailPopupSlot");
     const eventBus = useEventBus();
-    const popupContainerRef = s$2(null);
-    const [style, setStyle] = y$1({});
-    const [arrowTop, setArrowTop] = y$1(0);
-    const [arrowDirection, setArrowDirection] = y$1(DetailPopupArrowDirection.left);
+    const popupContainerRef = _$2(null);
+    const [style, setStyle] = h$2({});
+    const [arrowTop, setArrowTop] = h$2(0);
+    const [arrowDirection, setArrowDirection] = h$2(
+      DetailPopupArrowDirection.left
+    );
     const popupArrowClassName = F$2(() => {
       const right = arrowDirection === DetailPopupArrowDirection.right;
       const left = arrowDirection === DetailPopupArrowDirection.left;
       return cls("popup-arrow", { right, left });
     }, [arrowDirection]);
-    h$2(() => {
+    y$2(() => {
       if (popupContainerRef.current && eventRect && layoutContainer) {
         const layoutRect = layoutContainer.getBoundingClientRect();
         const popupRect = popupContainerRef.current.getBoundingClientRect();
         const [top, left] = calculatePopupPosition$1(eventRect, layoutRect, popupRect);
-        const { top: arrowTopPosition, direction } = calculatePopupArrowPosition(eventRect, layoutRect, popupRect);
+        const { top: arrowTopPosition, direction } = calculatePopupArrowPosition(
+          eventRect,
+          layoutRect,
+          popupRect
+        );
         setStyle({ top, left });
         setArrowTop(arrowTopPosition - top - HALF_OF_POPUP_ARROW_HEIGHT);
         setArrowDirection(direction);
@@ -12750,61 +13309,63 @@
     const userData = ((_a = options == null ? void 0 : options.allOptions) == null ? void 0 : _a.userData) || null;
     const token = (_b = options == null ? void 0 : options.allOptions) == null ? void 0 : _b.token;
     const backpackUrl = (_c = options == null ? void 0 : options.allOptions) == null ? void 0 : _c.backpackUrl;
-    console.log({ options });
     const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
     const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
-    return V(/* @__PURE__ */ h$3("div", {
-      role: "dialog",
-      className: classNames$h.popupContainer,
-      ref: popupContainerRef,
-      style
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$h.detailContainer
-    }, /* @__PURE__ */ h$3(EventDetailSectionHeader, {
-      event
-    }), /* @__PURE__ */ h$3(EventDetailSectionDetail, {
-      event,
-      userData,
-      backpackUrl
-    }), !isReadOnly && /* @__PURE__ */ h$3("div", {
-      className: classNames$h.sectionButton
-    }, /* @__PURE__ */ h$3("a", {
-      href: editUrl
-    }, /* @__PURE__ */ h$3("button", {
-      type: "button",
-      className: classNames$h.editButton,
-      onClick: onClickEditButton
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$h.editIcon
-    }), /* @__PURE__ */ h$3("span", {
-      className: classNames$h.content
-    }, /* @__PURE__ */ h$3(Template, {
-      template: "popupEdit",
-      as: "span"
-    })))), /* @__PURE__ */ h$3("div", {
-      className: classNames$h.verticalLine
-    }), /* @__PURE__ */ h$3("button", {
-      type: "button",
-      className: classNames$h.deleteButton,
-      onClick: () => onClickDeleteButton(deleteURl, token)
-    }, /* @__PURE__ */ h$3("span", {
-      className: classNames$h.deleteIcon
-    }), /* @__PURE__ */ h$3("span", {
-      className: classNames$h.content
-    }, /* @__PURE__ */ h$3(Template, {
-      template: "popupDelete",
-      as: "span"
-    }))))), /* @__PURE__ */ h$3("div", {
-      className: classNames$h.topLine,
-      style: { background: calendarColor.backgroundColor }
-    }), /* @__PURE__ */ h$3("div", {
-      className: popupArrowClassName
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$h.border,
-      style: { top: arrowTop }
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$h.fill
-    })))), detailPopupSlot);
+    return z(
+      /* @__PURE__ */ y$3("div", {
+        role: "dialog",
+        className: classNames$h.popupContainer,
+        ref: popupContainerRef,
+        style
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$h.detailContainer
+      }, /* @__PURE__ */ y$3(EventDetailSectionHeader, {
+        event
+      }), /* @__PURE__ */ y$3(EventDetailSectionDetail, {
+        event,
+        userData,
+        backpackUrl
+      }), !isReadOnly && /* @__PURE__ */ y$3("div", {
+        className: classNames$h.sectionButton
+      }, /* @__PURE__ */ y$3("a", {
+        href: editUrl
+      }, /* @__PURE__ */ y$3("button", {
+        type: "button",
+        className: classNames$h.editButton,
+        onClick: onClickEditButton
+      }, /* @__PURE__ */ y$3("span", {
+        className: classNames$h.editIcon
+      }), /* @__PURE__ */ y$3("span", {
+        className: classNames$h.content
+      }, /* @__PURE__ */ y$3(Template, {
+        template: "popupEdit",
+        as: "span"
+      })))), /* @__PURE__ */ y$3("div", {
+        className: classNames$h.verticalLine
+      }), /* @__PURE__ */ y$3("button", {
+        type: "button",
+        className: classNames$h.deleteButton,
+        onClick: () => onClickDeleteButton(deleteURl, token)
+      }, /* @__PURE__ */ y$3("span", {
+        className: classNames$h.deleteIcon
+      }), /* @__PURE__ */ y$3("span", {
+        className: classNames$h.content
+      }, /* @__PURE__ */ y$3(Template, {
+        template: "popupDelete",
+        as: "span"
+      }))))), /* @__PURE__ */ y$3("div", {
+        className: classNames$h.topLine,
+        style: { background: calendarColor.backgroundColor }
+      }), /* @__PURE__ */ y$3("div", {
+        className: popupArrowClassName
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$h.border,
+        style: { top: arrowTop }
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$h.fill
+      })))),
+      detailPopupSlot
+    );
   }
   const classNames$g = {
     dropdownMenu: cls("dropdown-menu"),
@@ -12813,13 +13374,13 @@
     content: cls("content")
   };
   function DropdownMenuItem({ index, name, backgroundColor, onClick }) {
-    return /* @__PURE__ */ h$3("li", {
+    return /* @__PURE__ */ y$3("li", {
       className: classNames$g.dropdownMenuItem,
       onClick: (e2) => onClick(e2, index)
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$g.dotIcon,
       style: { backgroundColor }
-    }), /* @__PURE__ */ h$3("span", {
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$g.content
     }, name));
   }
@@ -12829,9 +13390,9 @@
       setOpened(false);
       onChangeIndex(index);
     };
-    return /* @__PURE__ */ h$3("ul", {
+    return /* @__PURE__ */ y$3("ul", {
       className: classNames$g.dropdownMenu
-    }, calendars.map(({ name, backgroundColor = "000" }, index) => /* @__PURE__ */ h$3(DropdownMenuItem, {
+    }, calendars.map(({ name, backgroundColor = "000" }, index) => /* @__PURE__ */ y$3(DropdownMenuItem, {
       key: `dropdown-${name}-${index}`,
       index,
       name,
@@ -12844,13 +13405,13 @@
     classNames: classNames2 = [],
     onClick = noop
   }) {
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("popup-section", ...classNames2),
       onClick
     }, children);
   }
   function useDropdownState() {
-    const [isOpened, setOpened] = y$1(false);
+    const [isOpened, setOpened] = h$2(false);
     const toggleDropdown = () => setOpened((prev) => !prev);
     return { isOpened, setOpened, toggleDropdown };
   }
@@ -12895,7 +13456,7 @@
     }
   }
   function useFormState(initCalendarId) {
-    return d$2(formStateReducer, __spreadValues({ calendarId: initCalendarId }, defaultFormState));
+    return s$2(formStateReducer, __spreadValues({ calendarId: initCalendarId }, defaultFormState));
   }
   const classNames$f = {
     popupSection: ["dropdown-section", "calendar-section"],
@@ -12908,20 +13469,20 @@
     const selectedCalendar = calendars.find((calendar) => calendar.id === selectedCalendarId);
     const { backgroundColor = "", name = "" } = selectedCalendar != null ? selectedCalendar : {};
     const changeIndex = (index) => formStateDispatch({ type: FormStateActionType.setCalendarId, calendarId: calendars[index].id });
-    return /* @__PURE__ */ h$3(PopupSection, {
+    return /* @__PURE__ */ y$3(PopupSection, {
       onClick: toggleDropdown,
       classNames: classNames$f.popupSection
-    }, /* @__PURE__ */ h$3("button", {
+    }, /* @__PURE__ */ y$3("button", {
       type: "button",
       className: classNames$f.popupSectionItem
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$f.dotIcon,
       style: { backgroundColor }
-    }), /* @__PURE__ */ h$3("span", {
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$f.content
-    }, name), /* @__PURE__ */ h$3("span", {
+    }, name), /* @__PURE__ */ y$3("span", {
       className: cls("icon", "ic-dropdown-arrow", { open: isOpened })
-    })), isOpened && /* @__PURE__ */ h$3(CalendarDropdownMenu, {
+    })), isOpened && /* @__PURE__ */ y$3(CalendarDropdownMenu, {
       calendars,
       setOpened,
       onChangeIndex: changeIndex
@@ -12939,13 +13500,13 @@
         close();
       }
     };
-    return /* @__PURE__ */ h$3("button", {
+    return /* @__PURE__ */ y$3("button", {
       type: "button",
       className: classNames$e.closeButton,
       onClick: onClickHandler
-    }, type === "moreEvents" ? /* @__PURE__ */ h$3(Template, {
+    }, type === "moreEvents" ? /* @__PURE__ */ y$3(Template, {
       template: "monthMoreClose"
-    }) : /* @__PURE__ */ h$3("i", {
+    }) : /* @__PURE__ */ y$3("i", {
       className: classNames$e.closeIcon
     }));
   }
@@ -12953,10 +13514,10 @@
     confirmButton: cls("popup-button", "popup-confirm")
   };
   function ConfirmPopupButton({ children }) {
-    return /* @__PURE__ */ h$3("button", {
+    return /* @__PURE__ */ y$3("button", {
       type: "submit",
       className: classNames$d.confirmButton
-    }, /* @__PURE__ */ h$3("span", null, children));
+    }, /* @__PURE__ */ y$3("span", null, children));
   }
   function useStringOnlyTemplate({
     template,
@@ -12982,12 +13543,12 @@
     dateDash: cls("popup-date-dash"),
     content: cls("content")
   };
-  const DateSelector = R(function DateSelector2({ start, end, isAllday: isAllday2 = false, formStateDispatch }, ref) {
+  const DateSelector = k$1(function DateSelector2({ start, end, isAllday: isAllday2 = false, formStateDispatch }, ref) {
     const { usageStatistics } = useStore(optionsSelector);
-    const startPickerContainerRef = s$2(null);
-    const startPickerInputRef = s$2(null);
-    const endPickerContainerRef = s$2(null);
-    const endPickerInputRef = s$2(null);
+    const startPickerContainerRef = _$2(null);
+    const startPickerInputRef = _$2(null);
+    const endPickerContainerRef = _$2(null);
+    const endPickerInputRef = _$2(null);
     const startDatePlaceholder = useStringOnlyTemplate({
       template: "startDatePlaceholder",
       defaultValue: "Start Date"
@@ -12997,7 +13558,7 @@
       defaultValue: "End Date"
     });
     const toggleAllday = () => formStateDispatch({ type: FormStateActionType.setAllday, isAllday: !isAllday2 });
-    _$2(() => {
+    p$2(() => {
       if (startPickerContainerRef.current && startPickerInputRef.current && endPickerContainerRef.current && endPickerInputRef.current) {
         const startDate = new TZDate(start);
         const endDate = new TZDate(end);
@@ -13025,45 +13586,45 @@
         });
       }
     }, [start, end, isAllday2, usageStatistics, ref]);
-    return /* @__PURE__ */ h$3(PopupSection, null, /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3("div", {
       className: classNames$c.datePicker
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$c.dateIcon
-    }), /* @__PURE__ */ h$3("input", {
+    }), /* @__PURE__ */ y$3("input", {
       name: "start",
       className: classNames$c.content,
       placeholder: startDatePlaceholder,
       ref: startPickerInputRef
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       className: classNames$c.datePickerContainer,
       ref: startPickerContainerRef
-    })), /* @__PURE__ */ h$3("span", {
+    })), /* @__PURE__ */ y$3("span", {
       className: classNames$c.dateDash
-    }, "-"), /* @__PURE__ */ h$3("div", {
+    }, "-"), /* @__PURE__ */ y$3("div", {
       className: classNames$c.datePicker
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$c.dateIcon
-    }), /* @__PURE__ */ h$3("input", {
+    }), /* @__PURE__ */ y$3("input", {
       name: "end",
       className: classNames$c.content,
       placeholder: endDatePlaceholder,
       ref: endPickerInputRef
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       className: classNames$c.datePickerContainer,
       ref: endPickerContainerRef
-    })), /* @__PURE__ */ h$3("div", {
+    })), /* @__PURE__ */ y$3("div", {
       className: classNames$c.allday,
       onClick: toggleAllday
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: cls("icon", {
         "ic-checkbox-normal": !isAllday2,
         "ic-checkbox-checked": isAllday2
       })
-    }), /* @__PURE__ */ h$3("span", {
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$c.content
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "popupIsAllday"
-    })), /* @__PURE__ */ h$3("input", {
+    })), /* @__PURE__ */ y$3("input", {
       name: "isAllday",
       type: "checkbox",
       className: cls("hidden-input"),
@@ -13084,19 +13645,19 @@
       setOpened(false);
       setEventState(state);
     };
-    return /* @__PURE__ */ h$3("ul", {
+    return /* @__PURE__ */ y$3("ul", {
       className: classNames$b.dropdownMenu
-    }, EVENT_STATES.map((state) => /* @__PURE__ */ h$3("li", {
+    }, EVENT_STATES.map((state) => /* @__PURE__ */ y$3("li", {
       key: state,
       className: classNames$b.popupSectionItem,
       onClick: (e2) => onClickDropdown(e2, state)
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$b.icon
-    }), /* @__PURE__ */ h$3("span", {
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$b.content
-    }, state === "Busy" ? /* @__PURE__ */ h$3(Template, {
+    }, state === "Busy" ? /* @__PURE__ */ y$3(Template, {
       template: "popupStateBusy"
-    }) : /* @__PURE__ */ h$3(Template, {
+    }) : /* @__PURE__ */ y$3(Template, {
       template: "popupStateFree"
     })))));
   }
@@ -13110,23 +13671,23 @@
   function EventStateSelector({ eventState = "Busy", formStateDispatch }) {
     const { isOpened, setOpened, toggleDropdown } = useDropdownState();
     const handleChangeEventState = (state) => formStateDispatch({ type: FormStateActionType.setState, state });
-    return /* @__PURE__ */ h$3(PopupSection, {
+    return /* @__PURE__ */ y$3(PopupSection, {
       onClick: toggleDropdown,
       classNames: classNames$a.popupSection
-    }, /* @__PURE__ */ h$3("button", {
+    }, /* @__PURE__ */ y$3("button", {
       type: "button",
       className: classNames$a.popupSectionItem
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$a.stateIcon
-    }), /* @__PURE__ */ h$3("span", {
+    }), /* @__PURE__ */ y$3("span", {
       className: classNames$a.content
-    }, eventState === "Busy" ? /* @__PURE__ */ h$3(Template, {
+    }, eventState === "Busy" ? /* @__PURE__ */ y$3(Template, {
       template: "popupStateBusy"
-    }) : /* @__PURE__ */ h$3(Template, {
+    }) : /* @__PURE__ */ y$3(Template, {
       template: "popupStateFree"
-    })), /* @__PURE__ */ h$3("span", {
+    })), /* @__PURE__ */ y$3("span", {
       className: classNames$a.arrowIcon
-    })), isOpened && /* @__PURE__ */ h$3(StateDropdownMenu, {
+    })), isOpened && /* @__PURE__ */ y$3(StateDropdownMenu, {
       setOpened,
       setEventState: handleChangeEventState
     }));
@@ -13144,11 +13705,11 @@
     const handleLocationChange = (e2) => {
       formStateDispatch({ type: FormStateActionType.setLocation, location: e2.currentTarget.value });
     };
-    return /* @__PURE__ */ h$3(PopupSection, null, /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3("div", {
       className: classNames$9.popupSectionItem
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$9.locationIcon
-    }), /* @__PURE__ */ h$3("input", {
+    }), /* @__PURE__ */ y$3("input", {
       name: "location",
       className: classNames$9.content,
       placeholder: locationPlaceholder,
@@ -13171,24 +13732,24 @@
     const handleInputChange = (e2) => {
       formStateDispatch({ type: FormStateActionType.setTitle, title: e2.currentTarget.value });
     };
-    return /* @__PURE__ */ h$3(PopupSection, null, /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3("div", {
       className: classNames$8.popupSectionItem
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: classNames$8.titleIcon
-    }), /* @__PURE__ */ h$3("input", {
+    }), /* @__PURE__ */ y$3("input", {
       name: "title",
       className: classNames$8.content,
       placeholder: titlePlaceholder,
       value: title,
       onChange: handleInputChange,
       required: true
-    })), /* @__PURE__ */ h$3("button", {
+    })), /* @__PURE__ */ y$3("button", {
       type: "button",
       className: classNames$8.privateButton,
       onClick: togglePrivate
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: cls("icon", { "ic-private": isPrivate, "ic-public": !isPrivate })
-    }), /* @__PURE__ */ h$3("input", {
+    }), /* @__PURE__ */ y$3("input", {
       name: "isPrivate",
       type: "checkbox",
       className: cls("hidden-input"),
@@ -13247,29 +13808,35 @@
     const eventBus = useEventBus();
     const formPopupSlot = useFloatingLayer("formPopupSlot");
     const [formState, formStateDispatch] = useFormState((_a = calendars[0]) == null ? void 0 : _a.id);
-    const datePickerRef = s$2(null);
-    const popupContainerRef = s$2(null);
-    const [style, setStyle] = y$1({});
-    const [arrowLeft, setArrowLeft] = y$1(0);
-    const [arrowDirection, setArrowDirection] = y$1(FormPopupArrowDirection.bottom);
+    const datePickerRef = _$2(null);
+    const popupContainerRef = _$2(null);
+    const [style, setStyle] = h$2({});
+    const [arrowLeft, setArrowLeft] = h$2(0);
+    const [arrowDirection, setArrowDirection] = h$2(
+      FormPopupArrowDirection.bottom
+    );
     const layoutContainer = useLayoutContainer();
     const popupArrowClassName = F$2(() => {
       const top = arrowDirection === FormPopupArrowDirection.top;
       const bottom = arrowDirection === FormPopupArrowDirection.bottom;
       return cls("popup-arrow", { top, bottom });
     }, [arrowDirection]);
-    h$2(() => {
+    y$2(() => {
       if (popupContainerRef.current && popupArrowPointPosition && layoutContainer) {
         const layoutRect = layoutContainer.getBoundingClientRect();
         const popupRect = popupContainerRef.current.getBoundingClientRect();
-        const { top, left, direction } = calculatePopupPosition(popupArrowPointPosition, layoutRect, popupRect);
+        const { top, left, direction } = calculatePopupPosition(
+          popupArrowPointPosition,
+          layoutRect,
+          popupRect
+        );
         const arrowLeftPosition = popupArrowPointPosition.left - left;
         setStyle({ left, top });
         setArrowLeft(arrowLeftPosition);
         setArrowDirection(direction);
       }
     }, [layoutContainer, popupArrowPointPosition]);
-    _$2(() => {
+    p$2(() => {
       if (isPresent(popupParams) && isPresent(event)) {
         formStateDispatch({
           type: FormStateActionType.init,
@@ -13284,7 +13851,7 @@
         });
       }
     }, [calendars, event, formStateDispatch, popupParams]);
-    _$2(() => {
+    p$2(() => {
       if (isNil(popupParams)) {
         formStateDispatch({ type: FormStateActionType.reset });
       }
@@ -13310,50 +13877,53 @@
       }
       hideAllPopup();
     };
-    return V(/* @__PURE__ */ h$3("div", {
-      role: "dialog",
-      className: classNames$7.popupContainer,
-      ref: popupContainerRef,
-      style
-    }, /* @__PURE__ */ h$3("form", {
-      onSubmit
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$7.formContainer
-    }, (calendars == null ? void 0 : calendars.length) ? /* @__PURE__ */ h$3(CalendarSelector, {
-      selectedCalendarId: formState.calendarId,
-      calendars,
-      formStateDispatch
-    }) : /* @__PURE__ */ h$3(PopupSection, null), /* @__PURE__ */ h$3(TitleInputBox, {
-      title: formState.title,
-      isPrivate: formState.isPrivate,
-      formStateDispatch
-    }), /* @__PURE__ */ h$3(LocationInputBox, {
-      location: formState.location,
-      formStateDispatch
-    }), /* @__PURE__ */ h$3(DateSelector, {
-      start,
-      end,
-      isAllday: formState.isAllday,
-      formStateDispatch,
-      ref: datePickerRef
-    }), /* @__PURE__ */ h$3(EventStateSelector, {
-      eventState: formState.state,
-      formStateDispatch
-    }), /* @__PURE__ */ h$3(ClosePopupButton, {
-      type: "form",
-      close
-    }), /* @__PURE__ */ h$3(PopupSection, null, /* @__PURE__ */ h$3(ConfirmPopupButton, null, isCreationPopup ? /* @__PURE__ */ h$3(Template, {
-      template: "popupSave"
-    }) : /* @__PURE__ */ h$3(Template, {
-      template: "popupUpdate"
-    })))), /* @__PURE__ */ h$3("div", {
-      className: popupArrowClassName
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$7.popupArrowBorder,
-      style: { left: arrowLeft }
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$7.popupArrowFill
-    }))))), formPopupSlot);
+    return z(
+      /* @__PURE__ */ y$3("div", {
+        role: "dialog",
+        className: classNames$7.popupContainer,
+        ref: popupContainerRef,
+        style
+      }, /* @__PURE__ */ y$3("form", {
+        onSubmit
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$7.formContainer
+      }, (calendars == null ? void 0 : calendars.length) ? /* @__PURE__ */ y$3(CalendarSelector, {
+        selectedCalendarId: formState.calendarId,
+        calendars,
+        formStateDispatch
+      }) : /* @__PURE__ */ y$3(PopupSection, null), /* @__PURE__ */ y$3(TitleInputBox, {
+        title: formState.title,
+        isPrivate: formState.isPrivate,
+        formStateDispatch
+      }), /* @__PURE__ */ y$3(LocationInputBox, {
+        location: formState.location,
+        formStateDispatch
+      }), /* @__PURE__ */ y$3(DateSelector, {
+        start,
+        end,
+        isAllday: formState.isAllday,
+        formStateDispatch,
+        ref: datePickerRef
+      }), /* @__PURE__ */ y$3(EventStateSelector, {
+        eventState: formState.state,
+        formStateDispatch
+      }), /* @__PURE__ */ y$3(ClosePopupButton, {
+        type: "form",
+        close
+      }), /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3(ConfirmPopupButton, null, isCreationPopup ? /* @__PURE__ */ y$3(Template, {
+        template: "popupSave"
+      }) : /* @__PURE__ */ y$3(Template, {
+        template: "popupUpdate"
+      })))), /* @__PURE__ */ y$3("div", {
+        className: popupArrowClassName
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$7.popupArrowBorder,
+        style: { left: arrowLeft }
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$7.popupArrowFill
+      }))))),
+      formPopupSlot
+    );
   }
   function shownPopupParamSelector(state) {
     return Object.values(state.popup).find((popup) => isPresent(popup));
@@ -13368,7 +13938,7 @@
       (_a = shownPopupParam == null ? void 0 : shownPopupParam.close) == null ? void 0 : _a.call(shownPopupParam);
       hideAllPopup();
     };
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("popup-overlay"),
       style: { display: isPopupShown ? "block" : "none" },
       onClick
@@ -13386,9 +13956,9 @@
     const { moreView, moreViewTitle } = useMonthTheme();
     const seeMorePopupSlot = useFloatingLayer("seeMorePopupSlot");
     const eventBus = useEventBus();
-    const moreEventsPopupContainerRef = s$2(null);
+    const moreEventsPopupContainerRef = _$2(null);
     const isHidden = isNil(date2) || isNil(popupPosition) || isNil(seeMorePopupSlot);
-    _$2(() => {
+    p$2(() => {
       if (!isHidden && moreEventsPopupContainerRef.current) {
         eventBus.fire("clickMoreEventsBtn", {
           date: date2.toDate(),
@@ -13413,32 +13983,35 @@
     const moreViewListStyle = {
       height: `calc(100% - ${MONTH_MORE_VIEW_HEADER_HEIGHT + MONTH_MORE_VIEW_HEADER_MARGIN_BOTTOM + MONTH_MORE_VIEW_HEADER_PADDING_TOP}px)`
     };
-    return V(/* @__PURE__ */ h$3("div", {
-      role: "dialog",
-      className: classNames$6.container,
-      style: popupPosition,
-      ref: moreEventsPopupContainerRef
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$6.seeMore,
-      style: moreView
-    }, /* @__PURE__ */ h$3("div", {
-      className: classNames$6.header,
-      style
-    }, /* @__PURE__ */ h$3(Template, {
-      template: "monthMoreTitleDate",
-      param: moreTitle
-    }), /* @__PURE__ */ h$3(ClosePopupButton, {
-      type: "moreEvents"
-    })), /* @__PURE__ */ h$3("div", {
-      className: classNames$6.list,
-      style: moreViewListStyle
-    }, events.map((uiModel) => /* @__PURE__ */ h$3(HorizontalEvent, {
-      key: `see-more-event-item-${uiModel.cid()}`,
-      uiModel,
-      eventHeight: MONTH_EVENT_HEIGHT,
-      headerHeight: MONTH_MORE_VIEW_HEADER_HEIGHT,
-      flat: true
-    }))))), seeMorePopupSlot);
+    return z(
+      /* @__PURE__ */ y$3("div", {
+        role: "dialog",
+        className: classNames$6.container,
+        style: popupPosition,
+        ref: moreEventsPopupContainerRef
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$6.seeMore,
+        style: moreView
+      }, /* @__PURE__ */ y$3("div", {
+        className: classNames$6.header,
+        style
+      }, /* @__PURE__ */ y$3(Template, {
+        template: "monthMoreTitleDate",
+        param: moreTitle
+      }), /* @__PURE__ */ y$3(ClosePopupButton, {
+        type: "moreEvents"
+      })), /* @__PURE__ */ y$3("div", {
+        className: classNames$6.list,
+        style: moreViewListStyle
+      }, events.map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
+        key: `see-more-event-item-${uiModel.cid()}`,
+        uiModel,
+        eventHeight: MONTH_EVENT_HEIGHT,
+        headerHeight: MONTH_MORE_VIEW_HEADER_HEIGHT,
+        flat: true
+      }))))),
+      seeMorePopupSlot
+    );
   }
   function getLayoutStylesFromInfo(width, height) {
     const styles = { height: toPercent(100) };
@@ -13461,7 +14034,7 @@
     const [container, containerRefCallback] = useDOMNode();
     const { setLastPanelType, updateLayoutHeight } = useDispatch("weekViewLayout");
     const layoutClassName = F$2(() => `${cls("layout")} ${className2}`, [className2]);
-    h$2(() => {
+    y$2(() => {
       if (container) {
         const onResizeWindow = () => updateLayoutHeight(container.offsetHeight);
         onResizeWindow();
@@ -13470,22 +14043,22 @@
       }
       return noop;
     }, [container, updateLayoutHeight]);
-    h$2(() => {
+    y$2(() => {
       if (container && autoAdjustPanels) {
-        const childArray = x$3(children);
+        const childArray = P$2(children);
         const lastChild = childArray[childArray.length - 1];
         if (!isString_1(lastChild) && !isNumber_1(lastChild) && !isNil(lastChild)) {
           setLastPanelType(lastChild.props.name);
         }
       }
     }, [children, setLastPanelType, autoAdjustPanels, container]);
-    return /* @__PURE__ */ h$3(LayoutContainerProvider, {
+    return /* @__PURE__ */ y$3(LayoutContainerProvider, {
       value: container
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       ref: containerRefCallback,
       className: layoutClassName,
       style: __spreadProps(__spreadValues({}, getLayoutStylesFromInfo(width, height)), { backgroundColor })
-    }, container ? children : null), /* @__PURE__ */ h$3(EventFormPopup, null), /* @__PURE__ */ h$3(EventDetailPopup, null), /* @__PURE__ */ h$3(SeeMoreEventsPopup, null), /* @__PURE__ */ h$3(PopupOverlay, null));
+    }, container ? children : null), /* @__PURE__ */ y$3(EventFormPopup, null), /* @__PURE__ */ y$3(EventDetailPopup, null), /* @__PURE__ */ y$3(SeeMoreEventsPopup, null), /* @__PURE__ */ y$3(PopupOverlay, null));
   }
   function getDefaultStyle(height, border) {
     return {
@@ -13504,8 +14077,8 @@
       border: "none",
       backgroundColor: "#999"
     });
-    const [guideStyle, setGuideStyle] = y$1(defaultGuideStyle);
-    const startPos = s$2(null);
+    const [guideStyle, setGuideStyle] = h$2(defaultGuideStyle);
+    const startPos = _$2(null);
     const { updateDayGridRowHeightByDiff } = useDispatch("weekViewLayout");
     const onMouseDown = useDrag(DRAGGING_TYPE_CONSTANTS.panelResizer, {
       onDragStart: (e2) => {
@@ -13526,13 +14099,13 @@
         }
       }
     });
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       style: { position: "relative" }
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: cls("panel-resizer"),
       style,
       onMouseDown
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       className: cls("panel-resizer-guide"),
       style: guideStyle
     }));
@@ -13569,7 +14142,7 @@
     }
     return __spreadProps(__spreadValues({}, style), { minHeight, maxHeight, minWidth, maxWidth });
   }
-  const Panel = R(function Panel2({
+  const Panel = k$1(function Panel2({
     name,
     initialWidth = DEFAULT_PANEL_HEIGHT,
     initialHeight = DEFAULT_PANEL_HEIGHT,
@@ -13587,12 +14160,14 @@
     children
   }, ref) {
     const { updateDayGridRowHeight } = useDispatch("weekViewLayout");
-    const { height: dayGridRowHeight } = useStore(T$1((state) => {
-      var _a;
-      return (_a = state.weekViewLayout.dayGridRows[name]) != null ? _a : {};
-    }, [name]));
+    const { height: dayGridRowHeight } = useStore(
+      T$1((state) => {
+        var _a;
+        return (_a = state.weekViewLayout.dayGridRows[name]) != null ? _a : {};
+      }, [name])
+    );
     const height = dayGridRowHeight != null ? dayGridRowHeight : initialHeight;
-    h$2(() => {
+    y$2(() => {
       updateDayGridRowHeight({ rowName: name, height: initialHeight });
     }, [initialHeight, name, updateDayGridRowHeight]);
     const styles = getPanelStyle({
@@ -13613,11 +14188,11 @@
       }
       return resizable.includes(name);
     }, [resizable, name]);
-    return /* @__PURE__ */ h$3(p$3, null, /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("div", {
       className: cls("panel", name),
       style: styles,
       ref
-    }, children), isResizable ? /* @__PURE__ */ h$3(PanelResizer, {
+    }, children), isResizable ? /* @__PURE__ */ y$3(PanelResizer, {
       name,
       width: resizerWidth,
       height: resizerHeight
@@ -13678,7 +14253,10 @@
     const borderRadius = 2;
     const defaultMarginBottom = 2;
     const marginLeft = getMarginLeft(left);
-    const { color, backgroundColor, borderColor, dragBackgroundColor } = getEventColors(uiModel, calendarColor);
+    const { color, backgroundColor, borderColor, dragBackgroundColor } = getEventColors(
+      uiModel,
+      calendarColor
+    );
     const containerStyle = {
       width: getContainerWidth(duplicateWidth || width, marginLeft),
       height: `calc(${toPercent(Math.max(height, minHeight))} - ${defaultMarginBottom}px)`,
@@ -13745,12 +14323,14 @@
     const { setDraggingEventUIModel } = useDispatch("dnd");
     const { setSelectedDuplicateEventCid } = useDispatch("weekViewLayout");
     const eventBus = useEventBus();
-    const eventContainerRef = s$2(null);
-    const [isDraggingTarget, setIsDraggingTarget] = y$1(false);
+    const eventContainerRef = _$2(null);
+    const [isDraggingTarget, setIsDraggingTarget] = h$2(false);
     const { model, goingDurationHeight, modelDurationHeight, comingDurationHeight, croppedEnd } = uiModel;
     const { id, calendarId, customStyle } = model;
     const hasNextStartTime = isPresent(nextStartTime);
-    const { containerStyle, goingDurationStyle, modelDurationStyle, comingDurationStyle } = getStyles({ uiModel, isDraggingTarget, hasNextStartTime, calendarColor, minHeight });
+    const { containerStyle, goingDurationStyle, modelDurationStyle, comingDurationStyle } = getStyles(
+      { uiModel, isDraggingTarget, hasNextStartTime, calendarColor, minHeight }
+    );
     const isGuide = hasNextStartTime || isResizingGuide;
     useTransientUpdate(dndSelector, ({ draggingEventUIModel, draggingState }) => {
       if (draggingState === DraggingState.DRAGGING && (draggingEventUIModel == null ? void 0 : draggingEventUIModel.cid()) === uiModel.cid() && !hasNextStartTime && !isResizingGuide) {
@@ -13759,7 +14339,7 @@
         setIsDraggingTarget(false);
       }
     });
-    _$2(() => {
+    p$2(() => {
       if (!isResizingGuide) {
         eventBus.fire("afterRenderEvent", uiModel.model.toEventObject());
       }
@@ -13786,10 +14366,13 @@
           setSelectedDuplicateEventCid(selectedDuplicateEventCid);
         }
         if (isClick && useDetailPopup && eventContainerRef.current) {
-          showDetailPopup({
-            event: uiModel.model,
-            eventRect: eventContainerRef.current.getBoundingClientRect()
-          }, false);
+          showDetailPopup(
+            {
+              event: uiModel.model,
+              eventRect: eventContainerRef.current.getBoundingClientRect()
+            },
+            false
+          );
         }
         if (isClick) {
           eventBus.fire("clickEvent", { event: uiModel.model.toEventObject(), nativeEvent: e2 });
@@ -13801,11 +14384,14 @@
       e2.stopPropagation();
       onMoveStart(e2);
     };
-    const onResizeStart = useDrag(DRAGGING_TYPE_CREATORS.resizeEvent("timeGrid", `${uiModel.cid()}`), {
-      onDragStart: () => startDragEvent(classNames$5.resizeEvent),
-      onMouseUp: () => endDragEvent(classNames$5.resizeEvent),
-      onPressESCKey: () => endDragEvent(classNames$5.resizeEvent)
-    });
+    const onResizeStart = useDrag(
+      DRAGGING_TYPE_CREATORS.resizeEvent("timeGrid", `${uiModel.cid()}`),
+      {
+        onDragStart: () => startDragEvent(classNames$5.resizeEvent),
+        onMouseUp: () => endDragEvent(classNames$5.resizeEvent),
+        onPressESCKey: () => endDragEvent(classNames$5.resizeEvent)
+      }
+    );
     const handleResizeStart = (e2) => {
       e2.stopPropagation();
       onResizeStart(e2);
@@ -13817,7 +14403,7 @@
       hasNextStartTime
     });
     const shouldShowResizeHandle = isDraggable && !croppedEnd;
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       "data-testid": `${isGuide ? "guide-" : ""}time-event-${model.title}-${uiModel.cid()}`,
       "data-calendar-id": calendarId,
       "data-event-id": id,
@@ -13825,33 +14411,35 @@
       style: __spreadValues(__spreadValues({}, containerStyle), customStyle),
       onMouseDown: handleMoveStart,
       ref: eventContainerRef
-    }, goingDurationHeight ? /* @__PURE__ */ h$3("div", {
+    }, goingDurationHeight ? /* @__PURE__ */ y$3("div", {
       className: classNames$5.travelTime,
       style: goingDurationStyle
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "goingDuration",
       param: model
-    })) : null, modelDurationHeight ? /* @__PURE__ */ h$3("div", {
+    })) : null, modelDurationHeight ? /* @__PURE__ */ y$3("div", {
       className: classNames$5.content,
       style: modelDurationStyle
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "time",
       param: __spreadProps(__spreadValues({}, model.toEventObject()), {
         start: hasNextStartTime ? nextStartTime : model.start
       })
-    })) : null, comingDurationHeight ? /* @__PURE__ */ h$3("div", {
+    })) : null, comingDurationHeight ? /* @__PURE__ */ y$3("div", {
       className: classNames$5.travelTime,
       style: comingDurationStyle
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "comingDuration",
       param: model
-    })) : null, shouldShowResizeHandle ? /* @__PURE__ */ h$3("div", {
+    })) : null, shouldShowResizeHandle ? /* @__PURE__ */ y$3("div", {
       className: classNames$5.resizeHandleX,
       onMouseDown: handleResizeStart
     }) : null);
   }
   function GridSelection({ top, height, text }) {
-    const { backgroundColor, border } = useTheme(T$1((theme) => theme.common.gridSelection, []));
+    const { backgroundColor, border } = useTheme(
+      T$1((theme) => theme.common.gridSelection, [])
+    );
     const color = useTheme(T$1((theme) => theme.week.gridSelection.color, []));
     const style = {
       top: toPercent(top),
@@ -13859,17 +14447,26 @@
       backgroundColor,
       border
     };
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("time", "grid-selection"),
       style,
       "data-testid": `time-grid-selection-${top}-${height}`
-    }, text.length > 0 ? /* @__PURE__ */ h$3("span", {
+    }, text.length > 0 ? /* @__PURE__ */ y$3("span", {
       className: cls("grid-selection-label"),
       style: { color }
     }, text) : null);
   }
   function GridSelectionByColumn({ columnIndex, timeGridRows }) {
-    const gridSelectionData = useStore(T$1((state) => timeGridSelectionHelper.calculateSelection(state.gridSelection.timeGrid, columnIndex, timeGridRows.length - 1), [columnIndex, timeGridRows]));
+    const gridSelectionData = useStore(
+      T$1(
+        (state) => timeGridSelectionHelper.calculateSelection(
+          state.gridSelection.timeGrid,
+          columnIndex,
+          timeGridRows.length - 1
+        ),
+        [columnIndex, timeGridRows]
+      )
+    );
     const gridSelectionProps = F$2(() => {
       if (!gridSelectionData) {
         return null;
@@ -13895,7 +14492,7 @@
     if (isNil(gridSelectionProps)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(GridSelection, __spreadValues({}, gridSelectionProps));
+    return /* @__PURE__ */ y$3(GridSelection, __spreadValues({}, gridSelectionProps));
   }
   function useTimeGridEventResize({
     gridPositionFinder,
@@ -13911,7 +14508,7 @@
       clearDraggingEvent
     } = useDraggingEvent("timeGrid", "resize");
     const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
-    const [guideUIModel, setGuideUIModel] = y$1(null);
+    const [guideUIModel, setGuideUIModel] = h$2(null);
     const clearStates = T$1(() => {
       setGuideUIModel(null);
       clearDraggingEvent();
@@ -13922,18 +14519,31 @@
         return null;
       }
       const { columns, rows } = timeGridData;
-      const resizeTargetUIModelColumns = totalUIModels.map((uiModels) => uiModels.filter((uiModel) => uiModel.cid() === resizingStartUIModel.cid()));
+      const resizeTargetUIModelColumns = totalUIModels.map(
+        (uiModels) => uiModels.filter(
+          (uiModel) => uiModel.cid() === resizingStartUIModel.cid()
+        )
+      );
       const findRowIndexOf = (targetDate, targetColumnIndex) => (row) => {
         const rowStartTZDate = setTimeStrToDate(columns[targetColumnIndex].date, row.startTime);
-        const rowEndTZDate = setTimeStrToDate(timeGridData.columns[targetColumnIndex].date, row.endTime);
+        const rowEndTZDate = setTimeStrToDate(
+          timeGridData.columns[targetColumnIndex].date,
+          row.endTime
+        );
         return rowStartTZDate <= targetDate && targetDate < rowEndTZDate;
       };
       const eventStartDateColumnIndex = resizeTargetUIModelColumns.findIndex((row) => row.length > 0);
       const resizingStartEventUIModel = resizeTargetUIModelColumns[eventStartDateColumnIndex][0];
       const { goingDuration = 0 } = resizingStartEventUIModel.model;
       const renderStart = addMinutes(resizingStartEventUIModel.getStarts(), -goingDuration);
-      const eventStartDateRowIndex = Math.max(rows.findIndex(findRowIndexOf(renderStart, eventStartDateColumnIndex)), 0);
-      const eventEndDateColumnIndex = findLastIndex(resizeTargetUIModelColumns, (row) => row.length > 0);
+      const eventStartDateRowIndex = Math.max(
+        rows.findIndex(findRowIndexOf(renderStart, eventStartDateColumnIndex)),
+        0
+      );
+      const eventEndDateColumnIndex = findLastIndex(
+        resizeTargetUIModelColumns,
+        (row) => row.length > 0
+      );
       const resizingEndEventUIModel = resizeTargetUIModelColumns[eventEndDateColumnIndex][0];
       const { comingDuration = 0 } = resizingEndEventUIModel.model;
       const renderEnd = addMinutes(resizingEndEventUIModel.getStarts(), comingDuration);
@@ -13948,14 +14558,20 @@
       };
     }, [resizingStartUIModel, timeGridData, totalUIModels]);
     const canCalculateGuideUIModel = isPresent(baseResizingInfo) && isPresent(resizingStartUIModel) && isPresent(currentGridPos);
-    const oneRowHeight = F$2(() => baseResizingInfo ? timeGridData.rows[0].height : 0, [baseResizingInfo, timeGridData.rows]);
-    _$2(() => {
+    const oneRowHeight = F$2(
+      () => baseResizingInfo ? timeGridData.rows[0].height : 0,
+      [baseResizingInfo, timeGridData.rows]
+    );
+    p$2(() => {
       if (canCalculateGuideUIModel) {
         const { eventStartDateRowIndex, eventStartDateColumnIndex, eventEndDateColumnIndex } = baseResizingInfo;
         if (columnIndex === eventEndDateColumnIndex && eventStartDateColumnIndex === eventEndDateColumnIndex) {
           const clonedUIModel = resizingStartUIModel.clone();
           const { height, goingDurationHeight, comingDurationHeight } = clonedUIModel;
-          const newHeight = Math.max(oneRowHeight + goingDurationHeight * height / 100 + comingDurationHeight * height / 100, timeGridData.rows[currentGridPos.rowIndex].top - timeGridData.rows[eventStartDateRowIndex].top + oneRowHeight);
+          const newHeight = Math.max(
+            oneRowHeight + goingDurationHeight * height / 100 + comingDurationHeight * height / 100,
+            timeGridData.rows[currentGridPos.rowIndex].top - timeGridData.rows[eventStartDateRowIndex].top + oneRowHeight
+          );
           const newGoingDurationHeight = goingDurationHeight * height / newHeight;
           const newComingDurationHeight = comingDurationHeight * height / newHeight;
           clonedUIModel.setUIProps({
@@ -13976,7 +14592,7 @@
       timeGridData.rows,
       oneRowHeight
     ]);
-    _$2(() => {
+    p$2(() => {
       if (canCalculateGuideUIModel) {
         const { resizeTargetUIModelColumns, eventStartDateColumnIndex, eventEndDateColumnIndex } = baseResizingInfo;
         if ((columnIndex === eventStartDateColumnIndex || columnIndex === eventEndDateColumnIndex) && eventStartDateColumnIndex !== eventEndDateColumnIndex) {
@@ -14005,7 +14621,13 @@
       const shouldUpdate = !isDraggingCanceled && isPresent(baseResizingInfo) && isPresent(currentGridPos) && isPresent(resizingStartUIModel) && baseResizingInfo.eventEndDateColumnIndex === columnIndex;
       if (shouldUpdate) {
         const { comingDuration = 0 } = resizingStartUIModel.model;
-        const targetEndDate = addMinutes(setTimeStrToDate(timeGridData.columns[columnIndex].date, timeGridData.rows[currentGridPos.rowIndex].endTime), -comingDuration);
+        const targetEndDate = addMinutes(
+          setTimeStrToDate(
+            timeGridData.columns[columnIndex].date,
+            timeGridData.rows[currentGridPos.rowIndex].endTime
+          ),
+          -comingDuration
+        );
         const minEndDate = addMinutes(resizingStartUIModel.getStarts(), 30);
         eventBus.fire("beforeUpdateEvent", {
           event: resizingStartUIModel.model.toEventObject(),
@@ -14033,7 +14655,7 @@
     if (isNil(guideUIModel)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(TimeEvent, {
+    return /* @__PURE__ */ y$3(TimeEvent, {
       uiModel: guideUIModel,
       isResizingGuide: true
     });
@@ -14048,10 +14670,10 @@
     minEventHeight
   }) {
     const style = { marginRight: 8 };
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: classNames$4.events,
       style
-    }, eventUIModels.map((eventUIModel) => /* @__PURE__ */ h$3(TimeEvent, {
+    }, eventUIModels.map((eventUIModel) => /* @__PURE__ */ y$3(TimeEvent, {
       key: `${eventUIModel.valueOf()}-${eventUIModel.cid()}`,
       uiModel: eventUIModel,
       minHeight: minEventHeight
@@ -14081,7 +14703,7 @@
     }
     return defaultBackgroundColor;
   }
-  const Column = g$1(function Column2({
+  const Column = x$1(function Column2({
     columnDate,
     columnWidth,
     columnIndex,
@@ -14103,19 +14725,19 @@
     };
     const uiModelsByColumn = totalUIModels[columnIndex];
     const minEventHeight = timeGridRows[0].height;
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: classNames$4.column,
       style,
       "data-testid": `timegrid-column-${columnDate.getDay()}`
-    }, /* @__PURE__ */ h$3(VerticalEvents, {
+    }, /* @__PURE__ */ y$3(VerticalEvents, {
       eventUIModels: uiModelsByColumn,
       minEventHeight
-    }), /* @__PURE__ */ h$3(ResizingGuideByColumn, {
+    }), /* @__PURE__ */ y$3(ResizingGuideByColumn, {
       gridPositionFinder,
       totalUIModels,
       columnIndex,
       timeGridData
-    }), /* @__PURE__ */ h$3(GridSelectionByColumn, {
+    }), /* @__PURE__ */ y$3(GridSelectionByColumn, {
       columnIndex,
       timeGridRows
     }));
@@ -14126,15 +14748,15 @@
       hourLineBorder: theme.week.timeGridHourLine.borderBottom
     };
   }
-  const GridLines = g$1(function GridLines2({
+  const GridLines = x$1(function GridLines2({
     timeGridRows
   }) {
     const { halfHourLineBorder, hourLineBorder } = useTheme(gridLineBorderSelector);
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("gridlines")
     }, timeGridRows.map((time, index) => {
       const isUpperLine = index % 2 === 0;
-      return /* @__PURE__ */ h$3("div", {
+      return /* @__PURE__ */ y$3("div", {
         key: `gridline-${time.startTime}-${time.endTime}`,
         className: cls("gridline-half"),
         style: {
@@ -14186,10 +14808,13 @@
     const initX = useStore(initXSelector);
     const initY = useStore(initYSelector);
     const eventBus = useEventBus();
-    const { isDraggingEnd, isDraggingCanceled, draggingEvent, clearDraggingEvent } = useDraggingEvent("timeGrid", "move");
+    const { isDraggingEnd, isDraggingCanceled, draggingEvent, clearDraggingEvent } = useDraggingEvent(
+      "timeGrid",
+      "move"
+    );
     const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
-    const initGridPosRef = s$2(null);
-    _$2(() => {
+    const initGridPosRef = _$2(null);
+    p$2(() => {
       if (isPresent(initX) && isPresent(initY)) {
         initGridPosRef.current = gridPositionFinder({
           clientX: initX,
@@ -14221,7 +14846,10 @@
       if (isNil(gridDiff) || isNil(startDateTime)) {
         return null;
       }
-      return addMilliseconds(startDateTime, gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.columnDiff * MS_PER_DAY);
+      return addMilliseconds(
+        startDateTime,
+        gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.columnDiff * MS_PER_DAY
+      );
     }, [gridDiff, startDateTime]);
     const movingEvent = F$2(() => {
       if (isNil(draggingEvent) || isNil(currentGridPos) || isNil(gridDiff)) {
@@ -14274,7 +14902,7 @@
     if (isNil(movingEvent)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(TimeEvent, {
+    return /* @__PURE__ */ y$3(TimeEvent, {
       uiModel: movingEvent,
       nextStartTime
     });
@@ -14302,7 +14930,7 @@
     const { pastBorder, todayBorder, futureBorder, bulletBackgroundColor } = useTheme(nowIndicatorTheme);
     const layoutContainer = useLayoutContainer();
     const eventBus = useEventBus();
-    const indicatorRef = s$2(null);
+    const indicatorRef = _$2(null);
     const leftLine = {
       left: toPercent(columnWidth * columnIndex),
       width: toPercent(columnWidth * columnIndex)
@@ -14311,7 +14939,7 @@
       left: toPercent(columnWidth * (columnIndex + 1)),
       width: toPercent(columnWidth * (columnCount - columnIndex + 1))
     };
-    _$2(() => {
+    p$2(() => {
       const scrollToNow = (behavior) => {
         var _a;
         const scrollArea = (_a = layoutContainer == null ? void 0 : layoutContainer.querySelector(`.${cls("panel")}.${cls("time")}`)) != null ? _a : null;
@@ -14329,28 +14957,28 @@
       eventBus.on("scrollToNow", scrollToNow);
       return () => eventBus.off("scrollToNow", scrollToNow);
     }, [eventBus, layoutContainer]);
-    _$2(() => {
+    p$2(() => {
       eventBus.fire("scrollToNow", "smooth");
     }, [eventBus]);
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       ref: indicatorRef,
       className: classNames$3.line,
       style: { top: toPercent(top) },
       "data-testid": TEST_IDS.NOW_INDICATOR
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: classNames$3.left,
       style: { width: leftLine.width, borderTop: pastBorder }
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       className: classNames$3.marker,
       style: { left: leftLine.left, backgroundColor: bulletBackgroundColor }
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       className: classNames$3.today,
       style: {
         left: leftLine.left,
         width: toPercent(columnWidth),
         borderTop: todayBorder
       }
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       className: classNames$3.right,
       style: {
         left: rightLine.left,
@@ -14372,13 +15000,13 @@
       time: zonedNow,
       format: timeFormats[unit]
     };
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls(classNames$2.now),
       style: { top: toPercent(top), color },
       "data-testid": TEST_IDS.NOW_INDICATOR_LABEL
-    }, dateDifference !== 0 && /* @__PURE__ */ h$3("span", {
+    }, dateDifference !== 0 && /* @__PURE__ */ y$3("span", {
       className: cls(classNames$2.dayDifference)
-    }, `[${dateDifference > 0 ? "+" : "-"}${Math.abs(dateDifference)}]`), /* @__PURE__ */ h$3(Template, {
+    }, `[${dateDifference > 0 ? "+" : "-"}${Math.abs(dateDifference)}]`), /* @__PURE__ */ y$3(Template, {
       template: "timegridNowIndicatorLabel",
       param: model,
       as: "span"
@@ -14425,14 +15053,14 @@
     const { pastTimeColor, futureTimeColor } = useTheme(timeColorSelector);
     const zonedNow = isPresent(nowIndicatorState) ? addMinutes(nowIndicatorState.now, (_a = rowsInfo[0].diffFromPrimaryTimezone) != null ? _a : 0) : null;
     const backgroundColor = isPrimary ? primaryTimezoneBackgroundColor : subTimezoneBackgroundColor;
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       role: "rowgroup",
       className: cls(classNames$1.hourRows),
       style: { width: toPercent(width), borderRight, backgroundColor }
     }, rowsInfo.map(({ date: date2, top, className: className2 }) => {
       const isPast = isPresent(zonedNow) && date2 < zonedNow;
       const color = isPast ? pastTimeColor : futureTimeColor;
-      return /* @__PURE__ */ h$3("div", {
+      return /* @__PURE__ */ y$3("div", {
         key: date2.getTime(),
         className: className2,
         style: {
@@ -14440,54 +15068,62 @@
           color
         },
         role: "row"
-      }, /* @__PURE__ */ h$3(Template, {
+      }, /* @__PURE__ */ y$3(Template, {
         template: `timegridDisplay${isPrimary ? "Primary" : ""}Time`,
         param: { time: date2 },
         as: "span"
       }));
-    }), showNowIndicator && isPresent(nowIndicatorState) && isPresent(zonedNow) && /* @__PURE__ */ h$3(NowIndicatorLabel, {
+    }), showNowIndicator && isPresent(nowIndicatorState) && isPresent(zonedNow) && /* @__PURE__ */ y$3(NowIndicatorLabel, {
       unit: "hour",
       top: nowIndicatorState.top,
       now: nowIndicatorState.now,
       zonedNow
     }));
   }
-  const TimeColumn = g$1(function TimeColumn2({ timeGridRows, nowIndicatorState }) {
+  const TimeColumn = x$1(function TimeColumn2({ timeGridRows, nowIndicatorState }) {
     const showNowIndicator = useStore(showNowIndicatorOptionSelector);
     const timezones = useStore(timezonesSelector);
     const timezonesCollapsed = useStore(timezonesCollapsedOptionSelector);
     const tzConverter = useTZConverter();
     const { width, borderRight } = useTheme(weekTimeGridLeftSelector);
-    const rowsByHour = F$2(() => timeGridRows.filter((_2, index) => index % 2 === 0 || index === timeGridRows.length - 1), [timeGridRows]);
-    const hourRowsPropsMapper = T$1((row, index, diffFromPrimaryTimezone) => {
-      const shouldHideRow = ({ top: rowTop, height: rowHeight }) => {
-        if (!showNowIndicator || isNil(nowIndicatorState)) {
-          return false;
+    const rowsByHour = F$2(
+      () => timeGridRows.filter((_2, index) => index % 2 === 0 || index === timeGridRows.length - 1),
+      [timeGridRows]
+    );
+    const hourRowsPropsMapper = T$1(
+      (row, index, diffFromPrimaryTimezone) => {
+        const shouldHideRow = ({ top: rowTop, height: rowHeight }) => {
+          if (!showNowIndicator || isNil(nowIndicatorState)) {
+            return false;
+          }
+          const indicatorTop = nowIndicatorState.top;
+          return rowTop - rowHeight <= indicatorTop && indicatorTop <= rowTop + rowHeight;
+        };
+        const isFirst = index === 0;
+        const isLast = index === rowsByHour.length - 1;
+        const className2 = cls(classNames$1.time, {
+          [classNames$1.first]: isFirst,
+          [classNames$1.last]: isLast,
+          [classNames$1.hidden]: shouldHideRow(row)
+        });
+        let date2 = setTimeStrToDate(new TZDate(), isLast ? row.endTime : row.startTime);
+        if (isPresent(diffFromPrimaryTimezone)) {
+          date2 = addMinutes(date2, diffFromPrimaryTimezone);
         }
-        const indicatorTop = nowIndicatorState.top;
-        return rowTop - rowHeight <= indicatorTop && indicatorTop <= rowTop + rowHeight;
-      };
-      const isFirst = index === 0;
-      const isLast = index === rowsByHour.length - 1;
-      const className2 = cls(classNames$1.time, {
-        [classNames$1.first]: isFirst,
-        [classNames$1.last]: isLast,
-        [classNames$1.hidden]: shouldHideRow(row)
-      });
-      let date2 = setTimeStrToDate(new TZDate(), isLast ? row.endTime : row.startTime);
-      if (isPresent(diffFromPrimaryTimezone)) {
-        date2 = addMinutes(date2, diffFromPrimaryTimezone);
-      }
-      return {
-        date: date2,
-        top: row.top,
-        className: className2,
-        diffFromPrimaryTimezone
-      };
-    }, [rowsByHour, nowIndicatorState, showNowIndicator]);
+        return {
+          date: date2,
+          top: row.top,
+          className: className2,
+          diffFromPrimaryTimezone
+        };
+      },
+      [rowsByHour, nowIndicatorState, showNowIndicator]
+    );
     const [primaryTimezone, ...otherTimezones] = timezones;
     const hourRowsWidth = otherTimezones.length > 0 ? 100 / (otherTimezones.length + 1) : 100;
-    const primaryTimezoneHourRowsProps = rowsByHour.map((row, index) => hourRowsPropsMapper(row, index));
+    const primaryTimezoneHourRowsProps = rowsByHour.map(
+      (row, index) => hourRowsPropsMapper(row, index)
+    );
     const otherTimezoneHourRowsProps = F$2(() => {
       if (otherTimezones.length === 0) {
         return [];
@@ -14497,21 +15133,23 @@
         const primaryTimezoneOffset = tzConverter(primaryTimezone.timezoneName).getTimezoneOffset();
         const currentTimezoneOffset = tzConverter(timezoneName).getTimezoneOffset();
         const diffFromPrimaryTimezone = currentTimezoneOffset - primaryTimezoneOffset;
-        return rowsByHour.map((row, index) => hourRowsPropsMapper(row, index, diffFromPrimaryTimezone));
+        return rowsByHour.map(
+          (row, index) => hourRowsPropsMapper(row, index, diffFromPrimaryTimezone)
+        );
       });
     }, [hourRowsPropsMapper, otherTimezones, primaryTimezone, rowsByHour, tzConverter]);
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls(classNames$1.timeColumn),
       style: { width },
       "data-testid": "timegrid-time-column"
-    }, !timezonesCollapsed && otherTimezoneHourRowsProps.map((rowsInfo) => /* @__PURE__ */ h$3(HourRows, {
+    }, !timezonesCollapsed && otherTimezoneHourRowsProps.map((rowsInfo) => /* @__PURE__ */ y$3(HourRows, {
       key: rowsInfo[0].diffFromPrimaryTimezone,
       rowsInfo,
       isPrimary: false,
       borderRight,
       width: hourRowsWidth,
       nowIndicatorState
-    })), /* @__PURE__ */ h$3(HourRows, {
+    })), /* @__PURE__ */ y$3(HourRows, {
       rowsInfo: primaryTimezoneHourRowsProps,
       isPrimary: true,
       borderRight,
@@ -14550,12 +15188,22 @@
     const { goingDuration = 0, comingDuration = 0 } = uiModel.model;
     let modelDurationHeight = 100;
     if (goingDuration > 0) {
-      const { height: goingDurationHeight } = getTopHeightByTime(renderStart, modelStart, renderStart, renderEnd);
+      const { height: goingDurationHeight } = getTopHeightByTime(
+        renderStart,
+        modelStart,
+        renderStart,
+        renderEnd
+      );
       uiModel.goingDurationHeight = goingDurationHeight;
       modelDurationHeight -= goingDurationHeight;
     }
     if (comingDuration > 0) {
-      const { height: comingDurationHeight } = getTopHeightByTime(modelEnd, renderEnd, renderStart, renderEnd);
+      const { height: comingDurationHeight } = getTopHeightByTime(
+        modelEnd,
+        renderEnd,
+        renderStart,
+        renderEnd
+      );
       uiModel.comingDurationHeight = comingDurationHeight;
       modelDurationHeight -= comingDurationHeight;
     }
@@ -14591,12 +15239,19 @@
   }
   function getDuplicateWidth(uiModel, baseWidth) {
     const { collapse } = uiModel;
-    return collapse ? `${COLLAPSED_DUPLICATE_EVENT_WIDTH_PX}px` : `calc(${toPercent(baseWidth)} - ${toPx((COLLAPSED_DUPLICATE_EVENT_WIDTH_PX + TIME_EVENT_CONTAINER_MARGIN_LEFT) * (uiModel.duplicateEvents.length - 1) + TIME_EVENT_CONTAINER_MARGIN_LEFT)})`;
+    return collapse ? `${COLLAPSED_DUPLICATE_EVENT_WIDTH_PX}px` : `calc(${toPercent(baseWidth)} - ${toPx(
+      (COLLAPSED_DUPLICATE_EVENT_WIDTH_PX + TIME_EVENT_CONTAINER_MARGIN_LEFT) * (uiModel.duplicateEvents.length - 1) + TIME_EVENT_CONTAINER_MARGIN_LEFT
+    )})`;
   }
   function setDimension(uiModel, options) {
     const { startColumnTime, endColumnTime, baseWidth, columnIndex, renderStart, renderEnd } = options;
     const { duplicateEvents } = uiModel;
-    const { top, height } = getTopHeightByTime(renderStart, renderEnd, startColumnTime, endColumnTime);
+    const { top, height } = getTopHeightByTime(
+      renderStart,
+      renderEnd,
+      startColumnTime,
+      endColumnTime
+    );
     const dimension = {
       top,
       left: baseWidth * columnIndex,
@@ -14654,7 +15309,13 @@
       });
       return;
     }
-    const renderInfoOptions = getRenderInfoOptions(uiModel, columnIndex, baseWidth, startColumnTime, endColumnTime);
+    const renderInfoOptions = getRenderInfoOptions(
+      uiModel,
+      columnIndex,
+      baseWidth,
+      startColumnTime,
+      endColumnTime
+    );
     setDimension(uiModel, renderInfoOptions);
     setInnerHeights(uiModel, renderInfoOptions);
     setCroppedEdges(uiModel, renderInfoOptions);
@@ -14671,7 +15332,9 @@
         return;
       }
       const mainEvent = getMainEvent(duplicateEvents);
-      const duplicateEventUIModels = duplicateEvents.map((event) => uiModels.find((uiModel) => uiModel.cid() === event.__cid));
+      const duplicateEventUIModels = duplicateEvents.map(
+        (event) => uiModels.find((uiModel) => uiModel.cid() === event.__cid)
+      );
       const isSelectedGroup = !!(selectedDuplicateEventCid > DEFAULT_DUPLICATE_EVENT_CID && duplicateEvents.find((event) => event.__cid === selectedDuplicateEventCid));
       const duplicateStarts = duplicateEvents.reduce((acc, { start, goingDuration }) => {
         const renderStart = addMinutes(start, -goingDuration);
@@ -14718,11 +15381,11 @@
     return uiModels;
   }
   function useInterval(callback, delay) {
-    const savedCallback = s$2(callback);
-    _$2(() => {
+    const savedCallback = _$2(callback);
+    p$2(() => {
       savedCallback.current = callback;
     }, [callback]);
-    _$2(() => {
+    p$2(() => {
       const tick = () => savedCallback.current();
       const intervalDelay = delay != null ? delay : -1;
       if (intervalDelay > 0) {
@@ -14732,8 +15395,8 @@
     }, [delay]);
   }
   function useIsMounted() {
-    const isMountedRef = s$2(true);
-    _$2(() => {
+    const isMountedRef = _$2(true);
+    p$2(() => {
       return () => {
         isMountedRef.current = false;
       };
@@ -14750,22 +15413,43 @@
       week: { narrowWeekend, startDayOfWeek, collapseDuplicateEvents }
     } = useStore(optionsSelector);
     const showNowIndicator = useStore(showNowIndicatorOptionSelector);
-    const selectedDuplicateEventCid = useStore((state) => state.weekViewLayout.selectedDuplicateEventCid);
+    const selectedDuplicateEventCid = useStore(
+      (state) => state.weekViewLayout.selectedDuplicateEventCid
+    );
     const [, getNow] = usePrimaryTimezone();
     const isMounted = useIsMounted();
     const { width: timeGridLeftWidth } = useTheme(weekTimeGridLeftSelector);
-    const [nowIndicatorState, setNowIndicatorState] = y$1(null);
+    const [nowIndicatorState, setNowIndicatorState] = h$2(null);
     const { columns, rows } = timeGridData;
     const lastColumnIndex = columns.length - 1;
-    const totalUIModels = F$2(() => columns.map(({ date: date2 }) => events.filter(isBetween(toStartOfDay(date2), toEndOfDay(date2))).map((uiModel) => uiModel.clone())).map((uiModelsByColumn, columnIndex) => setRenderInfoOfUIModels(uiModelsByColumn, setTimeStrToDate(columns[columnIndex].date, first(rows).startTime), setTimeStrToDate(columns[columnIndex].date, last(rows).endTime), selectedDuplicateEventCid, collapseDuplicateEvents)), [columns, rows, events, selectedDuplicateEventCid, collapseDuplicateEvents]);
+    const totalUIModels = F$2(
+      () => columns.map(
+        ({ date: date2 }) => events.filter(isBetween(toStartOfDay(date2), toEndOfDay(date2))).map((uiModel) => uiModel.clone())
+      ).map(
+        (uiModelsByColumn, columnIndex) => setRenderInfoOfUIModels(
+          uiModelsByColumn,
+          setTimeStrToDate(columns[columnIndex].date, first(rows).startTime),
+          setTimeStrToDate(columns[columnIndex].date, last(rows).endTime),
+          selectedDuplicateEventCid,
+          collapseDuplicateEvents
+        )
+      ),
+      [columns, rows, events, selectedDuplicateEventCid, collapseDuplicateEvents]
+    );
     const currentDateData = F$2(() => {
       const now = getNow();
       const currentDateIndexInColumns = columns.findIndex((column) => isSameDate(column.date, now));
       if (currentDateIndexInColumns < 0) {
         return null;
       }
-      const startTime = setTimeStrToDate(columns[currentDateIndexInColumns].date, timeGridData.rows[0].startTime);
-      const endTime = setTimeStrToDate(columns[currentDateIndexInColumns].date, last(timeGridData.rows).endTime);
+      const startTime = setTimeStrToDate(
+        columns[currentDateIndexInColumns].date,
+        timeGridData.rows[0].startTime
+      );
+      const endTime = setTimeStrToDate(
+        columns[currentDateIndexInColumns].date,
+        last(timeGridData.rows).endTime
+      );
       return {
         startTime,
         endTime,
@@ -14773,13 +15457,16 @@
       };
     }, [columns, getNow, timeGridData.rows]);
     const [columnsContainer, setColumnsContainer] = useDOMNode();
-    const gridPositionFinder = F$2(() => createGridPositionFinder({
-      rowsCount: rows.length,
-      columnsCount: columns.length,
-      container: columnsContainer,
-      narrowWeekend,
-      startDayOfWeek
-    }), [columns.length, columnsContainer, narrowWeekend, rows.length, startDayOfWeek]);
+    const gridPositionFinder = F$2(
+      () => createGridPositionFinder({
+        rowsCount: rows.length,
+        columnsCount: columns.length,
+        container: columnsContainer,
+        narrowWeekend,
+        startDayOfWeek
+      }),
+      [columns.length, columnsContainer, narrowWeekend, rows.length, startDayOfWeek]
+    );
     const onMouseDown = useGridSelection({
       type: "timeGrid",
       gridPositionFinder,
@@ -14799,7 +15486,7 @@
         }
       }
     }, [currentDateData, getNow]);
-    h$2(() => {
+    y$2(() => {
       var _a;
       if (isMounted()) {
         if (((_a = currentDateData == null ? void 0 : currentDateData.currentDateIndex) != null ? _a : -1) >= 0) {
@@ -14810,24 +15497,24 @@
       }
     }, [currentDateData, isMounted, updateTimeGridIndicator]);
     useInterval(updateTimeGridIndicator, isPresent(currentDateData) ? MS_PER_MINUTES : null);
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: classNames.timegrid
-    }, /* @__PURE__ */ h$3("div", {
+    }, /* @__PURE__ */ y$3("div", {
       className: classNames.scrollArea
-    }, /* @__PURE__ */ h$3(TimeColumn, {
+    }, /* @__PURE__ */ y$3(TimeColumn, {
       timeGridRows: rows,
       nowIndicatorState
-    }), /* @__PURE__ */ h$3("div", {
+    }), /* @__PURE__ */ y$3("div", {
       className: cls("columns"),
       style: { left: timeGridLeftWidth },
       ref: setColumnsContainer,
       onMouseDown: passConditionalProp(!isReadOnly, onMouseDown)
-    }, /* @__PURE__ */ h$3(GridLines, {
+    }, /* @__PURE__ */ y$3(GridLines, {
       timeGridRows: rows
-    }), /* @__PURE__ */ h$3(MovingEventShadow$1, {
+    }), /* @__PURE__ */ y$3(MovingEventShadow$1, {
       gridPositionFinder,
       timeGridData
-    }), columns.map((column, index) => /* @__PURE__ */ h$3(Column, {
+    }), columns.map((column, index) => /* @__PURE__ */ y$3(Column, {
       key: column.date.toString(),
       timeGridData,
       columnDate: column.date,
@@ -14836,7 +15523,7 @@
       totalUIModels,
       gridPositionFinder,
       isLastColumn: index === lastColumnIndex
-    })), showNowIndicator && isPresent(currentDateData) && isPresent(nowIndicatorState) ? /* @__PURE__ */ h$3(NowIndicator, {
+    })), showNowIndicator && isPresent(currentDateData) && isPresent(nowIndicatorState) ? /* @__PURE__ */ y$3(NowIndicator, {
       top: nowIndicatorState.top,
       columnWidth: columns[0].width,
       columnCount: columns.length,
@@ -14849,17 +15536,17 @@
       "ic-arrow-right": isCollapsed,
       "ic-arrow-left": !isCollapsed
     });
-    return /* @__PURE__ */ h$3("button", {
+    return /* @__PURE__ */ y$3("button", {
       className: cls(addTimeGridPrefix("timezone-collapse-button")),
       "aria-expanded": !isCollapsed,
       onClick: () => eventBus.fire("clickTimezonesCollapseBtn", isCollapsed)
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: iconClassName,
       role: "img"
     }));
   }
   function TimezoneLabel({ label, offset, tooltip, width = 100, left }) {
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       title: tooltip,
       className: cls(addTimeGridPrefix("timezone-label")),
       style: {
@@ -14868,7 +15555,7 @@
         left: toPercent(left)
       },
       role: "gridcell"
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: "timezoneDisplayLabel",
       param: { displayLabel: label, timezoneOffset: offset },
       as: "span"
@@ -14903,7 +15590,7 @@
     const subTimezones = restTimezones.reverse();
     const timezonesCount = timezonesCollapsed ? 1 : timezones.length;
     const timezoneLabelWidth = 100 / timezonesCount;
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       style: {
         top,
         width
@@ -14912,14 +15599,14 @@
       className: cls("timezone-labels-slot")
     }, !timezonesCollapsed && subTimezones.map((subTimezone, index) => {
       var _a;
-      return /* @__PURE__ */ h$3(TimezoneLabel, __spreadValues({
+      return /* @__PURE__ */ y$3(TimezoneLabel, __spreadValues({
         key: `subTimezone-${(_a = subTimezone.label) != null ? _a : subTimezone.offset}`,
         width: timezoneLabelWidth,
         left: timezoneLabelWidth * index
       }, subTimezone));
-    }), showTimezoneCollapseButton && /* @__PURE__ */ h$3(TimezoneCollapseButton, {
+    }), showTimezoneCollapseButton && /* @__PURE__ */ y$3(TimezoneCollapseButton, {
       isCollapsed: timezonesCollapsed
-    }), /* @__PURE__ */ h$3(TimezoneLabel, __spreadValues({
+    }), /* @__PURE__ */ y$3(TimezoneLabel, __spreadValues({
       width: timezoneLabelWidth,
       left: timezoneLabelWidth * subTimezones.length
     }, primaryTimezone)));
@@ -14956,7 +15643,9 @@
       const {
         timedEvents = createEventCollection(),
         totalEvents = createEventCollection()
-      } = events.groupBy((eventModel) => eventModel.category === "time" ? "timedEvents" : "totalEvents");
+      } = events.groupBy(
+        (eventModel) => eventModel.category === "time" ? "timedEvents" : "totalEvents"
+      );
       timedEvents.each((eventModel) => {
         const clonedEventModel = clone$1(eventModel);
         let zonedStart = tzConverter(primaryTimezoneName, clonedEventModel.start);
@@ -14984,11 +15673,17 @@
     }, [events, primaryTimezoneName, tzConverter]);
   }
   function useCalendarData(calendar, ...filters) {
-    const filteredEvents = F$2(() => calendar.events.filter(Collection.and(...filters)), [calendar.events, filters]);
+    const filteredEvents = F$2(
+      () => calendar.events.filter(Collection.and(...filters)),
+      [calendar.events, filters]
+    );
     const filteredEventsWithTimezone = useEventsWithTimezone(filteredEvents);
-    return F$2(() => __spreadProps(__spreadValues({}, calendar), {
-      events: filteredEventsWithTimezone
-    }), [calendar, filteredEventsWithTimezone]);
+    return F$2(
+      () => __spreadProps(__spreadValues({}, calendar), {
+        events: filteredEventsWithTimezone
+      }),
+      [calendar, filteredEventsWithTimezone]
+    );
   }
   function isTimeGridDraggingType(draggingItemType) {
     return /^(event|gridSelection)\/timeGrid/.test(draggingItemType != null ? draggingItemType : "");
@@ -15015,8 +15710,8 @@
   }
   function useTimezoneLabelsTop(timePanel) {
     const timeGridPanelHeight = useStore(timegridHeightSelector);
-    const [stickyTop, setStickyTop] = y$1(null);
-    h$2(() => {
+    const [stickyTop, setStickyTop] = h$2(null);
+    y$2(() => {
       if (isPresent(timeGridPanelHeight) && timePanel) {
         setStickyTop(timePanel.offsetTop);
       }
@@ -15028,13 +15723,16 @@
     const options = useStore(optionsSelector);
     const { dayGridRows: gridRowLayout, lastPanelType } = useStore(weekViewLayoutSelector);
     const { renderDate } = useStore(viewSelector);
-    return F$2(() => ({
-      calendar,
-      options,
-      gridRowLayout,
-      lastPanelType,
-      renderDate
-    }), [calendar, options, gridRowLayout, lastPanelType, renderDate]);
+    return F$2(
+      () => ({
+        calendar,
+        options,
+        gridRowLayout,
+        lastPanelType,
+        renderDate
+      }),
+      [calendar, options, gridRowLayout, lastPanelType, renderDate]
+    );
   }
   function Day$1() {
     var _a, _b;
@@ -15046,7 +15744,12 @@
     const { narrowWeekend, startDayOfWeek, workweek, hourStart, hourEnd, eventView, taskView } = weekOptions;
     const days = F$2(() => [renderDate], [renderDate]);
     const dayNames = getDayNames(days, (_b = (_a = options.week) == null ? void 0 : _a.dayNames) != null ? _b : []);
-    const { rowStyleInfo, cellWidthMap } = getRowStyleInfo(days.length, narrowWeekend, startDayOfWeek, workweek);
+    const { rowStyleInfo, cellWidthMap } = getRowStyleInfo(
+      days.length,
+      narrowWeekend,
+      startDayOfWeek,
+      workweek
+    );
     const calendarData = useCalendarData(calendar, options.eventFilter);
     const dayGridEvents = F$2(() => {
       const getFilterRange = () => {
@@ -15064,11 +15767,14 @@
         weekEndDate
       });
     }, [calendarData, days, hourEnd, hourStart, narrowWeekend, primaryTimezoneName]);
-    const timeGridData = F$2(() => createTimeGridData(days, {
-      hourStart,
-      hourEnd,
-      narrowWeekend
-    }), [days, hourEnd, hourStart, narrowWeekend]);
+    const timeGridData = F$2(
+      () => createTimeGridData(days, {
+        hourStart,
+        hourEnd,
+        narrowWeekend
+      }),
+      [days, hourEnd, hourStart, narrowWeekend]
+    );
     const activePanels = getActivePanels(taskView, eventView);
     const gridRows = activePanels.map((key) => {
       var _a2, _b2;
@@ -15076,18 +15782,18 @@
         return null;
       }
       const rowType = key;
-      return /* @__PURE__ */ h$3(Panel, {
+      return /* @__PURE__ */ y$3(Panel, {
         key: rowType,
         name: rowType,
         resizable: rowType !== lastPanelType
-      }, rowType === "allday" ? /* @__PURE__ */ h$3(AlldayGridRow, {
+      }, rowType === "allday" ? /* @__PURE__ */ y$3(AlldayGridRow, {
         events: dayGridEvents[rowType],
         rowStyleInfo,
         gridColWidthMap: cellWidthMap,
         weekDates: days,
         height: (_a2 = gridRowLayout[rowType]) == null ? void 0 : _a2.height,
         options: weekOptions
-      }) : /* @__PURE__ */ h$3(OtherGridRow, {
+      }) : /* @__PURE__ */ y$3(OtherGridRow, {
         category: rowType,
         events: dayGridEvents[rowType],
         weekDates: days,
@@ -15098,38 +15804,47 @@
     });
     useTimeGridScrollSync(timePanel, timeGridData.rows.length);
     const stickyTop = useTimezoneLabelsTop(timePanel);
-    return /* @__PURE__ */ h$3(Layout, {
+    return /* @__PURE__ */ y$3(Layout, {
       className: cls("day-view"),
       autoAdjustPanels: true
-    }, /* @__PURE__ */ h$3(Panel, {
+    }, /* @__PURE__ */ y$3(Panel, {
       name: "day-view-day-names",
       initialHeight: WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER
-    }, /* @__PURE__ */ h$3(GridHeader, {
+    }, /* @__PURE__ */ y$3(GridHeader, {
       type: "week",
       dayNames,
       marginLeft: gridHeaderMarginLeft,
       rowStyleInfo
-    })), gridRows, activePanels.includes("time") ? /* @__PURE__ */ h$3(Panel, {
+    })), gridRows, activePanels.includes("time") ? /* @__PURE__ */ y$3(Panel, {
       name: "time",
       autoSize: 1,
       ref: setTimePanelRef
-    }, /* @__PURE__ */ h$3(TimeGrid, {
+    }, /* @__PURE__ */ y$3(TimeGrid, {
       events: dayGridEvents.time,
       timeGridData
-    }), /* @__PURE__ */ h$3(TimezoneLabels, {
+    }), /* @__PURE__ */ y$3(TimezoneLabels, {
       top: stickyTop
     })) : null);
   }
   function AccumulatedGridSelection({ rowIndex, weekDates, narrowWeekend }) {
-    const gridSelectionDataByRow = useStore(T$1((state) => state.gridSelection.accumulated.dayGridMonth.map((gridSelection) => dayGridMonthSelectionHelper.calculateSelection(gridSelection, rowIndex, weekDates.length)), [rowIndex, weekDates]));
-    return /* @__PURE__ */ h$3("div", {
+    const gridSelectionDataByRow = useStore(
+      T$1(
+        (state) => state.gridSelection.accumulated.dayGridMonth.map(
+          (gridSelection) => dayGridMonthSelectionHelper.calculateSelection(gridSelection, rowIndex, weekDates.length)
+        ),
+        [rowIndex, weekDates]
+      )
+    );
+    return /* @__PURE__ */ y$3("div", {
       className: cls("accumulated-grid-selection")
-    }, gridSelectionDataByRow.map((gridSelectionData) => gridSelectionData ? /* @__PURE__ */ h$3(GridSelection$1, {
-      type: "accumulated",
-      gridSelectionData,
-      weekDates,
-      narrowWeekend
-    }) : null));
+    }, gridSelectionDataByRow.map(
+      (gridSelectionData) => gridSelectionData ? /* @__PURE__ */ y$3(GridSelection$1, {
+        type: "accumulated",
+        gridSelectionData,
+        weekDates,
+        narrowWeekend
+      }) : null
+    ));
   }
   function MoreEventsButton({ type, number, onClickButton, className: className2 }) {
     const { reset } = useDispatch("dnd");
@@ -15141,12 +15856,12 @@
       onClickButton();
     };
     const exceedButtonTemplate = `monthGrid${type === CellBarType.header ? "Header" : "Footer"}Exceed`;
-    return /* @__PURE__ */ h$3("button", {
+    return /* @__PURE__ */ y$3("button", {
       type: "button",
       onMouseDown: handleMouseDown,
       onClick: handleClick,
       className: className2
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: exceedButtonTemplate,
       param: number
     }));
@@ -15210,16 +15925,16 @@
     if (isNil(height)) {
       return null;
     }
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls(`grid-cell-${type}`),
       style: { height }
-    }, /* @__PURE__ */ h$3("span", {
+    }, /* @__PURE__ */ y$3("span", {
       className: cls("grid-cell-date"),
       style: gridCellDateStyle
-    }, /* @__PURE__ */ h$3(Template, {
+    }, /* @__PURE__ */ y$3(Template, {
       template: monthGridTemplate,
       param: templateParam
-    })), exceedCount ? /* @__PURE__ */ h$3(MoreEventsButton, {
+    })), exceedCount ? /* @__PURE__ */ y$3(MoreEventsButton, {
       type,
       number: exceedCount,
       onClickButton: onClickExceedCount,
@@ -15298,8 +16013,8 @@
   function usePopupPosition(eventLength, parentContainer, layoutContainer) {
     const { width: moreViewWidth, height: moreViewHeight } = useTheme(monthMoreViewSelector);
     const [container, containerRefCallback] = useDOMNode();
-    const [popupPosition, setPopupPosition] = y$1(null);
-    _$2(() => {
+    const [popupPosition, setPopupPosition] = h$2(null);
+    p$2(() => {
       if (layoutContainer && parentContainer && container) {
         const popupSize = getSeeMorePopupSize({
           grid: parentContainer,
@@ -15327,7 +16042,11 @@
     const layoutContainer = useLayoutContainer();
     const { showSeeMorePopup } = useDispatch("popup");
     const backgroundColor = useTheme(weekendBackgroundColorSelector);
-    const { popupPosition, containerRefCallback } = usePopupPosition(events.length, parentContainer, layoutContainer);
+    const { popupPosition, containerRefCallback } = usePopupPosition(
+      events.length,
+      parentContainer,
+      layoutContainer
+    );
     const onOpenSeeMorePopup = T$1(() => {
       if (popupPosition) {
         showSeeMorePopup({
@@ -15337,24 +16056,28 @@
         });
       }
     }, [date2, events, popupPosition, showSeeMorePopup]);
-    const exceedCount = getExceedCount(events, contentAreaHeight, MONTH_EVENT_HEIGHT + MONTH_EVENT_MARGIN_TOP);
-    return /* @__PURE__ */ h$3("div", {
+    const exceedCount = getExceedCount(
+      events,
+      contentAreaHeight,
+      MONTH_EVENT_HEIGHT + MONTH_EVENT_MARGIN_TOP
+    );
+    return /* @__PURE__ */ y$3("div", {
       className: cls("daygrid-cell"),
       style: __spreadProps(__spreadValues({}, style), { backgroundColor: isWeekend(date2.getDay()) ? backgroundColor : "inherit" }),
       ref: containerRefCallback
-    }, /* @__PURE__ */ h$3(CellHeader, {
+    }, /* @__PURE__ */ y$3(CellHeader, {
       type: CellBarType.header,
       exceedCount,
       date: date2,
       onClickExceedCount: onOpenSeeMorePopup
-    }), /* @__PURE__ */ h$3(CellHeader, {
+    }), /* @__PURE__ */ y$3(CellHeader, {
       type: CellBarType.footer,
       exceedCount,
       date: date2,
       onClickExceedCount: onOpenSeeMorePopup
     }));
   }
-  const GridRow = g$1(function GridRow2({
+  const GridRow = x$1(function GridRow2({
     week,
     rowInfo,
     gridDateEventModelMap = {},
@@ -15362,7 +16085,7 @@
   }) {
     const [container, containerRefCallback] = useDOMNode();
     const border = useTheme(T$1((theme) => theme.common.border, []));
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("weekday-grid"),
       style: { borderTop: border },
       ref: containerRefCallback
@@ -15370,7 +16093,7 @@
       const dayIndex = date2.getDay();
       const { width, left } = rowInfo[columnIndex];
       const ymd = toFormat(toStartOfDay(date2), "YYYYMMDD");
-      return /* @__PURE__ */ h$3(GridCell, {
+      return /* @__PURE__ */ y$3(GridCell, {
         key: `daygrid-cell-${dayIndex}`,
         date: date2,
         style: {
@@ -15384,18 +16107,27 @@
     }));
   });
   function GridSelectionByRow({ weekDates, narrowWeekend, rowIndex }) {
-    const gridSelectionDataByRow = useStore(T$1((state) => dayGridMonthSelectionHelper.calculateSelection(state.gridSelection.dayGridMonth, rowIndex, weekDates.length), [rowIndex, weekDates.length]));
+    const gridSelectionDataByRow = useStore(
+      T$1(
+        (state) => dayGridMonthSelectionHelper.calculateSelection(
+          state.gridSelection.dayGridMonth,
+          rowIndex,
+          weekDates.length
+        ),
+        [rowIndex, weekDates.length]
+      )
+    );
     if (isNil(gridSelectionDataByRow)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(GridSelection$1, {
+    return /* @__PURE__ */ y$3(GridSelection$1, {
       type: "month",
       gridSelectionData: gridSelectionDataByRow,
       weekDates,
       narrowWeekend
     });
   }
-  const MonthEvents = g$1(function MonthEvents2({
+  const MonthEvents = x$1(function MonthEvents2({
     contentAreaHeight,
     eventHeight = EVENT_HEIGHT,
     events,
@@ -15403,13 +16135,13 @@
     className: className2
   }) {
     const { headerHeight } = useTheme(monthGridCellSelector);
-    const dayEvents = events.filter(isWithinHeight(contentAreaHeight, eventHeight + MONTH_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ h$3(HorizontalEvent, {
+    const dayEvents = events.filter(isWithinHeight(contentAreaHeight, eventHeight + MONTH_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
       key: `${name}-DayEvent-${uiModel.cid()}`,
       uiModel,
       eventHeight,
       headerHeight: headerHeight != null ? headerHeight : MONTH_CELL_BAR_HEIGHT
     }));
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: className2
     }, dayEvents);
   });
@@ -15469,7 +16201,7 @@
     if (isNil(movingEvent)) {
       return null;
     }
-    return /* @__PURE__ */ h$3(HorizontalEvent, {
+    return /* @__PURE__ */ y$3(HorizontalEvent, {
       uiModel: movingEvent,
       movingLeft: movingEvent.left,
       eventHeight: EVENT_HEIGHT,
@@ -15499,7 +16231,7 @@
       clearDraggingEvent
     } = useDraggingEvent("dayGrid", "resize");
     const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
-    const [guideProps, setGuideProps] = y$1(null);
+    const [guideProps, setGuideProps] = h$2(null);
     const clearStates = T$1(() => {
       setGuideProps(null);
       clearCurrentGridPos();
@@ -15509,11 +16241,21 @@
       if (isNil(resizingStartUIModel)) {
         return null;
       }
-      const resizeTargetUIModelRows = renderedUIModels.map(({ uiModels }) => uiModels.filter((uiModel) => uiModel.cid() === resizingStartUIModel.cid()));
+      const resizeTargetUIModelRows = renderedUIModels.map(
+        ({ uiModels }) => uiModels.filter(
+          (uiModel) => uiModel.cid() === resizingStartUIModel.cid()
+        )
+      );
       const eventStartDateRowIndex = resizeTargetUIModelRows.findIndex((row) => row.length > 0);
       const eventEndDateRowIndex = findLastIndex(resizeTargetUIModelRows, (row) => row.length > 0);
-      const eventStartUIModelPos = getRowPosOfUIModel(resizeTargetUIModelRows[eventStartDateRowIndex][0], dateMatrix[eventStartDateRowIndex]);
-      const eventEndUIModelPos = getRowPosOfUIModel(resizeTargetUIModelRows[eventEndDateRowIndex][0], dateMatrix[eventEndDateRowIndex]);
+      const eventStartUIModelPos = getRowPosOfUIModel(
+        resizeTargetUIModelRows[eventStartDateRowIndex][0],
+        dateMatrix[eventStartDateRowIndex]
+      );
+      const eventEndUIModelPos = getRowPosOfUIModel(
+        resizeTargetUIModelRows[eventEndDateRowIndex][0],
+        dateMatrix[eventEndDateRowIndex]
+      );
       return {
         eventStartDateColumnIndex: eventStartUIModelPos.startColumnIndex,
         eventStartDateRowIndex,
@@ -15523,7 +16265,7 @@
       };
     }, [dateMatrix, renderedUIModels, resizingStartUIModel]);
     const canCalculateProps = isPresent(baseResizingInfo) && isPresent(resizingStartUIModel) && isPresent(currentGridPos);
-    _$2(() => {
+    p$2(() => {
       if (canCalculateProps && rowIndex === baseResizingInfo.eventStartDateRowIndex) {
         const { eventStartDateRowIndex, eventStartDateColumnIndex } = baseResizingInfo;
         const clonedUIModel = baseResizingInfo.resizeTargetUIModelRows[eventStartDateRowIndex][0].clone();
@@ -15539,14 +16281,14 @@
         setGuideProps([clonedUIModel, height]);
       }
     }, [baseResizingInfo, canCalculateProps, cellWidthMap, currentGridPos, dateMatrix, rowIndex]);
-    _$2(() => {
+    p$2(() => {
       if (canCalculateProps && baseResizingInfo.eventStartDateRowIndex < rowIndex && rowIndex < currentGridPos.rowIndex) {
         const clonedUIModel = resizingStartUIModel.clone();
         clonedUIModel.setUIProps({ left: 0, exceedLeft: true, exceedRight: true });
         setGuideProps([clonedUIModel, "100%"]);
       }
     }, [baseResizingInfo, canCalculateProps, currentGridPos, resizingStartUIModel, rowIndex]);
-    _$2(() => {
+    p$2(() => {
       if (canCalculateProps && baseResizingInfo.eventStartDateRowIndex < currentGridPos.rowIndex && rowIndex === currentGridPos.rowIndex) {
         const clonedUIModel = resizingStartUIModel.clone();
         clonedUIModel.setUIProps({ left: 0, exceedLeft: true });
@@ -15560,7 +16302,7 @@
       resizingStartUIModel,
       rowIndex
     ]);
-    _$2(() => {
+    p$2(() => {
       if (canCalculateProps && rowIndex > baseResizingInfo.eventStartDateRowIndex && rowIndex > currentGridPos.rowIndex) {
         setGuideProps(null);
       }
@@ -15601,9 +16343,9 @@
       return null;
     }
     const [uiModel, resizingWidth] = resizingGuideProps;
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       className: cls("weekday-events")
-    }, /* @__PURE__ */ h$3(HorizontalEvent, {
+    }, /* @__PURE__ */ y$3(HorizontalEvent, {
       key: `resizing-event-${uiModel.cid()}`,
       uiModel,
       eventHeight: MONTH_EVENT_HEIGHT,
@@ -15615,9 +16357,9 @@
   function useCellContentAreaHeight(eventHeight) {
     const visibleEventCount = useStore(monthVisibleEventCountSelector);
     const { headerHeight: themeHeaderHeight, footerHeight: themeFooterHeight } = useTheme(monthGridCellSelector);
-    const ref = s$2(null);
-    const [cellContentAreaHeight, setCellContentAreaHeight] = y$1(0);
-    _$2(() => {
+    const ref = _$2(null);
+    const [cellContentAreaHeight, setCellContentAreaHeight] = h$2(0);
+    p$2(() => {
       if (ref.current) {
         const rowHeight = getSize(ref.current).height;
         const headerHeight = MONTH_CELL_PADDING_TOP + (themeHeaderHeight != null ? themeHeaderHeight : MONTH_CELL_BAR_HEIGHT);
@@ -15636,15 +16378,21 @@
     const { eventFilter, month: monthOptions, isReadOnly } = useStore(optionsSelector);
     const { narrowWeekend, startDayOfWeek } = monthOptions;
     const rowHeight = TOTAL_PERCENT_HEIGHT / dateMatrix.length;
-    const gridPositionFinder = F$2(() => createGridPositionFinder({
-      container: gridContainer,
-      rowsCount: dateMatrix.length,
-      columnsCount: dateMatrix[0].length,
-      narrowWeekend,
-      startDayOfWeek
-    }), [dateMatrix, gridContainer, narrowWeekend, startDayOfWeek]);
+    const gridPositionFinder = F$2(
+      () => createGridPositionFinder({
+        container: gridContainer,
+        rowsCount: dateMatrix.length,
+        columnsCount: dateMatrix[0].length,
+        narrowWeekend,
+        startDayOfWeek
+      }),
+      [dateMatrix, gridContainer, narrowWeekend, startDayOfWeek]
+    );
     const calendarData = useCalendarData(calendar, eventFilter);
-    const renderedEventUIModels = F$2(() => dateMatrix.map((week) => getRenderedEventUIModels(week, calendarData, narrowWeekend)), [calendarData, dateMatrix, narrowWeekend]);
+    const renderedEventUIModels = F$2(
+      () => dateMatrix.map((week) => getRenderedEventUIModels(week, calendarData, narrowWeekend)),
+      [calendarData, dateMatrix, narrowWeekend]
+    );
     const onMouseDown = useGridSelection({
       type: "dayGridMonth",
       gridPositionFinder,
@@ -15652,45 +16400,45 @@
       dateGetter: dayGridMonthSelectionHelper.getDateFromCollection,
       selectionSorter: dayGridMonthSelectionHelper.sortSelection
     });
-    return /* @__PURE__ */ h$3("div", {
+    return /* @__PURE__ */ y$3("div", {
       ref: setGridContainerRef,
       onMouseDown: passConditionalProp(!isReadOnly, onMouseDown),
       className: cls("month-daygrid")
     }, dateMatrix.map((week, rowIndex) => {
       const { uiModels, gridDateEventModelMap } = renderedEventUIModels[rowIndex];
-      return /* @__PURE__ */ h$3("div", {
+      return /* @__PURE__ */ y$3("div", {
         key: `dayGrid-events-${rowIndex}`,
         className: cls("month-week-item"),
         style: { height: toPercent(rowHeight) },
         ref
-      }, /* @__PURE__ */ h$3("div", {
+      }, /* @__PURE__ */ y$3("div", {
         className: cls("weekday")
-      }, /* @__PURE__ */ h$3(GridRow, {
+      }, /* @__PURE__ */ y$3(GridRow, {
         gridDateEventModelMap,
         week,
         rowInfo,
         contentAreaHeight: cellContentAreaHeight
-      }), /* @__PURE__ */ h$3(MonthEvents, {
+      }), /* @__PURE__ */ y$3(MonthEvents, {
         name: "month",
         events: uiModels,
         contentAreaHeight: cellContentAreaHeight,
         eventHeight: MONTH_EVENT_HEIGHT,
         className: cls("weekday-events")
-      }), /* @__PURE__ */ h$3(GridSelectionByRow, {
+      }), /* @__PURE__ */ y$3(GridSelectionByRow, {
         weekDates: week,
         narrowWeekend,
         rowIndex
-      }), /* @__PURE__ */ h$3(AccumulatedGridSelection, {
+      }), /* @__PURE__ */ y$3(AccumulatedGridSelection, {
         rowIndex,
         weekDates: week,
         narrowWeekend
-      })), /* @__PURE__ */ h$3(ResizingGuideByRow, {
+      })), /* @__PURE__ */ y$3(ResizingGuideByRow, {
         dateMatrix,
         gridPositionFinder,
         rowIndex,
         cellWidthMap,
         renderedUIModels: renderedEventUIModels
-      }), /* @__PURE__ */ h$3(MovingEventShadow, {
+      }), /* @__PURE__ */ y$3(MovingEventShadow, {
         dateMatrix,
         gridPositionFinder,
         rowIndex,
@@ -15713,19 +16461,25 @@
     const dayNames = getMonthDayNames(options);
     const monthOptions = options.month;
     const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
-    const dateMatrix = F$2(() => createDateMatrixOfMonth(renderDate, monthOptions), [monthOptions, renderDate]);
-    const { rowStyleInfo, cellWidthMap } = F$2(() => getRowStyleInfo(dayNames.length, narrowWeekend, startDayOfWeek, workweek), [dayNames.length, narrowWeekend, startDayOfWeek, workweek]);
+    const dateMatrix = F$2(
+      () => createDateMatrixOfMonth(renderDate, monthOptions),
+      [monthOptions, renderDate]
+    );
+    const { rowStyleInfo, cellWidthMap } = F$2(
+      () => getRowStyleInfo(dayNames.length, narrowWeekend, startDayOfWeek, workweek),
+      [dayNames.length, narrowWeekend, startDayOfWeek, workweek]
+    );
     const rowInfo = rowStyleInfo.map((cellStyleInfo, index) => __spreadProps(__spreadValues({}, cellStyleInfo), {
       date: dateMatrix[0][index]
     }));
-    return /* @__PURE__ */ h$3(Layout, {
+    return /* @__PURE__ */ y$3(Layout, {
       className: cls("month")
-    }, /* @__PURE__ */ h$3(GridHeader, {
+    }, /* @__PURE__ */ y$3(GridHeader, {
       type: "month",
       dayNames,
       options: monthOptions,
       rowStyleInfo
-    }), /* @__PURE__ */ h$3(DayGridMonth, {
+    }), /* @__PURE__ */ y$3(DayGridMonth, {
       dateMatrix,
       rowInfo,
       cellWidthMap
@@ -15736,13 +16490,16 @@
     const calendar = useStore(calendarSelector);
     const { dayGridRows: gridRowLayout, lastPanelType } = useStore(weekViewLayoutSelector);
     const { renderDate } = useStore(viewSelector);
-    return F$2(() => ({
-      options,
-      calendar,
-      gridRowLayout,
-      lastPanelType,
-      renderDate
-    }), [calendar, gridRowLayout, lastPanelType, options, renderDate]);
+    return F$2(
+      () => ({
+        options,
+        calendar,
+        gridRowLayout,
+        lastPanelType,
+        renderDate
+      }),
+      [calendar, gridRowLayout, lastPanelType, options, renderDate]
+    );
   }
   function Week$1() {
     var _a, _b;
@@ -15754,7 +16511,12 @@
     const { narrowWeekend, startDayOfWeek, workweek, hourStart, hourEnd, eventView, taskView } = weekOptions;
     const weekDates = F$2(() => getWeekDates(renderDate, weekOptions), [renderDate, weekOptions]);
     const dayNames = getDayNames(weekDates, (_b = (_a = options.week) == null ? void 0 : _a.dayNames) != null ? _b : []);
-    const { rowStyleInfo, cellWidthMap } = getRowStyleInfo(weekDates.length, narrowWeekend, startDayOfWeek, workweek);
+    const { rowStyleInfo, cellWidthMap } = getRowStyleInfo(
+      weekDates.length,
+      narrowWeekend,
+      startDayOfWeek,
+      workweek
+    );
     const calendarData = useCalendarData(calendar, options.eventFilter);
     const eventByPanel = F$2(() => {
       const getFilterRange = () => {
@@ -15772,11 +16534,14 @@
         weekEndDate
       });
     }, [calendarData, hourEnd, hourStart, narrowWeekend, primaryTimezoneName, weekDates]);
-    const timeGridData = F$2(() => createTimeGridData(weekDates, {
-      hourStart,
-      hourEnd,
-      narrowWeekend
-    }), [hourEnd, hourStart, narrowWeekend, weekDates]);
+    const timeGridData = F$2(
+      () => createTimeGridData(weekDates, {
+        hourStart,
+        hourEnd,
+        narrowWeekend
+      }),
+      [hourEnd, hourStart, narrowWeekend, weekDates]
+    );
     const activePanels = getActivePanels(taskView, eventView);
     const dayGridRows = activePanels.map((key) => {
       var _a2, _b2;
@@ -15784,18 +16549,18 @@
         return null;
       }
       const rowType = key;
-      return /* @__PURE__ */ h$3(Panel, {
+      return /* @__PURE__ */ y$3(Panel, {
         name: rowType,
         key: rowType,
         resizable: rowType !== lastPanelType
-      }, rowType === "allday" ? /* @__PURE__ */ h$3(AlldayGridRow, {
+      }, rowType === "allday" ? /* @__PURE__ */ y$3(AlldayGridRow, {
         events: eventByPanel[rowType],
         rowStyleInfo,
         gridColWidthMap: cellWidthMap,
         weekDates,
         height: (_a2 = gridRowLayout[rowType]) == null ? void 0 : _a2.height,
         options: weekOptions
-      }) : /* @__PURE__ */ h$3(OtherGridRow, {
+      }) : /* @__PURE__ */ y$3(OtherGridRow, {
         category: rowType,
         events: eventByPanel[rowType],
         weekDates,
@@ -15807,26 +16572,26 @@
     const hasTimePanel = F$2(() => activePanels.includes("time"), [activePanels]);
     useTimeGridScrollSync(timePanel, timeGridData.rows.length);
     const stickyTop = useTimezoneLabelsTop(timePanel);
-    return /* @__PURE__ */ h$3(Layout, {
+    return /* @__PURE__ */ y$3(Layout, {
       className: cls("week-view"),
       autoAdjustPanels: true
-    }, /* @__PURE__ */ h$3(Panel, {
+    }, /* @__PURE__ */ y$3(Panel, {
       name: "week-view-day-names",
       initialHeight: WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER * 2
-    }, /* @__PURE__ */ h$3(GridHeader, {
+    }, /* @__PURE__ */ y$3(GridHeader, {
       type: "week",
       dayNames,
       marginLeft: gridHeaderMarginLeft,
       options: weekOptions,
       rowStyleInfo
-    })), dayGridRows, hasTimePanel ? /* @__PURE__ */ h$3(Panel, {
+    })), dayGridRows, hasTimePanel ? /* @__PURE__ */ y$3(Panel, {
       name: "time",
       autoSize: 1,
       ref: setTimePanelRef
-    }, /* @__PURE__ */ h$3(TimeGrid, {
+    }, /* @__PURE__ */ y$3(TimeGrid, {
       events: eventByPanel.time,
       timeGridData
-    }), /* @__PURE__ */ h$3(TimezoneLabels, {
+    }), /* @__PURE__ */ y$3(TimezoneLabels, {
       top: stickyTop
     })) : null);
   }
@@ -15838,176 +16603,300 @@
   function Main() {
     const { currentView } = useStore(viewSelector);
     const CurrentViewComponent = F$2(() => views[currentView] || (() => null), [currentView]);
-    return /* @__PURE__ */ h$3(CurrentViewComponent, null);
+    return /* @__PURE__ */ y$3(CurrentViewComponent, null);
   }
-  var r = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|^--/i, n = /[&<>"]/;
-  function o(e2) {
-    var t2 = String(e2);
-    return n.test(t2) ? t2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : t2;
-  }
-  var a = function(e2, t2) {
-    return String(e2).replace(/(\n+)/g, "$1" + (t2 || "	"));
-  }, i = function(e2, t2, r2) {
-    return String(e2).length > (t2 || 40) || !r2 && String(e2).indexOf("\n") !== -1 || String(e2).indexOf("<") !== -1;
-  }, l = {};
+  var n = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|^--/i, o = /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/, i = /[\s\n\\/='"\0<>]/, l = /^xlink:?./, a = /["&<]/;
   function s(e2) {
+    if (false === a.test(e2 += ""))
+      return e2;
+    for (var t2 = 0, r2 = 0, n2 = "", o2 = ""; r2 < e2.length; r2++) {
+      switch (e2.charCodeAt(r2)) {
+        case 34:
+          o2 = "&quot;";
+          break;
+        case 38:
+          o2 = "&amp;";
+          break;
+        case 60:
+          o2 = "&lt;";
+          break;
+        default:
+          continue;
+      }
+      r2 !== t2 && (n2 += e2.slice(t2, r2)), n2 += o2, t2 = r2 + 1;
+    }
+    return r2 !== t2 && (n2 += e2.slice(t2, r2)), n2;
+  }
+  var f = function(e2, t2) {
+    return String(e2).replace(/(\n+)/g, "$1" + (t2 || "	"));
+  }, u = function(e2, t2, r2) {
+    return String(e2).length > (t2 || 40) || !r2 && -1 !== String(e2).indexOf("\n") || -1 !== String(e2).indexOf("<");
+  }, c = {}, _ = /([A-Z])/g;
+  function p(e2) {
     var t2 = "";
-    for (var n2 in e2) {
-      var o2 = e2[n2];
-      o2 != null && o2 !== "" && (t2 && (t2 += " "), t2 += n2[0] == "-" ? n2 : l[n2] || (l[n2] = n2.replace(/([A-Z])/g, "-$1").toLowerCase()), t2 += ": ", t2 += o2, typeof o2 == "number" && r.test(n2) === false && (t2 += "px"), t2 += ";");
+    for (var r2 in e2) {
+      var o2 = e2[r2];
+      null != o2 && "" !== o2 && (t2 && (t2 += " "), t2 += "-" == r2[0] ? r2 : c[r2] || (c[r2] = r2.replace(_, "-$1").toLowerCase()), t2 = "number" == typeof o2 && false === n.test(r2) ? t2 + ": " + o2 + "px;" : t2 + ": " + o2 + ";");
     }
     return t2 || void 0;
   }
-  function f(e2, t2) {
-    for (var r2 in t2)
-      e2[r2] = t2[r2];
-    return e2;
+  function d(e2, t2) {
+    return Array.isArray(t2) ? t2.reduce(d, e2) : null != t2 && false !== t2 && e2.push(t2), e2;
   }
-  function u(e2, t2) {
-    return Array.isArray(t2) ? t2.reduce(u, e2) : t2 != null && t2 !== false && e2.push(t2), e2;
-  }
-  var c = { shallow: true }, p = [], _ = /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/, d = /[\s\n\\/='"\0<>]/;
   function v() {
     this.__d = true;
   }
-  m.render = m;
-  var g = function(e2, t2) {
-    return m(e2, t2, c);
-  }, h = [];
-  function m(t2, r2, n2) {
-    r2 = r2 || {}, n2 = n2 || {};
-    var o2 = l$3.__s;
-    l$3.__s = true;
-    var a2 = x(t2, r2, n2);
-    return l$3.__c && l$3.__c(t2, h), h.length = 0, l$3.__s = o2, a2;
+  function h(e2, t2) {
+    return { __v: e2, context: t2, props: e2.props, setState: v, forceUpdate: v, __d: true, __h: [] };
   }
-  function x(r2, n2, l2, c2, g2, h2) {
-    if (r2 == null || typeof r2 == "boolean")
+  function g(e2, t2) {
+    var r2 = e2.contextType, n2 = r2 && t2[r2.__c];
+    return null != r2 ? n2 ? n2.props.value : r2.__ : t2;
+  }
+  var y = [];
+  function m(r2, n2, a2, c2, _2, v2) {
+    if (null == r2 || "boolean" == typeof r2)
       return "";
-    if (typeof r2 != "object")
-      return o(r2);
-    var m2 = l2.pretty, y2 = m2 && typeof m2 == "string" ? m2 : "	";
+    if ("object" != typeof r2)
+      return "function" == typeof r2 ? "" : s(r2);
+    var b2 = a2.pretty, x2 = b2 && "string" == typeof b2 ? b2 : "	";
     if (Array.isArray(r2)) {
-      for (var b2 = "", S2 = 0; S2 < r2.length; S2++)
-        m2 && S2 > 0 && (b2 += "\n"), b2 += x(r2[S2], n2, l2, c2, g2, h2);
-      return b2;
+      for (var k2 = "", S2 = 0; S2 < r2.length; S2++)
+        b2 && S2 > 0 && (k2 += "\n"), k2 += m(r2[S2], n2, a2, c2, _2, v2);
+      return k2;
     }
-    var k2, w2 = r2.type, O2 = r2.props, C2 = false;
-    if (typeof w2 == "function") {
-      if (C2 = true, !l2.shallow || !c2 && l2.renderRootComponent !== false) {
-        if (w2 === p$3) {
+    if (void 0 !== r2.constructor)
+      return "";
+    var w2, C2 = r2.type, O2 = r2.props, j2 = false;
+    if ("function" == typeof C2) {
+      if (j2 = true, !a2.shallow || !c2 && false !== a2.renderRootComponent) {
+        if (C2 === _$3) {
           var A2 = [];
-          return u(A2, r2.props.children), x(A2, n2, l2, l2.shallowHighOrder !== false, g2, h2);
+          return d(A2, r2.props.children), m(A2, n2, a2, false !== a2.shallowHighOrder, _2, v2);
         }
-        var H2, j2 = r2.__c = { __v: r2, context: n2, props: r2.props, setState: v, forceUpdate: v, __d: true, __h: [] };
+        var F2, H2 = r2.__c = h(r2, n2);
         l$3.__b && l$3.__b(r2);
-        var F2 = l$3.__r;
-        if (w2.prototype && typeof w2.prototype.render == "function") {
-          var M2 = w2.contextType, T2 = M2 && n2[M2.__c], $2 = M2 != null ? T2 ? T2.props.value : M2.__ : n2;
-          (j2 = r2.__c = new w2(O2, $2)).__v = r2, j2._dirty = j2.__d = true, j2.props = O2, j2.state == null && (j2.state = {}), j2._nextState == null && j2.__s == null && (j2._nextState = j2.__s = j2.state), j2.context = $2, w2.getDerivedStateFromProps ? j2.state = f(f({}, j2.state), w2.getDerivedStateFromProps(j2.props, j2.state)) : j2.componentWillMount && (j2.componentWillMount(), j2.state = j2._nextState !== j2.state ? j2._nextState : j2.__s !== j2.state ? j2.__s : j2.state), F2 && F2(r2), H2 = j2.render(j2.props, j2.state, j2.context);
+        var M2 = l$3.__r;
+        if (C2.prototype && "function" == typeof C2.prototype.render) {
+          var L2 = g(C2, n2);
+          (H2 = r2.__c = new C2(O2, L2)).__v = r2, H2._dirty = H2.__d = true, H2.props = O2, null == H2.state && (H2.state = {}), null == H2._nextState && null == H2.__s && (H2._nextState = H2.__s = H2.state), H2.context = L2, C2.getDerivedStateFromProps ? H2.state = Object.assign({}, H2.state, C2.getDerivedStateFromProps(H2.props, H2.state)) : H2.componentWillMount && (H2.componentWillMount(), H2.state = H2._nextState !== H2.state ? H2._nextState : H2.__s !== H2.state ? H2.__s : H2.state), M2 && M2(r2), F2 = H2.render(H2.props, H2.state, H2.context);
         } else
-          for (var L2 = w2.contextType, E2 = L2 && n2[L2.__c], D2 = L2 != null ? E2 ? E2.props.value : L2.__ : n2, N2 = 0; j2.__d && N2++ < 25; )
-            j2.__d = false, F2 && F2(r2), H2 = w2.call(r2.__c, O2, D2);
-        return j2.getChildContext && (n2 = f(f({}, n2), j2.getChildContext())), l$3.diffed && l$3.diffed(r2), x(H2, n2, l2, l2.shallowHighOrder !== false, g2, h2);
+          for (var T2 = g(C2, n2), E2 = 0; H2.__d && E2++ < 25; )
+            H2.__d = false, M2 && M2(r2), F2 = C2.call(r2.__c, O2, T2);
+        return H2.getChildContext && (n2 = Object.assign({}, n2, H2.getChildContext())), l$3.diffed && l$3.diffed(r2), m(F2, n2, a2, false !== a2.shallowHighOrder, _2, v2);
       }
-      w2 = (k2 = w2).displayName || k2 !== Function && k2.name || function(e2) {
+      C2 = (w2 = C2).displayName || w2 !== Function && w2.name || function(e2) {
         var t2 = (Function.prototype.toString.call(e2).match(/^\s*function\s+([^( ]+)/) || "")[1];
         if (!t2) {
-          for (var r3 = -1, n3 = p.length; n3--; )
-            if (p[n3] === e2) {
+          for (var r3 = -1, n3 = y.length; n3--; )
+            if (y[n3] === e2) {
               r3 = n3;
               break;
             }
-          r3 < 0 && (r3 = p.push(e2) - 1), t2 = "UnnamedComponent" + r3;
+          r3 < 0 && (r3 = y.push(e2) - 1), t2 = "UnnamedComponent" + r3;
         }
         return t2;
-      }(k2);
+      }(w2);
     }
-    var P2, R2, U2 = "<" + w2;
+    var $2, D2, N2 = "<" + C2;
     if (O2) {
-      var W2 = Object.keys(O2);
-      l2 && l2.sortAttributes === true && W2.sort();
-      for (var q2 = 0; q2 < W2.length; q2++) {
-        var z2 = W2[q2], I2 = O2[z2];
-        if (z2 !== "children") {
-          if (!d.test(z2) && (l2 && l2.allAttributes || z2 !== "key" && z2 !== "ref" && z2 !== "__self" && z2 !== "__source")) {
-            if (z2 === "defaultValue")
-              z2 = "value";
-            else if (z2 === "defaultChecked")
-              z2 = "checked";
-            else if (z2 === "defaultSelected")
-              z2 = "selected";
-            else if (z2 === "className") {
-              if (O2.class !== void 0)
+      var P2 = Object.keys(O2);
+      a2 && true === a2.sortAttributes && P2.sort();
+      for (var W2 = 0; W2 < P2.length; W2++) {
+        var I2 = P2[W2], R2 = O2[I2];
+        if ("children" !== I2) {
+          if (!i.test(I2) && (a2 && a2.allAttributes || "key" !== I2 && "ref" !== I2 && "__self" !== I2 && "__source" !== I2)) {
+            if ("defaultValue" === I2)
+              I2 = "value";
+            else if ("defaultChecked" === I2)
+              I2 = "checked";
+            else if ("defaultSelected" === I2)
+              I2 = "selected";
+            else if ("className" === I2) {
+              if (void 0 !== O2.class)
                 continue;
-              z2 = "class";
+              I2 = "class";
             } else
-              g2 && /^xlink:?./.test(z2) && (z2 = z2.toLowerCase().replace(/^xlink:?/, "xlink:"));
-            if (z2 === "htmlFor") {
+              _2 && l.test(I2) && (I2 = I2.toLowerCase().replace(/^xlink:?/, "xlink:"));
+            if ("htmlFor" === I2) {
               if (O2.for)
                 continue;
-              z2 = "for";
+              I2 = "for";
             }
-            z2 === "style" && I2 && typeof I2 == "object" && (I2 = s(I2)), z2[0] === "a" && z2[1] === "r" && typeof I2 == "boolean" && (I2 = String(I2));
-            var V2 = l2.attributeHook && l2.attributeHook(z2, I2, n2, l2, C2);
-            if (V2 || V2 === "")
-              U2 += V2;
-            else if (z2 === "dangerouslySetInnerHTML")
-              R2 = I2 && I2.__html;
-            else if (w2 === "textarea" && z2 === "value")
-              P2 = I2;
-            else if ((I2 || I2 === 0 || I2 === "") && typeof I2 != "function") {
-              if (!(I2 !== true && I2 !== "" || (I2 = z2, l2 && l2.xml))) {
-                U2 = U2 + " " + z2;
+            "style" === I2 && R2 && "object" == typeof R2 && (R2 = p(R2)), "a" === I2[0] && "r" === I2[1] && "boolean" == typeof R2 && (R2 = String(R2));
+            var U2 = a2.attributeHook && a2.attributeHook(I2, R2, n2, a2, j2);
+            if (U2 || "" === U2)
+              N2 += U2;
+            else if ("dangerouslySetInnerHTML" === I2)
+              D2 = R2 && R2.__html;
+            else if ("textarea" === C2 && "value" === I2)
+              $2 = R2;
+            else if ((R2 || 0 === R2 || "" === R2) && "function" != typeof R2) {
+              if (!(true !== R2 && "" !== R2 || (R2 = I2, a2 && a2.xml))) {
+                N2 = N2 + " " + I2;
                 continue;
               }
-              if (z2 === "value") {
-                if (w2 === "select") {
-                  h2 = I2;
+              if ("value" === I2) {
+                if ("select" === C2) {
+                  v2 = R2;
                   continue;
                 }
-                w2 === "option" && h2 == I2 && O2.selected === void 0 && (U2 += " selected");
+                "option" === C2 && v2 == R2 && void 0 === O2.selected && (N2 += " selected");
               }
-              U2 = U2 + " " + z2 + '="' + o(I2) + '"';
+              N2 = N2 + " " + I2 + '="' + s(R2) + '"';
             }
           }
         } else
-          P2 = I2;
+          $2 = R2;
       }
     }
-    if (m2) {
-      var Z2 = U2.replace(/\n\s*/, " ");
-      Z2 === U2 || ~Z2.indexOf("\n") ? m2 && ~U2.indexOf("\n") && (U2 += "\n") : U2 = Z2;
+    if (b2) {
+      var V2 = N2.replace(/\n\s*/, " ");
+      V2 === N2 || ~V2.indexOf("\n") ? b2 && ~N2.indexOf("\n") && (N2 += "\n") : N2 = V2;
     }
-    if (U2 += ">", d.test(w2))
-      throw new Error(w2 + " is not a valid HTML tag name in " + U2);
-    var B2, G2 = _.test(w2) || l2.voidElements && l2.voidElements.test(w2), J2 = [];
-    if (R2)
-      m2 && i(R2) && (R2 = "\n" + y2 + a(R2, y2)), U2 += R2;
-    else if (P2 != null && u(B2 = [], P2).length) {
-      for (var K2 = m2 && ~U2.indexOf("\n"), Q2 = false, X2 = 0; X2 < B2.length; X2++) {
-        var Y2 = B2[X2];
-        if (Y2 != null && Y2 !== false) {
-          var ee = x(Y2, n2, l2, true, w2 === "svg" || w2 !== "foreignObject" && g2, h2);
-          if (m2 && !K2 && i(ee) && (K2 = true), ee)
-            if (m2) {
-              var te = ee.length > 0 && ee[0] != "<";
-              Q2 && te ? J2[J2.length - 1] += ee : J2.push(ee), Q2 = te;
+    if (N2 += ">", i.test(C2))
+      throw new Error(C2 + " is not a valid HTML tag name in " + N2);
+    var q2, z2 = o.test(C2) || a2.voidElements && a2.voidElements.test(C2), Z2 = [];
+    if (D2)
+      b2 && u(D2) && (D2 = "\n" + x2 + f(D2, x2)), N2 += D2;
+    else if (null != $2 && d(q2 = [], $2).length) {
+      for (var B2 = b2 && ~N2.indexOf("\n"), G2 = false, J = 0; J < q2.length; J++) {
+        var K2 = q2[J];
+        if (null != K2 && false !== K2) {
+          var Q2 = m(K2, n2, a2, true, "svg" === C2 || "foreignObject" !== C2 && _2, v2);
+          if (b2 && !B2 && u(Q2) && (B2 = true), Q2)
+            if (b2) {
+              var X2 = Q2.length > 0 && "<" != Q2[0];
+              G2 && X2 ? Z2[Z2.length - 1] += Q2 : Z2.push(Q2), G2 = X2;
             } else
-              J2.push(ee);
+              Z2.push(Q2);
         }
       }
-      if (m2 && K2)
-        for (var re = J2.length; re--; )
-          J2[re] = "\n" + y2 + a(J2[re], y2);
+      if (b2 && B2)
+        for (var Y2 = Z2.length; Y2--; )
+          Z2[Y2] = "\n" + x2 + f(Z2[Y2], x2);
     }
-    if (J2.length || R2)
-      U2 += J2.join("");
-    else if (l2 && l2.xml)
-      return U2.substring(0, U2.length - 1) + " />";
-    return !G2 || B2 || R2 ? (m2 && ~U2.indexOf("\n") && (U2 += "\n"), U2 = U2 + "</" + w2 + ">") : U2 = U2.replace(/>$/, " />"), U2;
+    if (Z2.length || D2)
+      N2 += Z2.join("");
+    else if (a2 && a2.xml)
+      return N2.substring(0, N2.length - 1) + " />";
+    return !z2 || q2 || D2 ? (b2 && ~N2.indexOf("\n") && (N2 += "\n"), N2 = N2 + "</" + C2 + ">") : N2 = N2.replace(/>$/, " />"), N2;
   }
-  m.shallowRender = g;
+  var b = { shallow: true };
+  S.render = S;
+  var x = function(e2, t2) {
+    return S(e2, t2, b);
+  }, k = [];
+  function S(n2, o2, i2) {
+    o2 = o2 || {};
+    var l2 = l$3.__s;
+    l$3.__s = true;
+    var a2, s2 = y$3(_$3, null);
+    return s2.__k = [n2], a2 = i2 && (i2.pretty || i2.voidElements || i2.sortAttributes || i2.shallow || i2.allAttributes || i2.xml || i2.attributeHook) ? m(n2, o2, i2) : F(n2, o2, false, void 0, s2), l$3.__c && l$3.__c(n2, k), l$3.__s = l2, k.length = 0, a2;
+  }
+  function w(e2) {
+    return null == e2 || "boolean" == typeof e2 ? null : "string" == typeof e2 || "number" == typeof e2 || "bigint" == typeof e2 ? y$3(null, null, e2) : e2;
+  }
+  function C(e2, t2) {
+    return "className" === e2 ? "class" : "htmlFor" === e2 ? "for" : "defaultValue" === e2 ? "value" : "defaultChecked" === e2 ? "checked" : "defaultSelected" === e2 ? "selected" : t2 && l.test(e2) ? e2.toLowerCase().replace(/^xlink:?/, "xlink:") : e2;
+  }
+  function O(e2, t2) {
+    return "style" === e2 && null != t2 && "object" == typeof t2 ? p(t2) : "a" === e2[0] && "r" === e2[1] && "boolean" == typeof t2 ? String(t2) : t2;
+  }
+  var j = Array.isArray, A = Object.assign;
+  function F(r2, n2, l2, a2, f2) {
+    if (null == r2 || true === r2 || false === r2 || "" === r2)
+      return "";
+    if ("object" != typeof r2)
+      return "function" == typeof r2 ? "" : s(r2);
+    if (j(r2)) {
+      var u2 = "";
+      f2.__k = r2;
+      for (var c2 = 0; c2 < r2.length; c2++)
+        u2 += F(r2[c2], n2, l2, a2, f2), r2[c2] = w(r2[c2]);
+      return u2;
+    }
+    if (void 0 !== r2.constructor)
+      return "";
+    r2.__ = f2, l$3.__b && l$3.__b(r2);
+    var _2 = r2.type, p2 = r2.props;
+    if ("function" == typeof _2) {
+      var d2;
+      if (_2 === _$3)
+        d2 = p2.children;
+      else {
+        d2 = _2.prototype && "function" == typeof _2.prototype.render ? function(e2, r3) {
+          var n3 = e2.type, o2 = g(n3, r3), i2 = new n3(e2.props, o2);
+          e2.__c = i2, i2.__v = e2, i2.__d = true, i2.props = e2.props, null == i2.state && (i2.state = {}), null == i2.__s && (i2.__s = i2.state), i2.context = o2, n3.getDerivedStateFromProps ? i2.state = A({}, i2.state, n3.getDerivedStateFromProps(i2.props, i2.state)) : i2.componentWillMount && (i2.componentWillMount(), i2.state = i2.__s !== i2.state ? i2.__s : i2.state);
+          var l3 = l$3.__r;
+          return l3 && l3(e2), i2.render(i2.props, i2.state, i2.context);
+        }(r2, n2) : function(e2, r3) {
+          var n3, o2 = h(e2, r3), i2 = g(e2.type, r3);
+          e2.__c = o2;
+          for (var l3 = l$3.__r, a3 = 0; o2.__d && a3++ < 25; )
+            o2.__d = false, l3 && l3(e2), n3 = e2.type.call(o2, e2.props, i2);
+          return n3;
+        }(r2, n2);
+        var v2 = r2.__c;
+        v2.getChildContext && (n2 = A({}, n2, v2.getChildContext()));
+      }
+      var y2 = F(d2 = null != d2 && d2.type === _$3 && null == d2.key ? d2.props.children : d2, n2, l2, a2, r2);
+      return l$3.diffed && l$3.diffed(r2), r2.__ = void 0, l$3.unmount && l$3.unmount(r2), y2;
+    }
+    var m2, b2, x2 = "<";
+    if (x2 += _2, p2)
+      for (var k2 in m2 = p2.children, p2) {
+        var S2 = p2[k2];
+        if (!("key" === k2 || "ref" === k2 || "__self" === k2 || "__source" === k2 || "children" === k2 || "className" === k2 && "class" in p2 || "htmlFor" === k2 && "for" in p2 || i.test(k2))) {
+          if (S2 = O(k2 = C(k2, l2), S2), "dangerouslySetInnerHTML" === k2)
+            b2 = S2 && S2.__html;
+          else if ("textarea" === _2 && "value" === k2)
+            m2 = S2;
+          else if ((S2 || 0 === S2 || "" === S2) && "function" != typeof S2) {
+            if (true === S2 || "" === S2) {
+              S2 = k2, x2 = x2 + " " + k2;
+              continue;
+            }
+            if ("value" === k2) {
+              if ("select" === _2) {
+                a2 = S2;
+                continue;
+              }
+              "option" !== _2 || a2 != S2 || "selected" in p2 || (x2 += " selected");
+            }
+            x2 = x2 + " " + k2 + '="' + s(S2) + '"';
+          }
+        }
+      }
+    var H2 = x2;
+    if (x2 += ">", i.test(_2))
+      throw new Error(_2 + " is not a valid HTML tag name in " + x2);
+    var M2 = "", L2 = false;
+    if (b2)
+      M2 += b2, L2 = true;
+    else if ("string" == typeof m2)
+      M2 += s(m2), L2 = true;
+    else if (j(m2)) {
+      r2.__k = m2;
+      for (var T2 = 0; T2 < m2.length; T2++) {
+        var E2 = m2[T2];
+        if (m2[T2] = w(E2), null != E2 && false !== E2) {
+          var $2 = F(E2, n2, "svg" === _2 || "foreignObject" !== _2 && l2, a2, r2);
+          $2 && (M2 += $2, L2 = true);
+        }
+      }
+    } else if (null != m2 && false !== m2 && true !== m2) {
+      r2.__k = [w(m2)];
+      var D2 = F(m2, n2, "svg" === _2 || "foreignObject" !== _2 && l2, a2, r2);
+      D2 && (M2 += D2, L2 = true);
+    }
+    if (l$3.diffed && l$3.diffed(r2), r2.__ = void 0, l$3.unmount && l$3.unmount(r2), L2)
+      x2 += M2;
+    else if (o.test(_2))
+      return H2 + " />";
+    return x2 + "</" + _2 + ">";
+  }
+  S.shallowRender = x;
   function forEachOwnProperties$2(obj, iteratee, context) {
     var key;
     context = context || null;
@@ -16073,13 +16962,13 @@
   }
   var sendHostname_1 = sendHostname;
   function CalendarContainer({ theme, store, eventBus, children }) {
-    return /* @__PURE__ */ h$3(EventBusProvider, {
+    return /* @__PURE__ */ y$3(EventBusProvider, {
       value: eventBus
-    }, /* @__PURE__ */ h$3(ThemeProvider, {
+    }, /* @__PURE__ */ y$3(ThemeProvider, {
       store: theme
-    }, /* @__PURE__ */ h$3(StoreProvider, {
+    }, /* @__PURE__ */ y$3(StoreProvider, {
       store
-    }, /* @__PURE__ */ h$3(FloatingLayerProvider, null, children))));
+    }, /* @__PURE__ */ y$3(FloatingLayerProvider, null, children))));
   }
   const GA_TRACKING_ID = "UA-129951699-1";
   function extend$1(target, objects) {
@@ -16426,7 +17315,7 @@
     }
     destroy() {
       if (this.container) {
-        un(this.container);
+        hn(this.container);
       }
       this.store.clearListeners();
       this.theme.clearListeners();
@@ -16519,7 +17408,9 @@
     }
     getEventModel(eventId, calendarId) {
       const { events } = this.getStoreState("calendar");
-      return events.find(({ id, calendarId: eventCalendarId }) => id === eventId && eventCalendarId === calendarId);
+      return events.find(
+        ({ id, calendarId: eventCalendarId }) => id === eventId && eventCalendarId === calendarId
+      );
     }
     getEvent(eventId, calendarId) {
       var _a, _b;
@@ -16546,20 +17437,25 @@
     }
     render() {
       if (isPresent(this.container)) {
-        P$2(/* @__PURE__ */ h$3(CalendarContainer, {
-          theme: this.theme,
-          store: this.store,
-          eventBus: this.eventBus
-        }, this.getComponent()), this.container);
+        B$3(
+          /* @__PURE__ */ y$3(CalendarContainer, {
+            theme: this.theme,
+            store: this.store,
+            eventBus: this.eventBus
+          }, this.getComponent()),
+          this.container
+        );
       }
       return this;
     }
     renderToString() {
-      return m(/* @__PURE__ */ h$3(CalendarContainer, {
-        theme: this.theme,
-        store: this.store,
-        eventBus: this.eventBus
-      }, this.getComponent()));
+      return S(
+        /* @__PURE__ */ y$3(CalendarContainer, {
+          theme: this.theme,
+          store: this.store,
+          eventBus: this.eventBus
+        }, this.getComponent())
+      );
     }
     clear() {
       const { clearEvents: clearEvents2 } = this.getStoreDispatchers("calendar");
@@ -16620,7 +17516,9 @@
     getElement(eventId, calendarId) {
       const event = this.getEvent(eventId, calendarId);
       if (event && this.container) {
-        return this.container.querySelector(`[data-event-id="${eventId}"][data-calendar-id="${calendarId}"]`);
+        return this.container.querySelector(
+          `[data-event-id="${eventId}"][data-calendar-id="${calendarId}"]`
+        );
       }
       return null;
     }
@@ -16719,7 +17617,7 @@
       this.render();
     }
     getComponent() {
-      return /* @__PURE__ */ h$3(Main, null);
+      return /* @__PURE__ */ y$3(Main, null);
     }
   }
   var Calendar = Vue__default["default"].component("ToastUICalendar", {

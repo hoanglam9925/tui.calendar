@@ -15,6 +15,7 @@ const classNames = {
 };
 
 export function EventDetailSectionHeader({ event }: Props) {
+  console.log({event});
   return (
     <div className={classNames.sectionHeader}>
       <div className={classNames.eventTitle}>

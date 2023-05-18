@@ -60,7 +60,8 @@
     "preact": "^10.10.0",
     "preact-render-to-string": "^5.2.1",
     "tui-date-picker": "^4.0.1",
-    "tui-time-picker": "^2.0.1"
+    "tui-time-picker": "^2.0.1",
+    "sanitize-html-react": "^1.13.0"
   },
   "devDependencies": {
     "@storybook/addons": "^6.5.9",

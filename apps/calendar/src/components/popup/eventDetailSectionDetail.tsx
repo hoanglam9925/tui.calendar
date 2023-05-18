@@ -4,7 +4,9 @@ import { Template } from '@src/components/template';
 import { cls } from '@src/helpers/css';
 import { useCalendarById } from '@src/hooks/calendar/useCalendarById';
 import type EventModel from '@src/model/eventModel';
-
+// // @ts-ignore
+// import sanitizeHtml from 'sanitize-html-react';
+// import parse from 'html-react-parser'
 interface Props {
   event: EventModel;
   userData: any;
@@ -21,7 +23,7 @@ const classNames = {
   repeatIcon: cls('icon', 'ic-repeat-b'),
   userIcon: cls('icon', 'ic-user-b'),
   stateIcon: cls('icon', 'ic-state-b'),
-  calendarDotIcon: cls('icon', 'calendar-dot'),
+  calendarDotIcon: cls('icon', 'ic-close'),
 };
 
 // eslint-disable-next-line complexity
@@ -35,7 +37,7 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
   });
   
   return (
-    <div className={classNames.sectionDetail} style={{maxHeight: '1000px', overflow: "auto"}} >
+    <div className={`${classNames.sectionDetail}`} style={{maxHeight: '1000px', overflow: "auto", 'font-size': "13px"}} >
       {currentUserData?.qr_code && (
         <div className={classNames.detailItem}>
           <span className={classNames.content}>
@@ -46,84 +48,108 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
       {currentUserData?.image_file && (
         <div className={classNames.detailItem}>
           <span className={classNames.content}>
-            <img style={{maxWidth: '100%', aspectRatio: 1, marginTop: "10px", marginBottom: "10px"}} src={currentUserData?.image_file} />
+            <img style={{maxWidth: '100%', aspectRatio: 1, margin: 'auto', display: 'block', marginTop: "10px", marginBottom: "10px"}} src={currentUserData?.image_file} />
           </span>
         </div>
       )}
+
+    <div className='row'>
+    <div className='col'>
+          
+        {currentUserData?.register_by_timestamp && (
+          <div className={classNames.detailItem}>
+            <span className='fa-regular fa-calendar' />
+            <span className={classNames.content}>
+            <b> Register By:</b> {currentUserData?.register_by_timestamp}
+              {/* <Template template="popupDetailState" param={event} as="span" /> */}
+            </span>
+          </div>
+        )}
+        {currentUserData?.registration_count >= 0 && (
+          <div className={classNames.detailItem}>
+            <span className='fa-solid fa-rotate' />
+            <span className={classNames.content}>
+            <b> Registration Count:</b> {currentUserData?.registration_count}
+              {/* <Template template="popupDetailState" param={event} as="span" /> */}
+            </span>
+          </div>
+        )}
+       
+        
+        {/* {currentUserData?.attendance_point && (
+          <div className={classNames.detailItem}>
+            <span className={classNames.repeatIcon} />
+            <span className={classNames.content}>
+            <b>Attendance Point:</b> {currentUserData?.attendance_point}
+            </span>
+          </div>
+        )} */}
+        
+      </div>
+
+      <div className="col">
+        
+        {currentUserData?.slots_total && (
+          <div className={classNames.detailItem}>
+            <span className='fa-regular fa-square-plus' />
+            <span className={classNames.content}>
+            <b> Slots Total:</b> {currentUserData?.slots_total}
+              {/* <Template template="popupDetailState" param={event} as="span" /> */}
+            </span>
+          </div>
+        )}
+        {currentUserData?.slots_remain && (
+          <div className={classNames.detailItem}>
+            <span className="fa-solid fa-plus-minus"></span>
+            <span className={classNames.content}>
+            <b> Slots Remain:</b> {currentUserData?.slots_remain}
+              {/* <Template template="popupDetailState" param={event} as="span" /> */}
+            </span>
+          </div>
+        )}
+      </div>
+      
+    </div>
+
       {currentUserData?.category_relation && (
         <div className={classNames.detailItem}>
-          <span className={classNames.stateIcon} />
+          <span className="fa-regular fa-rectangle-list"></span>
           <span className={classNames.content}>
-            <b>Category:</b> {currentUserData?.category_relation?.title}
+            <b> Category:</b> {currentUserData?.category_relation?.title}
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
       )}
-
       {currentUserData?.attendance_type && (
         <div className={classNames.detailItem}>
-          <span className={classNames.stateIcon} />
+          <span className="fa-solid fa-water"></span>
           <span className={classNames.content}>
-          <b>Attendance Type:</b> {currentUserData?.attendance_type}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          <b> Attendance Type:</b> {currentUserData?.attendance_type}
           </span>
         </div>
       )}
-      {currentUserData?.attendance_point && (
+      {currentUserData?.qr_content && (
         <div className={classNames.detailItem}>
-          <span className={classNames.repeatIcon} />
+          <span className="fa-solid fa-qrcode"></span>
           <span className={classNames.content}>
-          <b>Attendance Point:</b> {currentUserData?.attendance_point}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
-          </span>
-        </div>
-      )}
-      {currentUserData?.slots_total && (
-        <div className={classNames.detailItem}>
-          <span className={classNames.repeatIcon} />
-          <span className={classNames.content}>
-          <b>Slots Total:</b> {currentUserData?.slots_total}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
-          </span>
-        </div>
-      )}
-      {currentUserData?.slots_remain && (
-        <div className={classNames.detailItem}>
-          <span className={classNames.repeatIcon} />
-          <span className={classNames.content}>
-          <b>Slots Remain:</b> {currentUserData?.slots_remain}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
-          </span>
-        </div>
-      )}
-      {currentUserData?.registration_count >= 0 && (
-        <div className={classNames.detailItem}>
-          <span className={classNames.repeatIcon} />
-          <span className={classNames.content}>
-          <b>Registration Count:</b> {currentUserData?.registration_count}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
-          </span>
-        </div>
-      )}
-      {currentUserData?.register_by_timestamp && (
-        <div className={classNames.detailItem}>
-          <span className={classNames.calendarDotIcon} />
-          <span className={classNames.content}>
-          <b>Register By:</b> {currentUserData?.register_by_timestamp}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
-          </span>
-        </div>
-      )}
-
-      {currentUserData?.description && (
-        <div className={classNames.detailItem}>
-          <span className={classNames.content}>
-          <b>Description:</b> {currentUserData?.description}
-            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+            <b> QR Code: </b> {currentUserData?.qr_content}
           </span>
         </div>
       )}
       
+     
+      
+      {currentUserData?.description && (
+        <div className={classNames.detailItem}>
+          <span className={classNames.content}>
+          <span className="fa-solid fa-circle-info"></span>
+          <b> Description:</b>
+          {/* {currentUserData?.description} */}
+          <div dangerouslySetInnerHTML={{ __html: (currentUserData?.description) }} />
+            {/* <Template template="popupDetailState" param={event} as="span" /> */}
+          </span>
+        </div>
+      )}
       {/* {location && (
         <div className={classNames.detailItem}>
           <span className={classNames.locationIcon} />

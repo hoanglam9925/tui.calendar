@@ -233,7 +233,7 @@ export const templates: Template = {
   },
 
   popupDetailDate({ isAllday, start, end }: EventObjectWithDefaultValues) {
-    const dayFormat = 'YYYY.MM.DD';
+    const dayFormat = 'DD-MM-YYYY';
     const timeFormat = 'hh:mm tt';
     const detailFormat = `${dayFormat} ${timeFormat}`;
     const startDate = toFormat(start, isAllday ? dayFormat : timeFormat);

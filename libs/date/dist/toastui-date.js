@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Date
- * @version 0.0.3 | Wed Apr 19 2023
+ * @version 0.0.3 | Tue May 16 2023
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -116,56 +116,42 @@ __webpack_require__.d(__webpack_exports__, {
 var isString = __webpack_require__(758);
 var isString_default = /*#__PURE__*/__webpack_require__.n(isString);
 ;// CONCATENATED MODULE: ./src/localDate.js
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _construct(Parent, args, Class) { if (_isNativeReflectConstruct()) { _construct = Reflect.construct.bind(); } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
-
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i["return"] && (_r = _i["return"](), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 /**
  * datetime regex from https://www.regexpal.com/94925
  * timezone regex from moment
  */
-
 var rISO8601 = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.)?([0-9]+)?([+-]\d\d(?::?\d\d)?|\s*Z)?$/;
-
 function throwNotSupported() {
   throw new Error('This operation is not supported.');
 }
-
 function getDateTime(dateString) {
   var match = rISO8601.exec(dateString);
-
   if (match) {
     var _match = _slicedToArray(match, 10),
-        y = _match[1],
-        M = _match[2],
-        d = _match[3],
-        h = _match[4],
-        m = _match[5],
-        s = _match[6],
-        ms = _match[8],
-        zoneInfo = _match[9];
-
+      y = _match[1],
+      M = _match[2],
+      d = _match[3],
+      h = _match[4],
+      m = _match[5],
+      s = _match[6],
+      ms = _match[8],
+      zoneInfo = _match[9];
     return {
       y: Number(y),
       M: Number(M) - 1,
@@ -177,48 +163,38 @@ function getDateTime(dateString) {
       zoneInfo: zoneInfo
     };
   }
-
   return null;
 }
-
 function createFromDateString(dateString) {
   var info = getDateTime(dateString);
-
   if (info && !info.zoneInfo) {
     var y = info.y,
-        M = info.M,
-        d = info.d,
-        h = info.h,
-        m = info.m,
-        s = info.s,
-        ms = info.ms;
+      M = info.M,
+      d = info.d,
+      h = info.h,
+      m = info.m,
+      s = info.s,
+      ms = info.ms;
     return new Date(y, M, d, h, m, s, ms);
   }
-
   return null;
 }
-
 var LocalDate = /*#__PURE__*/function () {
   function LocalDate() {
     _classCallCheck(this, LocalDate);
-
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
-
     var firstArg = args[0];
-
     if (firstArg instanceof Date) {
       this.d = new Date(firstArg.getTime());
     } else if (isString_default()(firstArg) && args.length === 1) {
       this.d = createFromDateString(firstArg);
     }
-
     if (!this.d) {
       this.d = _construct(Date, args);
     }
   }
-
   _createClass(LocalDate, [{
     key: "setTimezoneOffset",
     value: function setTimezoneOffset() {
@@ -245,63 +221,45 @@ var LocalDate = /*#__PURE__*/function () {
       return this.d.toString();
     }
   }]);
-
   return LocalDate;
 }();
-
 
 var getterMethods = ['getTime', 'getTimezoneOffset', 'getFullYear', 'getMonth', 'getDate', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getDay'];
 var setterMethods = ['setTime', 'setFullYear', 'setMonth', 'setDate', 'setHours', 'setMinutes', 'setSeconds', 'setMilliseconds'];
 getterMethods.forEach(function (methodName) {
   LocalDate.prototype[methodName] = function () {
     var _this$d;
-
     return (_this$d = this.d)[methodName].apply(_this$d, arguments);
   };
 });
 setterMethods.forEach(function (methodName) {
   LocalDate.prototype[methodName] = function () {
     var _this$d2;
-
     return (_this$d2 = this.d)[methodName].apply(_this$d2, arguments);
   };
 });
 ;// CONCATENATED MODULE: ./src/utcDate.js
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-
+function utcDate_typeof(obj) { "@babel/helpers - typeof"; return utcDate_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, utcDate_typeof(obj); }
 function utcDate_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function utcDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function utcDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, utcDate_toPropertyKey(descriptor.key), descriptor); } }
 function utcDate_createClass(Constructor, protoProps, staticProps) { if (protoProps) utcDate_defineProperties(Constructor.prototype, protoProps); if (staticProps) utcDate_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function utcDate_toPropertyKey(arg) { var key = utcDate_toPrimitive(arg, "string"); return utcDate_typeof(key) === "symbol" ? key : String(key); }
+function utcDate_toPrimitive(input, hint) { if (utcDate_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (utcDate_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) utcDate_setPrototypeOf(subClass, superClass); }
-
 function utcDate_setPrototypeOf(o, p) { utcDate_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return utcDate_setPrototypeOf(o, p); }
-
 function _createSuper(Derived) { var hasNativeReflectConstruct = utcDate_isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
-
+function _possibleConstructorReturn(self, call) { if (call && (utcDate_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function utcDate_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-
 
 var UTCDate = /*#__PURE__*/function (_LocalDate) {
   _inherits(UTCDate, _LocalDate);
-
   var _super = _createSuper(UTCDate);
-
   function UTCDate() {
     utcDate_classCallCheck(this, UTCDate);
-
     return _super.apply(this, arguments);
   }
-
   utcDate_createClass(UTCDate, [{
     key: "clone",
     value: function clone() {
@@ -313,51 +271,41 @@ var UTCDate = /*#__PURE__*/function (_LocalDate) {
       return 0;
     }
   }]);
-
   return UTCDate;
 }(LocalDate);
-
 
 var getterProperties = ['FullYear', 'Month', 'Date', 'Hours', 'Minutes', 'Seconds', 'Milliseconds', 'Day'];
 var setterProperties = ['FullYear', 'Month', 'Date', 'Hours', 'Minutes', 'Seconds', 'Milliseconds'];
 getterProperties.forEach(function (prop) {
   var methodName = "get".concat(prop);
-
   UTCDate.prototype[methodName] = function () {
     var _this$d;
-
     return (_this$d = this.d)["getUTC".concat(prop)].apply(_this$d, arguments);
   };
 });
 setterProperties.forEach(function (prop) {
   var methodName = "set".concat(prop);
-
   UTCDate.prototype[methodName] = function () {
     var _this$d2;
-
     return (_this$d2 = this.d)["setUTC".concat(prop)].apply(_this$d2, arguments);
   };
 });
 ;// CONCATENATED MODULE: ./src/momentDate.js
+function momentDate_typeof(obj) { "@babel/helpers - typeof"; return momentDate_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, momentDate_typeof(obj); }
 function momentDate_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function momentDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function momentDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, momentDate_toPropertyKey(descriptor.key), descriptor); } }
 function momentDate_createClass(Constructor, protoProps, staticProps) { if (protoProps) momentDate_defineProperties(Constructor.prototype, protoProps); if (staticProps) momentDate_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function momentDate_toPropertyKey(arg) { var key = momentDate_toPrimitive(arg, "string"); return momentDate_typeof(key) === "symbol" ? key : String(key); }
+function momentDate_toPrimitive(input, hint) { if (momentDate_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (momentDate_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 var moment;
-
 var MomentDate = /*#__PURE__*/function () {
   function MomentDate() {
     momentDate_classCallCheck(this, MomentDate);
-
     if (!moment) {
       throw new Error('MomentDate requires Moment constructor. Use "MomentDate.setMoment(moment);".');
     }
-
     this.m = moment.apply(void 0, arguments);
   }
-
   momentDate_createClass(MomentDate, [{
     key: "setTimezoneOffset",
     value: function setTimezoneOffset(offset) {
@@ -372,7 +320,6 @@ var MomentDate = /*#__PURE__*/function () {
       } else {
         throw new Error('It requires moment-timezone. Use "MomentDate.setMoment()" with moment-timezone');
       }
-
       return this;
     }
   }, {
@@ -505,10 +452,8 @@ var MomentDate = /*#__PURE__*/function () {
       return MomentDate;
     }
   }]);
-
   return MomentDate;
 }();
-
 
 ;// CONCATENATED MODULE: ./src/index.js
 

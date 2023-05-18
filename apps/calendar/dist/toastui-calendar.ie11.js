@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Wed Apr 19 2023
+ * @version 2.1.3 | Tue May 16 2023
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -151,7 +151,7 @@ var fails = __webpack_require__(4229);
 module.exports = fails(function () {
   if (typeof ArrayBuffer == 'function') {
     var buffer = new ArrayBuffer(8);
-    // eslint-disable-next-line es-x/no-object-isextensible, es-x/no-object-defineproperty -- safe
+    // eslint-disable-next-line es/no-object-isextensible, es/no-object-defineproperty -- safe
     if (Object.isExtensible(buffer)) Object.defineProperty(buffer, 'a', { value: 8 });
   }
 });
@@ -198,7 +198,7 @@ var STRICT_METHOD = arrayMethodIsStrict('forEach');
 // https://tc39.es/ecma262/#sec-array.prototype.foreach
 module.exports = !STRICT_METHOD ? function forEach(callbackfn /* , thisArg */) {
   return $forEach(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-// eslint-disable-next-line es-x/no-array-prototype-foreach -- safe
+// eslint-disable-next-line es/no-array-prototype-foreach -- safe
 } : [].forEach;
 
 
@@ -421,6 +421,41 @@ module.exports = function (METHOD_NAME, argument) {
 
 /***/ }),
 
+/***/ 6554:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+"use strict";
+
+var DESCRIPTORS = __webpack_require__(7400);
+var isArray = __webpack_require__(3718);
+
+var $TypeError = TypeError;
+// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
+var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
+// Safari < 13 does not throw an error in this case
+var SILENT_ON_NON_WRITABLE_LENGTH_SET = DESCRIPTORS && !function () {
+  // makes no sense without proper strict mode support
+  if (this !== undefined) return true;
+  try {
+    // eslint-disable-next-line es/no-object-defineproperty -- safe
+    Object.defineProperty([], 'length', { writable: false }).length = 1;
+  } catch (error) {
+    return error instanceof TypeError;
+  }
+}();
+
+module.exports = SILENT_ON_NON_WRITABLE_LENGTH_SET ? function (O, length) {
+  if (isArray(O) && !getOwnPropertyDescriptor(O, 'length').writable) {
+    throw $TypeError('Cannot set read only .length');
+  } return O.length = length;
+} : function (O, length) {
+  return O.length = length;
+};
+
+
+/***/ }),
+
 /***/ 9794:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
@@ -587,7 +622,7 @@ try {
   iteratorWithReturn[ITERATOR] = function () {
     return this;
   };
-  // eslint-disable-next-line es-x/no-array-from, no-throw-literal -- required for testing
+  // eslint-disable-next-line es/no-array-from, no-throw-literal -- required for testing
   Array.from(iteratorWithReturn, function () { throw 2; });
 } catch (error) { /* empty */ }
 
@@ -662,39 +697,20 @@ module.exports = TO_STRING_TAG_SUPPORT ? classofRaw : function (it) {
 
 /***/ }),
 
-/***/ 1590:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-var uncurryThis = __webpack_require__(5968);
-
-var $Error = Error;
-var replace = uncurryThis(''.replace);
-
-var TEST = (function (arg) { return String($Error(arg).stack); })('zxcasd');
-var V8_OR_CHAKRA_STACK_ENTRY = /\n\s*at [^:]*:[^\n]*/;
-var IS_V8_OR_CHAKRA_STACK = V8_OR_CHAKRA_STACK_ENTRY.test(TEST);
-
-module.exports = function (stack, dropEntries) {
-  if (IS_V8_OR_CHAKRA_STACK && typeof stack == 'string' && !$Error.prepareStackTrace) {
-    while (dropEntries--) stack = replace(stack, V8_OR_CHAKRA_STACK_ENTRY, '');
-  } return stack;
-};
-
-
-/***/ }),
-
 /***/ 8081:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 "use strict";
 
-var defineProperty = (__webpack_require__(1787).f);
 var create = __webpack_require__(2391);
+var defineBuiltInAccessor = __webpack_require__(6616);
 var defineBuiltIns = __webpack_require__(8312);
 var bind = __webpack_require__(7636);
 var anInstance = __webpack_require__(7728);
+var isNullOrUndefined = __webpack_require__(9650);
 var iterate = __webpack_require__(9003);
-var defineIterator = __webpack_require__(7675);
+var defineIterator = __webpack_require__(2707);
+var createIterResultObject = __webpack_require__(3684);
 var setSpecies = __webpack_require__(1832);
 var DESCRIPTORS = __webpack_require__(7400);
 var fastKey = (__webpack_require__(5926).fastKey);
@@ -715,7 +731,7 @@ module.exports = {
         size: 0
       });
       if (!DESCRIPTORS) that.size = 0;
-      if (iterable != undefined) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
+      if (!isNullOrUndefined(iterable)) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
     });
 
     var Prototype = Constructor.prototype;
@@ -839,7 +855,8 @@ module.exports = {
         return define(this, value = value === 0 ? 0 : value, value);
       }
     });
-    if (DESCRIPTORS) defineProperty(Prototype, 'size', {
+    if (DESCRIPTORS) defineBuiltInAccessor(Prototype, 'size', {
+      configurable: true,
       get: function () {
         return getInternalState(this).size;
       }
@@ -877,12 +894,12 @@ module.exports = {
       if (!state.target || !(state.last = entry = entry ? entry.next : state.state.first)) {
         // or finish the iteration
         state.target = undefined;
-        return { value: undefined, done: true };
+        return createIterResultObject(undefined, true);
       }
       // return step by kind
-      if (kind == 'keys') return { value: entry.key, done: false };
-      if (kind == 'values') return { value: entry.value, done: false };
-      return { value: [entry.key, entry.value], done: false };
+      if (kind == 'keys') return createIterResultObject(entry.key, false);
+      if (kind == 'values') return createIterResultObject(entry.value, false);
+      return createIterResultObject([entry.key, entry.value], false);
     }, IS_MAP ? 'entries' : 'values', !IS_MAP, true);
 
     // `{ Map, Set }.prototype[@@species]` accessors
@@ -909,6 +926,7 @@ var InternalMetadataModule = __webpack_require__(5926);
 var iterate = __webpack_require__(9003);
 var anInstance = __webpack_require__(7728);
 var isCallable = __webpack_require__(6733);
+var isNullOrUndefined = __webpack_require__(9650);
 var isObject = __webpack_require__(5052);
 var fails = __webpack_require__(4229);
 var checkCorrectnessOfIteration = __webpack_require__(4575);
@@ -976,7 +994,7 @@ module.exports = function (CONSTRUCTOR_NAME, wrapper, common) {
       Constructor = wrapper(function (dummy, iterable) {
         anInstance(dummy, NativePrototype);
         var that = inheritIfRequired(new NativeConstructor(), dummy, Constructor);
-        if (iterable != undefined) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
+        if (!isNullOrUndefined(iterable)) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
         return that;
       });
       Constructor.prototype = NativePrototype;
@@ -1061,32 +1079,20 @@ var fails = __webpack_require__(4229);
 module.exports = !fails(function () {
   function F() { /* empty */ }
   F.prototype.constructor = null;
-  // eslint-disable-next-line es-x/no-object-getprototypeof -- required for testing
+  // eslint-disable-next-line es/no-object-getprototypeof -- required for testing
   return Object.getPrototypeOf(new F()) !== F.prototype;
 });
 
 
 /***/ }),
 
-/***/ 3723:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+/***/ 3684:
+/***/ (function(module) {
 
-"use strict";
-
-var IteratorPrototype = (__webpack_require__(693).IteratorPrototype);
-var create = __webpack_require__(2391);
-var createPropertyDescriptor = __webpack_require__(5358);
-var setToStringTag = __webpack_require__(4555);
-var Iterators = __webpack_require__(5495);
-
-var returnThis = function () { return this; };
-
-module.exports = function (IteratorConstructor, NAME, next, ENUMERABLE_NEXT) {
-  var TO_STRING_TAG = NAME + ' Iterator';
-  IteratorConstructor.prototype = create(IteratorPrototype, { next: createPropertyDescriptor(+!ENUMERABLE_NEXT, next) });
-  setToStringTag(IteratorConstructor, TO_STRING_TAG, false, true);
-  Iterators[TO_STRING_TAG] = returnThis;
-  return IteratorConstructor;
+// `CreateIterResultObject` abstract operation
+// https://tc39.es/ecma262/#sec-createiterresultobject
+module.exports = function (value, done) {
+  return { value: value, done: done };
 };
 
 
@@ -1137,6 +1143,28 @@ module.exports = function (object, key, value) {
   var propertyKey = toPropertyKey(key);
   if (propertyKey in object) definePropertyModule.f(object, propertyKey, createPropertyDescriptor(0, value));
   else object[propertyKey] = value;
+};
+
+
+/***/ }),
+
+/***/ 9778:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+"use strict";
+
+var anObject = __webpack_require__(1176);
+var ordinaryToPrimitive = __webpack_require__(2914);
+
+var $TypeError = TypeError;
+
+// `Date.prototype[@@toPrimitive](hint)` method implementation
+// https://tc39.es/ecma262/#sec-date.prototype-@@toprimitive
+module.exports = function (hint) {
+  anObject(this);
+  if (hint === 'string' || hint === 'default') hint = 'string';
+  else if (hint !== 'number') throw $TypeError('Incorrect hint');
+  return ordinaryToPrimitive(this, hint);
 };
 
 
@@ -1209,7 +1237,7 @@ module.exports = function (target, src, options) {
 
 var global = __webpack_require__(9859);
 
-// eslint-disable-next-line es-x/no-object-defineproperty -- safe
+// eslint-disable-next-line es/no-object-defineproperty -- safe
 var defineProperty = Object.defineProperty;
 
 module.exports = function (key, value) {
@@ -1218,131 +1246,6 @@ module.exports = function (key, value) {
   } catch (error) {
     global[key] = value;
   } return value;
-};
-
-
-/***/ }),
-
-/***/ 7675:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-"use strict";
-
-var $ = __webpack_require__(3103);
-var call = __webpack_require__(266);
-var IS_PURE = __webpack_require__(4231);
-var FunctionName = __webpack_require__(1805);
-var isCallable = __webpack_require__(6733);
-var createIteratorConstructor = __webpack_require__(3723);
-var getPrototypeOf = __webpack_require__(7567);
-var setPrototypeOf = __webpack_require__(6540);
-var setToStringTag = __webpack_require__(4555);
-var createNonEnumerableProperty = __webpack_require__(5762);
-var defineBuiltIn = __webpack_require__(4768);
-var wellKnownSymbol = __webpack_require__(95);
-var Iterators = __webpack_require__(5495);
-var IteratorsCore = __webpack_require__(693);
-
-var PROPER_FUNCTION_NAME = FunctionName.PROPER;
-var CONFIGURABLE_FUNCTION_NAME = FunctionName.CONFIGURABLE;
-var IteratorPrototype = IteratorsCore.IteratorPrototype;
-var BUGGY_SAFARI_ITERATORS = IteratorsCore.BUGGY_SAFARI_ITERATORS;
-var ITERATOR = wellKnownSymbol('iterator');
-var KEYS = 'keys';
-var VALUES = 'values';
-var ENTRIES = 'entries';
-
-var returnThis = function () { return this; };
-
-module.exports = function (Iterable, NAME, IteratorConstructor, next, DEFAULT, IS_SET, FORCED) {
-  createIteratorConstructor(IteratorConstructor, NAME, next);
-
-  var getIterationMethod = function (KIND) {
-    if (KIND === DEFAULT && defaultIterator) return defaultIterator;
-    if (!BUGGY_SAFARI_ITERATORS && KIND in IterablePrototype) return IterablePrototype[KIND];
-    switch (KIND) {
-      case KEYS: return function keys() { return new IteratorConstructor(this, KIND); };
-      case VALUES: return function values() { return new IteratorConstructor(this, KIND); };
-      case ENTRIES: return function entries() { return new IteratorConstructor(this, KIND); };
-    } return function () { return new IteratorConstructor(this); };
-  };
-
-  var TO_STRING_TAG = NAME + ' Iterator';
-  var INCORRECT_VALUES_NAME = false;
-  var IterablePrototype = Iterable.prototype;
-  var nativeIterator = IterablePrototype[ITERATOR]
-    || IterablePrototype['@@iterator']
-    || DEFAULT && IterablePrototype[DEFAULT];
-  var defaultIterator = !BUGGY_SAFARI_ITERATORS && nativeIterator || getIterationMethod(DEFAULT);
-  var anyNativeIterator = NAME == 'Array' ? IterablePrototype.entries || nativeIterator : nativeIterator;
-  var CurrentIteratorPrototype, methods, KEY;
-
-  // fix native
-  if (anyNativeIterator) {
-    CurrentIteratorPrototype = getPrototypeOf(anyNativeIterator.call(new Iterable()));
-    if (CurrentIteratorPrototype !== Object.prototype && CurrentIteratorPrototype.next) {
-      if (!IS_PURE && getPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype) {
-        if (setPrototypeOf) {
-          setPrototypeOf(CurrentIteratorPrototype, IteratorPrototype);
-        } else if (!isCallable(CurrentIteratorPrototype[ITERATOR])) {
-          defineBuiltIn(CurrentIteratorPrototype, ITERATOR, returnThis);
-        }
-      }
-      // Set @@toStringTag to native iterators
-      setToStringTag(CurrentIteratorPrototype, TO_STRING_TAG, true, true);
-      if (IS_PURE) Iterators[TO_STRING_TAG] = returnThis;
-    }
-  }
-
-  // fix Array.prototype.{ values, @@iterator }.name in V8 / FF
-  if (PROPER_FUNCTION_NAME && DEFAULT == VALUES && nativeIterator && nativeIterator.name !== VALUES) {
-    if (!IS_PURE && CONFIGURABLE_FUNCTION_NAME) {
-      createNonEnumerableProperty(IterablePrototype, 'name', VALUES);
-    } else {
-      INCORRECT_VALUES_NAME = true;
-      defaultIterator = function values() { return call(nativeIterator, this); };
-    }
-  }
-
-  // export additional methods
-  if (DEFAULT) {
-    methods = {
-      values: getIterationMethod(VALUES),
-      keys: IS_SET ? defaultIterator : getIterationMethod(KEYS),
-      entries: getIterationMethod(ENTRIES)
-    };
-    if (FORCED) for (KEY in methods) {
-      if (BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME || !(KEY in IterablePrototype)) {
-        defineBuiltIn(IterablePrototype, KEY, methods[KEY]);
-      }
-    } else $({ target: NAME, proto: true, forced: BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME }, methods);
-  }
-
-  // define iterator
-  if ((!IS_PURE || FORCED) && IterablePrototype[ITERATOR] !== defaultIterator) {
-    defineBuiltIn(IterablePrototype, ITERATOR, defaultIterator, { name: DEFAULT });
-  }
-  Iterators[NAME] = defaultIterator;
-
-  return methods;
-};
-
-
-/***/ }),
-
-/***/ 8423:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-var path = __webpack_require__(9276);
-var hasOwn = __webpack_require__(8270);
-var wrappedWellKnownSymbolModule = __webpack_require__(5391);
-var defineProperty = (__webpack_require__(1787).f);
-
-module.exports = function (NAME) {
-  var Symbol = path.Symbol || (path.Symbol = {});
-  if (!hasOwn(Symbol, NAME)) defineProperty(Symbol, NAME, {
-    value: wrappedWellKnownSymbolModule.f(NAME)
-  });
 };
 
 
@@ -1371,9 +1274,26 @@ var fails = __webpack_require__(4229);
 
 // Detect IE8's incomplete defineProperty implementation
 module.exports = !fails(function () {
-  // eslint-disable-next-line es-x/no-object-defineproperty -- required for testing
+  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
   return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] != 7;
 });
+
+
+/***/ }),
+
+/***/ 3777:
+/***/ (function(module) {
+
+var documentAll = typeof document == 'object' && document.all;
+
+// https://tc39.es/ecma262/#sec-IsHTMLDDA-internal-slot
+// eslint-disable-next-line unicorn/no-typeof-undefined -- required for testing
+var IS_HTMLDDA = typeof documentAll == 'undefined' && documentAll !== undefined;
+
+module.exports = {
+  all: documentAll,
+  IS_HTMLDDA: IS_HTMLDDA
+};
 
 
 /***/ }),
@@ -1478,9 +1398,23 @@ module.exports = !!firefox && +firefox[1];
 /***/ }),
 
 /***/ 8639:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var IS_DENO = __webpack_require__(5189);
+var IS_NODE = __webpack_require__(8801);
+
+module.exports = !IS_DENO && !IS_NODE
+  && typeof window == 'object'
+  && typeof document == 'object';
+
+
+/***/ }),
+
+/***/ 5189:
 /***/ (function(module) {
 
-module.exports = typeof window == 'object' && typeof Deno != 'object';
+/* global Deno -- Deno case */
+module.exports = typeof Deno == 'object' && Deno && typeof Deno.version == 'object';
 
 
 /***/ }),
@@ -1499,9 +1433,8 @@ module.exports = /MSIE|Trident/.test(UA);
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 var userAgent = __webpack_require__(598);
-var global = __webpack_require__(9859);
 
-module.exports = /ipad|iphone|ipod/i.test(userAgent) && global.Pebble !== undefined;
+module.exports = /ipad|iphone|ipod/i.test(userAgent) && typeof Pebble != 'undefined';
 
 
 /***/ }),
@@ -1511,6 +1444,7 @@ module.exports = /ipad|iphone|ipod/i.test(userAgent) && global.Pebble !== undefi
 
 var userAgent = __webpack_require__(598);
 
+// eslint-disable-next-line redos/no-vulnerable -- safe
 module.exports = /(?:ipad|iphone|ipod).*applewebkit/i.test(userAgent);
 
 
@@ -1520,9 +1454,8 @@ module.exports = /(?:ipad|iphone|ipod).*applewebkit/i.test(userAgent);
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 var classof = __webpack_require__(7079);
-var global = __webpack_require__(9859);
 
-module.exports = classof(global.process) == 'process';
+module.exports = typeof process != 'undefined' && classof(process) == 'process';
 
 
 /***/ }),
@@ -1538,11 +1471,9 @@ module.exports = /web0s(?!.*chrome)/i.test(userAgent);
 /***/ }),
 
 /***/ 598:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+/***/ (function(module) {
 
-var getBuiltIn = __webpack_require__(1333);
-
-module.exports = getBuiltIn('navigator', 'userAgent') || '';
+module.exports = typeof navigator != 'undefined' && String(navigator.userAgent) || '';
 
 
 /***/ }),
@@ -1610,6 +1541,48 @@ module.exports = [
 
 /***/ }),
 
+/***/ 5299:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var uncurryThis = __webpack_require__(5968);
+
+var $Error = Error;
+var replace = uncurryThis(''.replace);
+
+var TEST = (function (arg) { return String($Error(arg).stack); })('zxcasd');
+// eslint-disable-next-line redos/no-vulnerable -- safe
+var V8_OR_CHAKRA_STACK_ENTRY = /\n\s*at [^:]*:[^\n]*/;
+var IS_V8_OR_CHAKRA_STACK = V8_OR_CHAKRA_STACK_ENTRY.test(TEST);
+
+module.exports = function (stack, dropEntries) {
+  if (IS_V8_OR_CHAKRA_STACK && typeof stack == 'string' && !$Error.prepareStackTrace) {
+    while (dropEntries--) stack = replace(stack, V8_OR_CHAKRA_STACK_ENTRY, '');
+  } return stack;
+};
+
+
+/***/ }),
+
+/***/ 9166:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var createNonEnumerableProperty = __webpack_require__(5762);
+var clearErrorStack = __webpack_require__(5299);
+var ERROR_STACK_INSTALLABLE = __webpack_require__(373);
+
+// non-standard V8
+var captureStackTrace = Error.captureStackTrace;
+
+module.exports = function (error, C, stack, dropEntries) {
+  if (ERROR_STACK_INSTALLABLE) {
+    if (captureStackTrace) captureStackTrace(error, C);
+    else createNonEnumerableProperty(error, 'stack', clearErrorStack(stack, dropEntries));
+  }
+};
+
+
+/***/ }),
+
 /***/ 373:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
@@ -1619,7 +1592,7 @@ var createPropertyDescriptor = __webpack_require__(5358);
 module.exports = !fails(function () {
   var error = Error('a');
   if (!('stack' in error)) return true;
-  // eslint-disable-next-line es-x/no-object-defineproperty -- safe
+  // eslint-disable-next-line es/no-object-defineproperty -- safe
   Object.defineProperty(error, 'stack', createPropertyDescriptor(1, 7));
   return error.stack !== 7;
 });
@@ -1709,7 +1682,7 @@ module.exports = function (exec) {
 
 // TODO: Remove from `core-js@4` since it's moved to entry points
 __webpack_require__(7950);
-var uncurryThis = __webpack_require__(5968);
+var uncurryThis = __webpack_require__(4745);
 var defineBuiltIn = __webpack_require__(4768);
 var regexpExec = __webpack_require__(3466);
 var fails = __webpack_require__(4229);
@@ -1832,7 +1805,7 @@ module.exports = flattenIntoArray;
 var fails = __webpack_require__(4229);
 
 module.exports = !fails(function () {
-  // eslint-disable-next-line es-x/no-object-isextensible, es-x/no-object-preventextensions -- required for testing
+  // eslint-disable-next-line es/no-object-isextensible, es/no-object-preventextensions -- required for testing
   return Object.isExtensible(Object.preventExtensions({}));
 });
 
@@ -1848,7 +1821,7 @@ var FunctionPrototype = Function.prototype;
 var apply = FunctionPrototype.apply;
 var call = FunctionPrototype.call;
 
-// eslint-disable-next-line es-x/no-reflect -- safe
+// eslint-disable-next-line es/no-reflect -- safe
 module.exports = typeof Reflect == 'object' && Reflect.apply || (NATIVE_BIND ? call.bind(apply) : function () {
   return call.apply(apply, arguments);
 });
@@ -1859,7 +1832,7 @@ module.exports = typeof Reflect == 'object' && Reflect.apply || (NATIVE_BIND ? c
 /***/ 7636:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
-var uncurryThis = __webpack_require__(5968);
+var uncurryThis = __webpack_require__(4745);
 var aCallable = __webpack_require__(7111);
 var NATIVE_BIND = __webpack_require__(7188);
 
@@ -1882,7 +1855,7 @@ module.exports = function (fn, that) {
 var fails = __webpack_require__(4229);
 
 module.exports = !fails(function () {
-  // eslint-disable-next-line es-x/no-function-prototype-bind -- safe
+  // eslint-disable-next-line es/no-function-prototype-bind -- safe
   var test = (function () { /* empty */ }).bind();
   // eslint-disable-next-line no-prototype-builtins -- safe
   return typeof test != 'function' || test.hasOwnProperty('prototype');
@@ -1917,6 +1890,7 @@ var construct = function (C, argsLength, args) {
 
 // `Function.prototype.bind` method implementation
 // https://tc39.es/ecma262/#sec-function.prototype.bind
+// eslint-disable-next-line es/no-function-prototype-bind -- detection
 module.exports = NATIVE_BIND ? $Function.bind : function bind(that /* , ...args */) {
   var F = aCallable(this);
   var Prototype = F.prototype;
@@ -1953,7 +1927,7 @@ var DESCRIPTORS = __webpack_require__(7400);
 var hasOwn = __webpack_require__(8270);
 
 var FunctionPrototype = Function.prototype;
-// eslint-disable-next-line es-x/no-object-getownpropertydescriptor -- safe
+// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
 var getDescriptor = DESCRIPTORS && Object.getOwnPropertyDescriptor;
 
 var EXISTS = hasOwn(FunctionPrototype, 'name');
@@ -1970,20 +1944,49 @@ module.exports = {
 
 /***/ }),
 
+/***/ 3411:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var uncurryThis = __webpack_require__(5968);
+var aCallable = __webpack_require__(7111);
+
+module.exports = function (object, key, method) {
+  try {
+    // eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
+    return uncurryThis(aCallable(Object.getOwnPropertyDescriptor(object, key)[method]));
+  } catch (error) { /* empty */ }
+};
+
+
+/***/ }),
+
+/***/ 4745:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var classofRaw = __webpack_require__(7079);
+var uncurryThis = __webpack_require__(5968);
+
+module.exports = function (fn) {
+  // Nashorn bug:
+  //   https://github.com/zloirock/core-js/issues/1128
+  //   https://github.com/zloirock/core-js/issues/1130
+  if (classofRaw(fn) === 'Function') return uncurryThis(fn);
+};
+
+
+/***/ }),
+
 /***/ 5968:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 var NATIVE_BIND = __webpack_require__(7188);
 
 var FunctionPrototype = Function.prototype;
-var bind = FunctionPrototype.bind;
 var call = FunctionPrototype.call;
-var uncurryThis = NATIVE_BIND && bind.bind(call, call);
+var uncurryThisWithBind = NATIVE_BIND && FunctionPrototype.bind.bind(call, call);
 
-module.exports = NATIVE_BIND ? function (fn) {
-  return fn && uncurryThis(fn);
-} : function (fn) {
-  return fn && function () {
+module.exports = NATIVE_BIND ? uncurryThisWithBind : function (fn) {
+  return function () {
     return call.apply(fn, arguments);
   };
 };
@@ -2013,13 +2016,14 @@ module.exports = function (namespace, method) {
 
 var classof = __webpack_require__(1589);
 var getMethod = __webpack_require__(5300);
+var isNullOrUndefined = __webpack_require__(9650);
 var Iterators = __webpack_require__(5495);
 var wellKnownSymbol = __webpack_require__(95);
 
 var ITERATOR = wellKnownSymbol('iterator');
 
 module.exports = function (it) {
-  if (it != undefined) return getMethod(it, ITERATOR)
+  if (!isNullOrUndefined(it)) return getMethod(it, ITERATOR)
     || getMethod(it, '@@iterator')
     || Iterators[classof(it)];
 };
@@ -2047,16 +2051,53 @@ module.exports = function (argument, usingIterator) {
 
 /***/ }),
 
+/***/ 1163:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var uncurryThis = __webpack_require__(5968);
+var isArray = __webpack_require__(3718);
+var isCallable = __webpack_require__(6733);
+var classof = __webpack_require__(7079);
+var toString = __webpack_require__(3326);
+
+var push = uncurryThis([].push);
+
+module.exports = function (replacer) {
+  if (isCallable(replacer)) return replacer;
+  if (!isArray(replacer)) return;
+  var rawLength = replacer.length;
+  var keys = [];
+  for (var i = 0; i < rawLength; i++) {
+    var element = replacer[i];
+    if (typeof element == 'string') push(keys, element);
+    else if (typeof element == 'number' || classof(element) == 'Number' || classof(element) == 'String') push(keys, toString(element));
+  }
+  var keysLength = keys.length;
+  var root = true;
+  return function (key, value) {
+    if (root) {
+      root = false;
+      return value;
+    }
+    if (isArray(this)) return value;
+    for (var j = 0; j < keysLength; j++) if (keys[j] === key) return value;
+  };
+};
+
+
+/***/ }),
+
 /***/ 5300:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 var aCallable = __webpack_require__(7111);
+var isNullOrUndefined = __webpack_require__(9650);
 
 // `GetMethod` abstract operation
 // https://tc39.es/ecma262/#sec-getmethod
 module.exports = function (V, P) {
   var func = V[P];
-  return func == null ? undefined : aCallable(func);
+  return isNullOrUndefined(func) ? undefined : aCallable(func);
 };
 
 
@@ -2072,6 +2113,7 @@ var floor = Math.floor;
 var charAt = uncurryThis(''.charAt);
 var replace = uncurryThis(''.replace);
 var stringSlice = uncurryThis(''.slice);
+// eslint-disable-next-line redos/no-vulnerable -- safe
 var SUBSTITUTION_SYMBOLS = /\$([$&'`]|\d{1,2}|<[^>]*>)/g;
 var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&'`]|\d{1,2})/g;
 
@@ -2122,14 +2164,14 @@ var check = function (it) {
 
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
 module.exports =
-  // eslint-disable-next-line es-x/no-global-this -- safe
+  // eslint-disable-next-line es/no-global-this -- safe
   check(typeof globalThis == 'object' && globalThis) ||
   check(typeof window == 'object' && window) ||
   // eslint-disable-next-line no-restricted-globals -- safe
   check(typeof self == 'object' && self) ||
   check(typeof __webpack_require__.g == 'object' && __webpack_require__.g) ||
   // eslint-disable-next-line no-new-func -- fallback
-  (function () { return this; })() || Function('return this')();
+  (function () { return this; })() || this || Function('return this')();
 
 
 /***/ }),
@@ -2144,7 +2186,7 @@ var hasOwnProperty = uncurryThis({}.hasOwnProperty);
 
 // `HasOwnProperty` abstract operation
 // https://tc39.es/ecma262/#sec-hasownproperty
-// eslint-disable-next-line es-x/no-object-hasown -- safe
+// eslint-disable-next-line es/no-object-hasown -- safe
 module.exports = Object.hasOwn || function hasOwn(it, key) {
   return hasOwnProperty(toObject(it), key);
 };
@@ -2161,21 +2203,19 @@ module.exports = {};
 /***/ }),
 
 /***/ 4665:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-var global = __webpack_require__(9859);
+/***/ (function(module) {
 
 module.exports = function (a, b) {
-  var console = global.console;
-  if (console && console.error) {
+  try {
+    // eslint-disable-next-line no-console -- safe
     arguments.length == 1 ? console.error(a) : console.error(a, b);
-  }
+  } catch (error) { /* empty */ }
 };
 
 
 /***/ }),
 
-/***/ 3777:
+/***/ 8385:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 var getBuiltIn = __webpack_require__(1333);
@@ -2194,7 +2234,7 @@ var createElement = __webpack_require__(2635);
 
 // Thanks to IE8 for its funny defineProperty
 module.exports = !DESCRIPTORS && !fails(function () {
-  // eslint-disable-next-line es-x/no-object-defineproperty -- required for testing
+  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
   return Object.defineProperty(createElement('div'), 'a', {
     get: function () { return 7; }
   }).a != 7;
@@ -2387,9 +2427,8 @@ hiddenKeys[METADATA] = true;
 /***/ 6407:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
-var NATIVE_WEAK_MAP = __webpack_require__(8694);
+var NATIVE_WEAK_MAP = __webpack_require__(1180);
 var global = __webpack_require__(9859);
-var uncurryThis = __webpack_require__(5968);
 var isObject = __webpack_require__(5052);
 var createNonEnumerableProperty = __webpack_require__(5762);
 var hasOwn = __webpack_require__(8270);
@@ -2417,26 +2456,28 @@ var getterFor = function (TYPE) {
 
 if (NATIVE_WEAK_MAP || shared.state) {
   var store = shared.state || (shared.state = new WeakMap());
-  var wmget = uncurryThis(store.get);
-  var wmhas = uncurryThis(store.has);
-  var wmset = uncurryThis(store.set);
+  /* eslint-disable no-self-assign -- prototype methods protection */
+  store.get = store.get;
+  store.has = store.has;
+  store.set = store.set;
+  /* eslint-enable no-self-assign -- prototype methods protection */
   set = function (it, metadata) {
-    if (wmhas(store, it)) throw new TypeError(OBJECT_ALREADY_INITIALIZED);
+    if (store.has(it)) throw TypeError(OBJECT_ALREADY_INITIALIZED);
     metadata.facade = it;
-    wmset(store, it, metadata);
+    store.set(it, metadata);
     return metadata;
   };
   get = function (it) {
-    return wmget(store, it) || {};
+    return store.get(it) || {};
   };
   has = function (it) {
-    return wmhas(store, it);
+    return store.has(it);
   };
 } else {
   var STATE = sharedKey('state');
   hiddenKeys[STATE] = true;
   set = function (it, metadata) {
-    if (hasOwn(it, STATE)) throw new TypeError(OBJECT_ALREADY_INITIALIZED);
+    if (hasOwn(it, STATE)) throw TypeError(OBJECT_ALREADY_INITIALIZED);
     metadata.facade = it;
     createNonEnumerableProperty(it, STATE, metadata);
     return metadata;
@@ -2484,7 +2525,7 @@ var classof = __webpack_require__(7079);
 
 // `IsArray` abstract operation
 // https://tc39.es/ecma262/#sec-isarray
-// eslint-disable-next-line es-x/no-array-isarray -- safe
+// eslint-disable-next-line es/no-array-isarray -- safe
 module.exports = Array.isArray || function isArray(argument) {
   return classof(argument) == 'Array';
 };
@@ -2493,11 +2534,17 @@ module.exports = Array.isArray || function isArray(argument) {
 /***/ }),
 
 /***/ 6733:
-/***/ (function(module) {
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var $documentAll = __webpack_require__(3777);
+
+var documentAll = $documentAll.all;
 
 // `IsCallable` abstract operation
 // https://tc39.es/ecma262/#sec-iscallable
-module.exports = function (argument) {
+module.exports = $documentAll.IS_HTMLDDA ? function (argument) {
+  return typeof argument == 'function' || argument === documentAll;
+} : function (argument) {
   return typeof argument == 'function';
 };
 
@@ -2604,12 +2651,29 @@ module.exports = isForced;
 
 /***/ }),
 
+/***/ 9650:
+/***/ (function(module) {
+
+// we can't use just `it == null` since of `document.all` special case
+// https://tc39.es/ecma262/#sec-IsHTMLDDA-internal-slot-aec
+module.exports = function (it) {
+  return it === null || it === undefined;
+};
+
+
+/***/ }),
+
 /***/ 5052:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 var isCallable = __webpack_require__(6733);
+var $documentAll = __webpack_require__(3777);
 
-module.exports = function (it) {
+var documentAll = $documentAll.all;
+
+module.exports = $documentAll.IS_HTMLDDA ? function (it) {
+  return typeof it == 'object' ? it !== null : isCallable(it) || it === documentAll;
+} : function (it) {
   return typeof it == 'object' ? it !== null : isCallable(it);
 };
 
@@ -2768,6 +2832,137 @@ module.exports = function (iterator, kind, value) {
 
 /***/ }),
 
+/***/ 2247:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+"use strict";
+
+var IteratorPrototype = (__webpack_require__(693).IteratorPrototype);
+var create = __webpack_require__(2391);
+var createPropertyDescriptor = __webpack_require__(5358);
+var setToStringTag = __webpack_require__(4555);
+var Iterators = __webpack_require__(5495);
+
+var returnThis = function () { return this; };
+
+module.exports = function (IteratorConstructor, NAME, next, ENUMERABLE_NEXT) {
+  var TO_STRING_TAG = NAME + ' Iterator';
+  IteratorConstructor.prototype = create(IteratorPrototype, { next: createPropertyDescriptor(+!ENUMERABLE_NEXT, next) });
+  setToStringTag(IteratorConstructor, TO_STRING_TAG, false, true);
+  Iterators[TO_STRING_TAG] = returnThis;
+  return IteratorConstructor;
+};
+
+
+/***/ }),
+
+/***/ 2707:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(3103);
+var call = __webpack_require__(266);
+var IS_PURE = __webpack_require__(4231);
+var FunctionName = __webpack_require__(1805);
+var isCallable = __webpack_require__(6733);
+var createIteratorConstructor = __webpack_require__(2247);
+var getPrototypeOf = __webpack_require__(7567);
+var setPrototypeOf = __webpack_require__(6540);
+var setToStringTag = __webpack_require__(4555);
+var createNonEnumerableProperty = __webpack_require__(5762);
+var defineBuiltIn = __webpack_require__(4768);
+var wellKnownSymbol = __webpack_require__(95);
+var Iterators = __webpack_require__(5495);
+var IteratorsCore = __webpack_require__(693);
+
+var PROPER_FUNCTION_NAME = FunctionName.PROPER;
+var CONFIGURABLE_FUNCTION_NAME = FunctionName.CONFIGURABLE;
+var IteratorPrototype = IteratorsCore.IteratorPrototype;
+var BUGGY_SAFARI_ITERATORS = IteratorsCore.BUGGY_SAFARI_ITERATORS;
+var ITERATOR = wellKnownSymbol('iterator');
+var KEYS = 'keys';
+var VALUES = 'values';
+var ENTRIES = 'entries';
+
+var returnThis = function () { return this; };
+
+module.exports = function (Iterable, NAME, IteratorConstructor, next, DEFAULT, IS_SET, FORCED) {
+  createIteratorConstructor(IteratorConstructor, NAME, next);
+
+  var getIterationMethod = function (KIND) {
+    if (KIND === DEFAULT && defaultIterator) return defaultIterator;
+    if (!BUGGY_SAFARI_ITERATORS && KIND in IterablePrototype) return IterablePrototype[KIND];
+    switch (KIND) {
+      case KEYS: return function keys() { return new IteratorConstructor(this, KIND); };
+      case VALUES: return function values() { return new IteratorConstructor(this, KIND); };
+      case ENTRIES: return function entries() { return new IteratorConstructor(this, KIND); };
+    } return function () { return new IteratorConstructor(this); };
+  };
+
+  var TO_STRING_TAG = NAME + ' Iterator';
+  var INCORRECT_VALUES_NAME = false;
+  var IterablePrototype = Iterable.prototype;
+  var nativeIterator = IterablePrototype[ITERATOR]
+    || IterablePrototype['@@iterator']
+    || DEFAULT && IterablePrototype[DEFAULT];
+  var defaultIterator = !BUGGY_SAFARI_ITERATORS && nativeIterator || getIterationMethod(DEFAULT);
+  var anyNativeIterator = NAME == 'Array' ? IterablePrototype.entries || nativeIterator : nativeIterator;
+  var CurrentIteratorPrototype, methods, KEY;
+
+  // fix native
+  if (anyNativeIterator) {
+    CurrentIteratorPrototype = getPrototypeOf(anyNativeIterator.call(new Iterable()));
+    if (CurrentIteratorPrototype !== Object.prototype && CurrentIteratorPrototype.next) {
+      if (!IS_PURE && getPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype) {
+        if (setPrototypeOf) {
+          setPrototypeOf(CurrentIteratorPrototype, IteratorPrototype);
+        } else if (!isCallable(CurrentIteratorPrototype[ITERATOR])) {
+          defineBuiltIn(CurrentIteratorPrototype, ITERATOR, returnThis);
+        }
+      }
+      // Set @@toStringTag to native iterators
+      setToStringTag(CurrentIteratorPrototype, TO_STRING_TAG, true, true);
+      if (IS_PURE) Iterators[TO_STRING_TAG] = returnThis;
+    }
+  }
+
+  // fix Array.prototype.{ values, @@iterator }.name in V8 / FF
+  if (PROPER_FUNCTION_NAME && DEFAULT == VALUES && nativeIterator && nativeIterator.name !== VALUES) {
+    if (!IS_PURE && CONFIGURABLE_FUNCTION_NAME) {
+      createNonEnumerableProperty(IterablePrototype, 'name', VALUES);
+    } else {
+      INCORRECT_VALUES_NAME = true;
+      defaultIterator = function values() { return call(nativeIterator, this); };
+    }
+  }
+
+  // export additional methods
+  if (DEFAULT) {
+    methods = {
+      values: getIterationMethod(VALUES),
+      keys: IS_SET ? defaultIterator : getIterationMethod(KEYS),
+      entries: getIterationMethod(ENTRIES)
+    };
+    if (FORCED) for (KEY in methods) {
+      if (BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME || !(KEY in IterablePrototype)) {
+        defineBuiltIn(IterablePrototype, KEY, methods[KEY]);
+      }
+    } else $({ target: NAME, proto: true, forced: BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME }, methods);
+  }
+
+  // define iterator
+  if ((!IS_PURE || FORCED) && IterablePrototype[ITERATOR] !== defaultIterator) {
+    defineBuiltIn(IterablePrototype, ITERATOR, defaultIterator, { name: DEFAULT });
+  }
+  Iterators[NAME] = defaultIterator;
+
+  return methods;
+};
+
+
+/***/ }),
+
 /***/ 693:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
@@ -2775,6 +2970,7 @@ module.exports = function (iterator, kind, value) {
 
 var fails = __webpack_require__(4229);
 var isCallable = __webpack_require__(6733);
+var isObject = __webpack_require__(5052);
 var create = __webpack_require__(2391);
 var getPrototypeOf = __webpack_require__(7567);
 var defineBuiltIn = __webpack_require__(4768);
@@ -2788,7 +2984,7 @@ var BUGGY_SAFARI_ITERATORS = false;
 // https://tc39.es/ecma262/#sec-%iteratorprototype%-object
 var IteratorPrototype, PrototypeOfArrayIteratorPrototype, arrayIterator;
 
-/* eslint-disable es-x/no-array-prototype-keys -- safe */
+/* eslint-disable es/no-array-prototype-keys -- safe */
 if ([].keys) {
   arrayIterator = [].keys();
   // Safari 8 has buggy iterators w/o `next`
@@ -2799,7 +2995,7 @@ if ([].keys) {
   }
 }
 
-var NEW_ITERATOR_PROTOTYPE = IteratorPrototype == undefined || fails(function () {
+var NEW_ITERATOR_PROTOTYPE = !isObject(IteratorPrototype) || fails(function () {
   var test = {};
   // FF44- legacy iterators case
   return IteratorPrototype[ITERATOR].call(test) !== test;
@@ -2849,6 +3045,7 @@ module.exports = function (obj) {
 /***/ 6039:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
+var uncurryThis = __webpack_require__(5968);
 var fails = __webpack_require__(4229);
 var isCallable = __webpack_require__(6733);
 var hasOwn = __webpack_require__(8270);
@@ -2859,8 +3056,12 @@ var InternalStateModule = __webpack_require__(6407);
 
 var enforceInternalState = InternalStateModule.enforce;
 var getInternalState = InternalStateModule.get;
-// eslint-disable-next-line es-x/no-object-defineproperty -- safe
+var $String = String;
+// eslint-disable-next-line es/no-object-defineproperty -- safe
 var defineProperty = Object.defineProperty;
+var stringSlice = uncurryThis(''.slice);
+var replace = uncurryThis(''.replace);
+var join = uncurryThis([].join);
 
 var CONFIGURABLE_LENGTH = DESCRIPTORS && !fails(function () {
   return defineProperty(function () { /* empty */ }, 'length', { value: 8 }).length !== 8;
@@ -2869,8 +3070,8 @@ var CONFIGURABLE_LENGTH = DESCRIPTORS && !fails(function () {
 var TEMPLATE = String(String).split('String');
 
 var makeBuiltIn = module.exports = function (value, name, options) {
-  if (String(name).slice(0, 7) === 'Symbol(') {
-    name = '[' + String(name).replace(/^Symbol\(([^)]*)\)/, '$1') + ']';
+  if (stringSlice($String(name), 0, 7) === 'Symbol(') {
+    name = '[' + replace($String(name), /^Symbol\(([^)]*)\)/, '$1') + ']';
   }
   if (options && options.getter) name = 'get ' + name;
   if (options && options.setter) name = 'set ' + name;
@@ -2889,7 +3090,7 @@ var makeBuiltIn = module.exports = function (value, name, options) {
   } catch (error) { /* empty */ }
   var state = enforceInternalState(value);
   if (!hasOwn(state, 'source')) {
-    state.source = TEMPLATE.join(typeof name == 'string' ? name : '');
+    state.source = join(TEMPLATE, typeof name == 'string' ? name : '');
   } return value;
 };
 
@@ -2910,7 +3111,7 @@ var floor = Math.floor;
 
 // `Math.trunc` method
 // https://tc39.es/ecma262/#sec-math.trunc
-// eslint-disable-next-line es-x/no-math-trunc -- safe
+// eslint-disable-next-line es/no-math-trunc -- safe
 module.exports = Math.trunc || function trunc(x) {
   var n = +x;
   return (n > 0 ? floor : ceil)(n);
@@ -2926,6 +3127,7 @@ var global = __webpack_require__(9859);
 var bind = __webpack_require__(7636);
 var getOwnPropertyDescriptor = (__webpack_require__(7933).f);
 var macrotask = (__webpack_require__(5795).set);
+var Queue = __webpack_require__(3358);
 var IS_IOS = __webpack_require__(2023);
 var IS_IOS_PEBBLE = __webpack_require__(8983);
 var IS_WEBOS_WEBKIT = __webpack_require__(263);
@@ -2937,26 +3139,22 @@ var process = global.process;
 var Promise = global.Promise;
 // Node.js 11 shows ExperimentalWarning on getting `queueMicrotask`
 var queueMicrotaskDescriptor = getOwnPropertyDescriptor(global, 'queueMicrotask');
-var queueMicrotask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
-
-var flush, head, last, notify, toggle, node, promise, then;
+var microtask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
+var notify, toggle, node, promise, then;
 
 // modern engines have queueMicrotask method
-if (!queueMicrotask) {
-  flush = function () {
+if (!microtask) {
+  var queue = new Queue();
+
+  var flush = function () {
     var parent, fn;
     if (IS_NODE && (parent = process.domain)) parent.exit();
-    while (head) {
-      fn = head.fn;
-      head = head.next;
-      try {
-        fn();
-      } catch (error) {
-        if (head) notify();
-        else last = undefined;
-        throw error;
-      }
-    } last = undefined;
+    while (fn = queue.get()) try {
+      fn();
+    } catch (error) {
+      if (queue.head) notify();
+      throw error;
+    }
     if (parent) parent.enter();
   };
 
@@ -2991,67 +3189,20 @@ if (!queueMicrotask) {
   // - onreadystatechange
   // - setTimeout
   } else {
-    // strange IE + webpack dev server bug - use .bind(global)
+    // `webpack` dev server bug on IE global methods - use bind(fn, global)
     macrotask = bind(macrotask, global);
     notify = function () {
       macrotask(flush);
     };
   }
+
+  microtask = function (fn) {
+    if (!queue.head) notify();
+    queue.add(fn);
+  };
 }
 
-module.exports = queueMicrotask || function (fn) {
-  var task = { fn: fn, next: undefined };
-  if (last) last.next = task;
-  if (!head) {
-    head = task;
-    notify();
-  } last = task;
-};
-
-
-/***/ }),
-
-/***/ 5506:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-var NATIVE_SYMBOL = __webpack_require__(3839);
-
-/* eslint-disable es-x/no-symbol -- safe */
-module.exports = NATIVE_SYMBOL && !!Symbol['for'] && !!Symbol.keyFor;
-
-
-/***/ }),
-
-/***/ 3839:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-/* eslint-disable es-x/no-symbol -- required for testing */
-var V8_VERSION = __webpack_require__(6358);
-var fails = __webpack_require__(4229);
-
-// eslint-disable-next-line es-x/no-object-getownpropertysymbols -- required for testing
-module.exports = !!Object.getOwnPropertySymbols && !fails(function () {
-  var symbol = Symbol();
-  // Chrome 38 Symbol has incorrect toString conversion
-  // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
-  return !String(symbol) || !(Object(symbol) instanceof Symbol) ||
-    // Chrome 38-40 symbols are not inherited from DOM collections prototypes to instances
-    !Symbol.sham && V8_VERSION && V8_VERSION < 41;
-});
-
-
-/***/ }),
-
-/***/ 8694:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-var global = __webpack_require__(9859);
-var isCallable = __webpack_require__(6733);
-var inspectSource = __webpack_require__(8511);
-
-var WeakMap = global.WeakMap;
-
-module.exports = isCallable(WeakMap) && /native code/.test(inspectSource(WeakMap));
+module.exports = microtask;
 
 
 /***/ }),
@@ -3063,10 +3214,12 @@ module.exports = isCallable(WeakMap) && /native code/.test(inspectSource(WeakMap
 
 var aCallable = __webpack_require__(7111);
 
+var $TypeError = TypeError;
+
 var PromiseCapability = function (C) {
   var resolve, reject;
   this.promise = new C(function ($$resolve, $$reject) {
-    if (resolve !== undefined || reject !== undefined) throw TypeError('Bad Promise constructor');
+    if (resolve !== undefined || reject !== undefined) throw $TypeError('Bad Promise constructor');
     resolve = $$resolve;
     reject = $$reject;
   });
@@ -3126,9 +3279,9 @@ var propertyIsEnumerableModule = __webpack_require__(9195);
 var toObject = __webpack_require__(2991);
 var IndexedObject = __webpack_require__(9337);
 
-// eslint-disable-next-line es-x/no-object-assign -- safe
+// eslint-disable-next-line es/no-object-assign -- safe
 var $assign = Object.assign;
-// eslint-disable-next-line es-x/no-object-defineproperty -- required for testing
+// eslint-disable-next-line es/no-object-defineproperty -- required for testing
 var defineProperty = Object.defineProperty;
 var concat = uncurryThis([].concat);
 
@@ -3148,7 +3301,7 @@ module.exports = !$assign || fails(function () {
   // should work with symbols and should have deterministic property order (V8 bug)
   var A = {};
   var B = {};
-  // eslint-disable-next-line es-x/no-symbol -- safe
+  // eslint-disable-next-line es/no-symbol -- safe
   var symbol = Symbol();
   var alphabet = 'abcdefghijklmnopqrst';
   A[symbol] = 7;
@@ -3184,7 +3337,7 @@ var anObject = __webpack_require__(1176);
 var definePropertiesModule = __webpack_require__(219);
 var enumBugKeys = __webpack_require__(3837);
 var hiddenKeys = __webpack_require__(5977);
-var html = __webpack_require__(3777);
+var html = __webpack_require__(8385);
 var documentCreateElement = __webpack_require__(2635);
 var sharedKey = __webpack_require__(4399);
 
@@ -3250,7 +3403,7 @@ hiddenKeys[IE_PROTO] = true;
 
 // `Object.create` method
 // https://tc39.es/ecma262/#sec-object.create
-// eslint-disable-next-line es-x/no-object-create -- safe
+// eslint-disable-next-line es/no-object-create -- safe
 module.exports = Object.create || function create(O, Properties) {
   var result;
   if (O !== null) {
@@ -3278,7 +3431,7 @@ var objectKeys = __webpack_require__(5632);
 
 // `Object.defineProperties` method
 // https://tc39.es/ecma262/#sec-object.defineproperties
-// eslint-disable-next-line es-x/no-object-defineproperties -- safe
+// eslint-disable-next-line es/no-object-defineproperties -- safe
 exports.f = DESCRIPTORS && !V8_PROTOTYPE_DEFINE_BUG ? Object.defineProperties : function defineProperties(O, Properties) {
   anObject(O);
   var props = toIndexedObject(Properties);
@@ -3303,9 +3456,9 @@ var anObject = __webpack_require__(1176);
 var toPropertyKey = __webpack_require__(9310);
 
 var $TypeError = TypeError;
-// eslint-disable-next-line es-x/no-object-defineproperty -- safe
+// eslint-disable-next-line es/no-object-defineproperty -- safe
 var $defineProperty = Object.defineProperty;
-// eslint-disable-next-line es-x/no-object-getownpropertydescriptor -- safe
+// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
 var $getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 var ENUMERABLE = 'enumerable';
 var CONFIGURABLE = 'configurable';
@@ -3355,7 +3508,7 @@ var toPropertyKey = __webpack_require__(9310);
 var hasOwn = __webpack_require__(8270);
 var IE8_DOM_DEFINE = __webpack_require__(4394);
 
-// eslint-disable-next-line es-x/no-object-getownpropertydescriptor -- safe
+// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
 var $getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 // `Object.getOwnPropertyDescriptor` method
@@ -3375,7 +3528,7 @@ exports.f = DESCRIPTORS ? $getOwnPropertyDescriptor : function getOwnPropertyDes
 /***/ 166:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
-/* eslint-disable es-x/no-object-getownpropertynames -- safe */
+/* eslint-disable es/no-object-getownpropertynames -- safe */
 var classof = __webpack_require__(7079);
 var toIndexedObject = __webpack_require__(905);
 var $getOwnPropertyNames = (__webpack_require__(8151).f);
@@ -3412,7 +3565,7 @@ var hiddenKeys = enumBugKeys.concat('length', 'prototype');
 
 // `Object.getOwnPropertyNames` method
 // https://tc39.es/ecma262/#sec-object.getownpropertynames
-// eslint-disable-next-line es-x/no-object-getownpropertynames -- safe
+// eslint-disable-next-line es/no-object-getownpropertynames -- safe
 exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
   return internalObjectKeys(O, hiddenKeys);
 };
@@ -3423,7 +3576,7 @@ exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
 /***/ 894:
 /***/ (function(__unused_webpack_module, exports) {
 
-// eslint-disable-next-line es-x/no-object-getownpropertysymbols -- safe
+// eslint-disable-next-line es/no-object-getownpropertysymbols -- safe
 exports.f = Object.getOwnPropertySymbols;
 
 
@@ -3444,7 +3597,7 @@ var ObjectPrototype = $Object.prototype;
 
 // `Object.getPrototypeOf` method
 // https://tc39.es/ecma262/#sec-object.getprototypeof
-// eslint-disable-next-line es-x/no-object-getprototypeof -- safe
+// eslint-disable-next-line es/no-object-getprototypeof -- safe
 module.exports = CORRECT_PROTOTYPE_GETTER ? $Object.getPrototypeOf : function (O) {
   var object = toObject(O);
   if (hasOwn(object, IE_PROTO)) return object[IE_PROTO];
@@ -3465,7 +3618,7 @@ var isObject = __webpack_require__(5052);
 var classof = __webpack_require__(7079);
 var ARRAY_BUFFER_NON_EXTENSIBLE = __webpack_require__(2460);
 
-// eslint-disable-next-line es-x/no-object-isextensible -- safe
+// eslint-disable-next-line es/no-object-isextensible -- safe
 var $isExtensible = Object.isExtensible;
 var FAILS_ON_PRIMITIVES = fails(function () { $isExtensible(1); });
 
@@ -3525,7 +3678,7 @@ var enumBugKeys = __webpack_require__(3837);
 
 // `Object.keys` method
 // https://tc39.es/ecma262/#sec-object.keys
-// eslint-disable-next-line es-x/no-object-keys -- safe
+// eslint-disable-next-line es/no-object-keys -- safe
 module.exports = Object.keys || function keys(O) {
   return internalObjectKeys(O, enumBugKeys);
 };
@@ -3539,7 +3692,7 @@ module.exports = Object.keys || function keys(O) {
 "use strict";
 
 var $propertyIsEnumerable = {}.propertyIsEnumerable;
-// eslint-disable-next-line es-x/no-object-getownpropertydescriptor -- safe
+// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
 var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 // Nashorn ~ JDK8 bug
@@ -3559,21 +3712,20 @@ exports.f = NASHORN_BUG ? function propertyIsEnumerable(V) {
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 /* eslint-disable no-proto -- safe */
-var uncurryThis = __webpack_require__(5968);
+var uncurryThisAccessor = __webpack_require__(3411);
 var anObject = __webpack_require__(1176);
 var aPossiblePrototype = __webpack_require__(8505);
 
 // `Object.setPrototypeOf` method
 // https://tc39.es/ecma262/#sec-object.setprototypeof
 // Works with __proto__ only. Old v8 can't work with null proto objects.
-// eslint-disable-next-line es-x/no-object-setprototypeof -- safe
+// eslint-disable-next-line es/no-object-setprototypeof -- safe
 module.exports = Object.setPrototypeOf || ('__proto__' in {} ? function () {
   var CORRECT_SETTER = false;
   var test = {};
   var setter;
   try {
-    // eslint-disable-next-line es-x/no-object-getownpropertydescriptor -- safe
-    setter = uncurryThis(Object.getOwnPropertyDescriptor(Object.prototype, '__proto__').set);
+    setter = uncurryThisAccessor(Object.prototype, '__proto__', 'set');
     setter(test, []);
     CORRECT_SETTER = test instanceof Array;
   } catch (error) { /* empty */ }
@@ -3726,6 +3878,7 @@ var isForced = __webpack_require__(6541);
 var inspectSource = __webpack_require__(8511);
 var wellKnownSymbol = __webpack_require__(95);
 var IS_BROWSER = __webpack_require__(8639);
+var IS_DENO = __webpack_require__(5189);
 var IS_PURE = __webpack_require__(4231);
 var V8_VERSION = __webpack_require__(6358);
 
@@ -3746,18 +3899,18 @@ var FORCED_PROMISE_CONSTRUCTOR = isForced('Promise', function () {
   // We can't use @@species feature detection in V8 since it causes
   // deoptimization and performance degradation
   // https://github.com/zloirock/core-js/issues/679
-  if (V8_VERSION >= 51 && /native code/.test(PROMISE_CONSTRUCTOR_SOURCE)) return false;
-  // Detect correctness of subclassing with @@species support
-  var promise = new NativePromiseConstructor(function (resolve) { resolve(1); });
-  var FakePromise = function (exec) {
-    exec(function () { /* empty */ }, function () { /* empty */ });
-  };
-  var constructor = promise.constructor = {};
-  constructor[SPECIES] = FakePromise;
-  SUBCLASSING = promise.then(function () { /* empty */ }) instanceof FakePromise;
-  if (!SUBCLASSING) return true;
+  if (!V8_VERSION || V8_VERSION < 51 || !/native code/.test(PROMISE_CONSTRUCTOR_SOURCE)) {
+    // Detect correctness of subclassing with @@species support
+    var promise = new NativePromiseConstructor(function (resolve) { resolve(1); });
+    var FakePromise = function (exec) {
+      exec(function () { /* empty */ }, function () { /* empty */ });
+    };
+    var constructor = promise.constructor = {};
+    constructor[SPECIES] = FakePromise;
+    SUBCLASSING = promise.then(function () { /* empty */ }) instanceof FakePromise;
+    if (!SUBCLASSING) return true;
   // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-  return !GLOBAL_CORE_JS_PROMISE && IS_BROWSER && !NATIVE_PROMISE_REJECTION_EVENT;
+  } return !GLOBAL_CORE_JS_PROMISE && (IS_BROWSER || IS_DENO) && !NATIVE_PROMISE_REJECTION_EVENT;
 });
 
 module.exports = {
@@ -3839,15 +3992,16 @@ var Queue = function () {
 Queue.prototype = {
   add: function (item) {
     var entry = { item: item, next: null };
-    if (this.head) this.tail.next = entry;
+    var tail = this.tail;
+    if (tail) tail.next = entry;
     else this.head = entry;
     this.tail = entry;
   },
   get: function () {
     var entry = this.head;
     if (entry) {
-      this.head = entry.next;
-      if (this.tail === entry) this.tail = null;
+      var next = this.head = entry.next;
+      if (next === null) this.tail = null;
       return entry.item;
     }
   }
@@ -4128,14 +4282,16 @@ module.exports = fails(function () {
 /***/ }),
 
 /***/ 8885:
-/***/ (function(module) {
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var isNullOrUndefined = __webpack_require__(9650);
 
 var $TypeError = TypeError;
 
 // `RequireObjectCoercible` abstract operation
 // https://tc39.es/ecma262/#sec-requireobjectcoercible
 module.exports = function (it) {
-  if (it == undefined) throw $TypeError("Can't call method on " + it);
+  if (isNullOrUndefined(it)) throw $TypeError("Can't call method on " + it);
   return it;
 };
 
@@ -4147,7 +4303,7 @@ module.exports = function (it) {
 
 // `SameValue` abstract operation
 // https://tc39.es/ecma262/#sec-samevalue
-// eslint-disable-next-line es-x/no-object-is -- safe
+// eslint-disable-next-line es/no-object-is -- safe
 module.exports = Object.is || function is(x, y) {
   // eslint-disable-next-line no-self-compare -- NaN check
   return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;
@@ -4162,7 +4318,7 @@ module.exports = Object.is || function is(x, y) {
 "use strict";
 
 var getBuiltIn = __webpack_require__(1333);
-var definePropertyModule = __webpack_require__(1787);
+var defineBuiltInAccessor = __webpack_require__(6616);
 var wellKnownSymbol = __webpack_require__(95);
 var DESCRIPTORS = __webpack_require__(7400);
 
@@ -4170,10 +4326,9 @@ var SPECIES = wellKnownSymbol('species');
 
 module.exports = function (CONSTRUCTOR_NAME) {
   var Constructor = getBuiltIn(CONSTRUCTOR_NAME);
-  var defineProperty = definePropertyModule.f;
 
   if (DESCRIPTORS && Constructor && !Constructor[SPECIES]) {
-    defineProperty(Constructor, SPECIES, {
+    defineBuiltInAccessor(Constructor, SPECIES, {
       configurable: true,
       get: function () { return this; }
     });
@@ -4240,10 +4395,10 @@ var store = __webpack_require__(5353);
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.23.5',
+  version: '3.30.2',
   mode: IS_PURE ? 'pure' : 'global',
-  copyright: '© 2014-2022 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.23.5/LICENSE',
+  copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
+  license: 'https://github.com/zloirock/core-js/blob/v3.30.2/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -4255,6 +4410,7 @@ var store = __webpack_require__(5353);
 
 var anObject = __webpack_require__(1176);
 var aConstructor = __webpack_require__(7988);
+var isNullOrUndefined = __webpack_require__(9650);
 var wellKnownSymbol = __webpack_require__(95);
 
 var SPECIES = wellKnownSymbol('species');
@@ -4264,7 +4420,7 @@ var SPECIES = wellKnownSymbol('species');
 module.exports = function (O, defaultConstructor) {
   var C = anObject(O).constructor;
   var S;
-  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? defaultConstructor : aConstructor(S);
+  return C === undefined || isNullOrUndefined(S = anObject(C)[SPECIES]) ? defaultConstructor : aConstructor(S);
 };
 
 
@@ -4400,16 +4556,15 @@ var toString = __webpack_require__(3326);
 var whitespaces = __webpack_require__(1647);
 
 var replace = uncurryThis(''.replace);
-var whitespace = '[' + whitespaces + ']';
-var ltrim = RegExp('^' + whitespace + whitespace + '*');
-var rtrim = RegExp(whitespace + whitespace + '*$');
+var ltrim = RegExp('^[' + whitespaces + ']+');
+var rtrim = RegExp('(^|[^' + whitespaces + '])[' + whitespaces + ']+$');
 
 // `String.prototype.{ trim, trimStart, trimEnd, trimLeft, trimRight }` methods implementation
 var createMethod = function (TYPE) {
   return function ($this) {
     var string = toString(requireObjectCoercible($this));
     if (TYPE & 1) string = replace(string, ltrim, '');
-    if (TYPE & 2) string = replace(string, rtrim, '');
+    if (TYPE & 2) string = replace(string, rtrim, '$1');
     return string;
   };
 };
@@ -4425,6 +4580,31 @@ module.exports = {
   // https://tc39.es/ecma262/#sec-string.prototype.trim
   trim: createMethod(3)
 };
+
+
+/***/ }),
+
+/***/ 4860:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/* eslint-disable es/no-symbol -- required for testing */
+var V8_VERSION = __webpack_require__(6358);
+var fails = __webpack_require__(4229);
+var global = __webpack_require__(9859);
+
+var $String = global.String;
+
+// eslint-disable-next-line es/no-object-getownpropertysymbols -- required for testing
+module.exports = !!Object.getOwnPropertySymbols && !fails(function () {
+  var symbol = Symbol();
+  // Chrome 38 Symbol has incorrect toString conversion
+  // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
+  // nb: Do not call `String` directly to avoid this being optimized out to `symbol+''` which will,
+  // of course, fail.
+  return !$String(symbol) || !(Object(symbol) instanceof Symbol) ||
+    // Chrome 38-40 symbols are not inherited from DOM collections prototypes to instances
+    !Symbol.sham && V8_VERSION && V8_VERSION < 41;
+});
 
 
 /***/ }),
@@ -4456,6 +4636,17 @@ module.exports = function () {
 
 /***/ }),
 
+/***/ 5957:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var NATIVE_SYMBOL = __webpack_require__(4860);
+
+/* eslint-disable es/no-symbol -- safe */
+module.exports = NATIVE_SYMBOL && !!Symbol['for'] && !!Symbol.keyFor;
+
+
+/***/ }),
+
 /***/ 5795:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
@@ -4465,7 +4656,7 @@ var bind = __webpack_require__(7636);
 var isCallable = __webpack_require__(6733);
 var hasOwn = __webpack_require__(8270);
 var fails = __webpack_require__(4229);
-var html = __webpack_require__(3777);
+var html = __webpack_require__(8385);
 var arraySlice = __webpack_require__(1909);
 var createElement = __webpack_require__(2635);
 var validateArgumentsLength = __webpack_require__(7579);
@@ -4482,12 +4673,12 @@ var String = global.String;
 var counter = 0;
 var queue = {};
 var ONREADYSTATECHANGE = 'onreadystatechange';
-var location, defer, channel, port;
+var $location, defer, channel, port;
 
-try {
+fails(function () {
   // Deno throws a ReferenceError on `location` access without `--location` flag
-  location = global.location;
-} catch (error) { /* empty */ }
+  $location = global.location;
+});
 
 var run = function (id) {
   if (hasOwn(queue, id)) {
@@ -4503,13 +4694,13 @@ var runner = function (id) {
   };
 };
 
-var listener = function (event) {
+var eventListener = function (event) {
   run(event.data);
 };
 
-var post = function (id) {
+var globalPostMessageDefer = function (id) {
   // old engines have not location.origin
-  global.postMessage(String(id), location.protocol + '//' + location.host);
+  global.postMessage(String(id), $location.protocol + '//' + $location.host);
 };
 
 // Node.js 0.9+ & IE10+ has setImmediate, otherwise:
@@ -4542,7 +4733,7 @@ if (!set || !clear) {
   } else if (MessageChannel && !IS_IOS) {
     channel = new MessageChannel();
     port = channel.port2;
-    channel.port1.onmessage = listener;
+    channel.port1.onmessage = eventListener;
     defer = bind(port.postMessage, port);
   // Browsers with postMessage, skip WebWorkers
   // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
@@ -4550,11 +4741,11 @@ if (!set || !clear) {
     global.addEventListener &&
     isCallable(global.postMessage) &&
     !global.importScripts &&
-    location && location.protocol !== 'file:' &&
-    !fails(post)
+    $location && $location.protocol !== 'file:' &&
+    !fails(globalPostMessageDefer)
   ) {
-    defer = post;
-    global.addEventListener('message', listener, false);
+    defer = globalPostMessageDefer;
+    global.addEventListener('message', eventListener, false);
   // IE8-
   } else if (ONREADYSTATECHANGE in createElement('script')) {
     defer = function (id) {
@@ -4785,8 +4976,8 @@ module.exports = function (key) {
 /***/ 6969:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
-/* eslint-disable es-x/no-symbol -- required for testing */
-var NATIVE_SYMBOL = __webpack_require__(3839);
+/* eslint-disable es/no-symbol -- required for testing */
+var NATIVE_SYMBOL = __webpack_require__(4860);
 
 module.exports = NATIVE_SYMBOL
   && !Symbol.sham
@@ -4804,7 +4995,7 @@ var fails = __webpack_require__(4229);
 // V8 ~ Chrome 36-
 // https://bugs.chromium.org/p/v8/issues/detail?id=3334
 module.exports = DESCRIPTORS && fails(function () {
-  // eslint-disable-next-line es-x/no-object-defineproperty -- required for testing
+  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
   return Object.defineProperty(function () { /* empty */ }, 'prototype', {
     value: 42,
     writable: false
@@ -4827,6 +5018,37 @@ module.exports = function (passed, required) {
 
 /***/ }),
 
+/***/ 1180:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var global = __webpack_require__(9859);
+var isCallable = __webpack_require__(6733);
+
+var WeakMap = global.WeakMap;
+
+module.exports = isCallable(WeakMap) && /native code/.test(String(WeakMap));
+
+
+/***/ }),
+
+/***/ 3524:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var path = __webpack_require__(9276);
+var hasOwn = __webpack_require__(8270);
+var wrappedWellKnownSymbolModule = __webpack_require__(5391);
+var defineProperty = (__webpack_require__(1787).f);
+
+module.exports = function (NAME) {
+  var Symbol = path.Symbol || (path.Symbol = {});
+  if (!hasOwn(Symbol, NAME)) defineProperty(Symbol, NAME, {
+    value: wrappedWellKnownSymbolModule.f(NAME)
+  });
+};
+
+
+/***/ }),
+
 /***/ 5391:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -4844,24 +5066,18 @@ var global = __webpack_require__(9859);
 var shared = __webpack_require__(3036);
 var hasOwn = __webpack_require__(8270);
 var uid = __webpack_require__(1441);
-var NATIVE_SYMBOL = __webpack_require__(3839);
+var NATIVE_SYMBOL = __webpack_require__(4860);
 var USE_SYMBOL_AS_UID = __webpack_require__(6969);
 
-var WellKnownSymbolsStore = shared('wks');
 var Symbol = global.Symbol;
-var symbolFor = Symbol && Symbol['for'];
-var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol : Symbol && Symbol.withoutSetter || uid;
+var WellKnownSymbolsStore = shared('wks');
+var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol['for'] || Symbol : Symbol && Symbol.withoutSetter || uid;
 
 module.exports = function (name) {
-  if (!hasOwn(WellKnownSymbolsStore, name) || !(NATIVE_SYMBOL || typeof WellKnownSymbolsStore[name] == 'string')) {
-    var description = 'Symbol.' + name;
-    if (NATIVE_SYMBOL && hasOwn(Symbol, name)) {
-      WellKnownSymbolsStore[name] = Symbol[name];
-    } else if (USE_SYMBOL_AS_UID && symbolFor) {
-      WellKnownSymbolsStore[name] = symbolFor(description);
-    } else {
-      WellKnownSymbolsStore[name] = createWellKnownSymbol(description);
-    }
+  if (!hasOwn(WellKnownSymbolsStore, name)) {
+    WellKnownSymbolsStore[name] = NATIVE_SYMBOL && hasOwn(Symbol, name)
+      ? Symbol[name]
+      : createWellKnownSymbol('Symbol.' + name);
   } return WellKnownSymbolsStore[name];
 };
 
@@ -4893,8 +5109,7 @@ var proxyAccessor = __webpack_require__(6060);
 var inheritIfRequired = __webpack_require__(835);
 var normalizeStringArgument = __webpack_require__(635);
 var installErrorCause = __webpack_require__(9679);
-var clearErrorStack = __webpack_require__(1590);
-var ERROR_STACK_INSTALLABLE = __webpack_require__(373);
+var installErrorStack = __webpack_require__(9166);
 var DESCRIPTORS = __webpack_require__(7400);
 var IS_PURE = __webpack_require__(4231);
 
@@ -4920,7 +5135,7 @@ module.exports = function (FULL_NAME, wrapper, FORCED, IS_AGGREGATE_ERROR) {
     var message = normalizeStringArgument(IS_AGGREGATE_ERROR ? b : a, undefined);
     var result = IS_AGGREGATE_ERROR ? new OriginalError(a) : new OriginalError();
     if (message !== undefined) createNonEnumerableProperty(result, 'message', message);
-    if (ERROR_STACK_INSTALLABLE) createNonEnumerableProperty(result, 'stack', clearErrorStack(result.stack, 2));
+    installErrorStack(result, WrappedError, result.stack, 2);
     if (this && isPrototypeOf(OriginalErrorPrototype, this)) inheritIfRequired(result, this, WrappedError);
     if (arguments.length > OPTIONS_POSITION) installErrorCause(result, arguments[OPTIONS_POSITION]);
     return result;
@@ -4981,15 +5196,13 @@ var IS_CONCAT_SPREADABLE_SUPPORT = V8_VERSION >= 51 || !fails(function () {
   return array.concat()[0] !== array;
 });
 
-var SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('concat');
-
 var isConcatSpreadable = function (O) {
   if (!isObject(O)) return false;
   var spreadable = O[IS_CONCAT_SPREADABLE];
   return spreadable !== undefined ? !!spreadable : isArray(O);
 };
 
-var FORCED = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
+var FORCED = !IS_CONCAT_SPREADABLE_SUPPORT || !arrayMethodHasSpeciesSupport('concat');
 
 // `Array.prototype.concat` method
 // https://tc39.es/ecma262/#sec-array.prototype.concat
@@ -5075,6 +5288,7 @@ var FIND_INDEX = 'findIndex';
 var SKIPS_HOLES = true;
 
 // Shouldn't skip holes
+// eslint-disable-next-line es/no-array-prototype-findindex -- testing
 if (FIND_INDEX in []) Array(1)[FIND_INDEX](function () { SKIPS_HOLES = false; });
 
 // `Array.prototype.findIndex` method
@@ -5104,6 +5318,7 @@ var FIND = 'find';
 var SKIPS_HOLES = true;
 
 // Shouldn't skip holes
+// eslint-disable-next-line es/no-array-prototype-find -- testing
 if (FIND in []) Array(1)[FIND](function () { SKIPS_HOLES = false; });
 
 // `Array.prototype.find` method
@@ -5185,7 +5400,7 @@ var from = __webpack_require__(507);
 var checkCorrectnessOfIteration = __webpack_require__(4575);
 
 var INCORRECT_ITERATION = !checkCorrectnessOfIteration(function (iterable) {
-  // eslint-disable-next-line es-x/no-array-from -- required for testing
+  // eslint-disable-next-line es/no-array-from -- required for testing
   Array.from(iterable);
 });
 
@@ -5210,6 +5425,7 @@ var addToUnscopables = __webpack_require__(9736);
 
 // FF99+ bug
 var BROKEN_ON_SPARSE = fails(function () {
+  // eslint-disable-next-line es/no-array-prototype-includes -- detection
   return !Array(1).includes();
 });
 
@@ -5237,7 +5453,8 @@ var addToUnscopables = __webpack_require__(9736);
 var Iterators = __webpack_require__(5495);
 var InternalStateModule = __webpack_require__(6407);
 var defineProperty = (__webpack_require__(1787).f);
-var defineIterator = __webpack_require__(7675);
+var defineIterator = __webpack_require__(2707);
+var createIterResultObject = __webpack_require__(3684);
 var IS_PURE = __webpack_require__(4231);
 var DESCRIPTORS = __webpack_require__(7400);
 
@@ -5271,11 +5488,11 @@ module.exports = defineIterator(Array, 'Array', function (iterated, kind) {
   var index = state.index++;
   if (!target || index >= target.length) {
     state.target = undefined;
-    return { value: undefined, done: true };
+    return createIterResultObject(undefined, true);
   }
-  if (kind == 'keys') return { value: index, done: false };
-  if (kind == 'values') return { value: target[index], done: false };
-  return { value: [index, target[index]], done: false };
+  if (kind == 'keys') return createIterResultObject(index, false);
+  if (kind == 'values') return createIterResultObject(target[index], false);
+  return createIterResultObject([index, target[index]], false);
 }, 'values');
 
 // argumentsList[@@iterator] is %ArrayProto_values%
@@ -5307,16 +5524,16 @@ var IndexedObject = __webpack_require__(9337);
 var toIndexedObject = __webpack_require__(905);
 var arrayMethodIsStrict = __webpack_require__(6038);
 
-var un$Join = uncurryThis([].join);
+var nativeJoin = uncurryThis([].join);
 
 var ES3_STRINGS = IndexedObject != Object;
-var STRICT_METHOD = arrayMethodIsStrict('join', ',');
+var FORCED = ES3_STRINGS || !arrayMethodIsStrict('join', ',');
 
 // `Array.prototype.join` method
 // https://tc39.es/ecma262/#sec-array.prototype.join
-$({ target: 'Array', proto: true, forced: ES3_STRINGS || !STRICT_METHOD }, {
+$({ target: 'Array', proto: true, forced: FORCED }, {
   join: function join(separator) {
-    return un$Join(toIndexedObject(this), separator === undefined ? ',' : separator);
+    return nativeJoin(toIndexedObject(this), separator === undefined ? ',' : separator);
   }
 });
 
@@ -5361,7 +5578,7 @@ var toIndexedObject = __webpack_require__(905);
 var createProperty = __webpack_require__(2324);
 var wellKnownSymbol = __webpack_require__(95);
 var arrayMethodHasSpeciesSupport = __webpack_require__(1460);
-var un$Slice = __webpack_require__(1909);
+var nativeSlice = __webpack_require__(1909);
 
 var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('slice');
 
@@ -5390,7 +5607,7 @@ $({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT }, {
         if (Constructor === null) Constructor = undefined;
       }
       if (Constructor === $Array || Constructor === undefined) {
-        return un$Slice(O, k, fin);
+        return nativeSlice(O, k, fin);
       }
     }
     result = new (Constructor === undefined ? $Array : Constructor)(max(fin - k, 0));
@@ -5424,7 +5641,7 @@ var V8 = __webpack_require__(6358);
 var WEBKIT = __webpack_require__(9811);
 
 var test = [];
-var un$Sort = uncurryThis(test.sort);
+var nativeSort = uncurryThis(test.sort);
 var push = uncurryThis(test.push);
 
 // IE8-
@@ -5492,7 +5709,7 @@ $({ target: 'Array', proto: true, forced: FORCED }, {
 
     var array = toObject(this);
 
-    if (STABLE_SORT) return comparefn === undefined ? un$Sort(array) : un$Sort(array, comparefn);
+    if (STABLE_SORT) return comparefn === undefined ? nativeSort(array) : nativeSort(array, comparefn);
 
     var items = [];
     var arrayLength = lengthOfArrayLike(array);
@@ -5504,7 +5721,7 @@ $({ target: 'Array', proto: true, forced: FORCED }, {
 
     internalSort(items, getSortCompare(comparefn));
 
-    itemsLength = items.length;
+    itemsLength = lengthOfArrayLike(items);
     index = 0;
 
     while (index < itemsLength) array[index] = items[index++];
@@ -5527,6 +5744,7 @@ var toObject = __webpack_require__(2991);
 var toAbsoluteIndex = __webpack_require__(3231);
 var toIntegerOrInfinity = __webpack_require__(3329);
 var lengthOfArrayLike = __webpack_require__(9646);
+var setArrayLength = __webpack_require__(6554);
 var doesNotExceedSafeInteger = __webpack_require__(3064);
 var arraySpeciesCreate = __webpack_require__(7501);
 var createProperty = __webpack_require__(2324);
@@ -5583,7 +5801,7 @@ $({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT }, {
     for (k = 0; k < insertCount; k++) {
       O[k + actualStart] = arguments[k + 2];
     }
-    O.length = len - actualDeleteCount + insertCount;
+    setArrayLength(O, len - actualDeleteCount + insertCount);
     return A;
   }
 });
@@ -5617,6 +5835,26 @@ addToUnscopables('flat');
 
 /***/ }),
 
+/***/ 6264:
+/***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
+
+var hasOwn = __webpack_require__(8270);
+var defineBuiltIn = __webpack_require__(4768);
+var dateToPrimitive = __webpack_require__(9778);
+var wellKnownSymbol = __webpack_require__(95);
+
+var TO_PRIMITIVE = wellKnownSymbol('toPrimitive');
+var DatePrototype = Date.prototype;
+
+// `Date.prototype[@@toPrimitive]` method
+// https://tc39.es/ecma262/#sec-date.prototype-@@toprimitive
+if (!hasOwn(DatePrototype, TO_PRIMITIVE)) {
+  defineBuiltIn(DatePrototype, TO_PRIMITIVE, dateToPrimitive);
+}
+
+
+/***/ }),
+
 /***/ 1372:
 /***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
 
@@ -5645,6 +5883,7 @@ var exportWebAssemblyErrorCauseWrapper = function (ERROR_NAME, wrapper) {
   }
 };
 
+// https://tc39.es/ecma262/#sec-nativeerror
 // https://github.com/tc39/proposal-error-cause
 exportGlobalErrorCauseWrapper('Error', function (init) {
   return function Error(message) { return apply(init, this, arguments); };
@@ -5686,7 +5925,7 @@ exportWebAssemblyErrorCauseWrapper('RuntimeError', function (init) {
 var DESCRIPTORS = __webpack_require__(7400);
 var FUNCTION_NAME_EXISTS = (__webpack_require__(1805).EXISTS);
 var uncurryThis = __webpack_require__(5968);
-var defineProperty = (__webpack_require__(1787).f);
+var defineBuiltInAccessor = __webpack_require__(6616);
 
 var FunctionPrototype = Function.prototype;
 var functionToString = uncurryThis(FunctionPrototype.toString);
@@ -5697,7 +5936,7 @@ var NAME = 'name';
 // Function instances `.name` property
 // https://tc39.es/ecma262/#sec-function-instances-name
 if (DESCRIPTORS && !FUNCTION_NAME_EXISTS) {
-  defineProperty(FunctionPrototype, NAME, {
+  defineBuiltInAccessor(FunctionPrototype, NAME, {
     configurable: true,
     get: function () {
       try {
@@ -5721,13 +5960,13 @@ var apply = __webpack_require__(3171);
 var call = __webpack_require__(266);
 var uncurryThis = __webpack_require__(5968);
 var fails = __webpack_require__(4229);
-var isArray = __webpack_require__(3718);
 var isCallable = __webpack_require__(6733);
-var isObject = __webpack_require__(5052);
 var isSymbol = __webpack_require__(9395);
 var arraySlice = __webpack_require__(1909);
-var NATIVE_SYMBOL = __webpack_require__(3839);
+var getReplacerFunction = __webpack_require__(1163);
+var NATIVE_SYMBOL = __webpack_require__(4860);
 
+var $String = String;
 var $stringify = getBuiltIn('JSON', 'stringify');
 var exec = uncurryThis(/./.exec);
 var charAt = uncurryThis(''.charAt);
@@ -5757,13 +5996,13 @@ var ILL_FORMED_UNICODE = fails(function () {
 
 var stringifyWithSymbolsFix = function (it, replacer) {
   var args = arraySlice(arguments);
-  var $replacer = replacer;
-  if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
-  if (!isArray(replacer)) replacer = function (key, value) {
-    if (isCallable($replacer)) value = call($replacer, this, key, value);
+  var $replacer = getReplacerFunction(replacer);
+  if (!isCallable($replacer) && (it === undefined || isSymbol(it))) return; // IE8 returns string on undefined
+  args[1] = function (key, value) {
+    // some old implementations (like WebKit) could pass numbers as keys
+    if (isCallable($replacer)) value = call($replacer, this, $String(key), value);
     if (!isSymbol(value)) return value;
   };
-  args[1] = replacer;
   return apply($stringify, null, args);
 };
 
@@ -5822,11 +6061,13 @@ __webpack_require__(9294);
 
 "use strict";
 
+var $ = __webpack_require__(3103);
+var IS_PURE = __webpack_require__(4231);
 var DESCRIPTORS = __webpack_require__(7400);
 var global = __webpack_require__(9859);
+var path = __webpack_require__(9276);
 var uncurryThis = __webpack_require__(5968);
 var isForced = __webpack_require__(6541);
-var defineBuiltIn = __webpack_require__(4768);
 var hasOwn = __webpack_require__(8270);
 var inheritIfRequired = __webpack_require__(835);
 var isPrototypeOf = __webpack_require__(1321);
@@ -5841,9 +6082,10 @@ var trim = (__webpack_require__(1017).trim);
 
 var NUMBER = 'Number';
 var NativeNumber = global[NUMBER];
+var PureNumberNamespace = path[NUMBER];
 var NumberPrototype = NativeNumber.prototype;
 var TypeError = global.TypeError;
-var arraySlice = uncurryThis(''.slice);
+var stringSlice = uncurryThis(''.slice);
 var charCodeAt = uncurryThis(''.charCodeAt);
 
 // `ToNumeric` abstract operation
@@ -5871,7 +6113,7 @@ var toNumber = function (argument) {
         case 79: case 111: radix = 8; maxCode = 55; break; // fast equal of /^0o[0-7]+$/i
         default: return +it;
       }
-      digits = arraySlice(it, 2);
+      digits = stringSlice(it, 2);
       length = digits.length;
       for (index = 0; index < length; index++) {
         code = charCodeAt(digits, index);
@@ -5883,17 +6125,30 @@ var toNumber = function (argument) {
   } return +it;
 };
 
+var FORCED = isForced(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumber('+0x1'));
+
+var calledWithNew = function (dummy) {
+  // includes check on 1..constructor(foo) case
+  return isPrototypeOf(NumberPrototype, dummy) && fails(function () { thisNumberValue(dummy); });
+};
+
 // `Number` constructor
 // https://tc39.es/ecma262/#sec-number-constructor
-if (isForced(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumber('+0x1'))) {
-  var NumberWrapper = function Number(value) {
-    var n = arguments.length < 1 ? 0 : NativeNumber(toNumeric(value));
-    var dummy = this;
-    // check on 1..constructor(foo) case
-    return isPrototypeOf(NumberPrototype, dummy) && fails(function () { thisNumberValue(dummy); })
-      ? inheritIfRequired(Object(n), dummy, NumberWrapper) : n;
-  };
-  for (var keys = DESCRIPTORS ? getOwnPropertyNames(NativeNumber) : (
+var NumberWrapper = function Number(value) {
+  var n = arguments.length < 1 ? 0 : NativeNumber(toNumeric(value));
+  return calledWithNew(this) ? inheritIfRequired(Object(n), this, NumberWrapper) : n;
+};
+
+NumberWrapper.prototype = NumberPrototype;
+if (FORCED && !IS_PURE) NumberPrototype.constructor = NumberWrapper;
+
+$({ global: true, constructor: true, wrap: true, forced: FORCED }, {
+  Number: NumberWrapper
+});
+
+// Use `internal/copy-constructor-properties` helper in `core-js@4`
+var copyConstructorProperties = function (target, source) {
+  for (var keys = DESCRIPTORS ? getOwnPropertyNames(source) : (
     // ES3:
     'MAX_VALUE,MIN_VALUE,NaN,NEGATIVE_INFINITY,POSITIVE_INFINITY,' +
     // ES2015 (in case, if modules with ES2015 Number statics required before):
@@ -5901,14 +6156,14 @@ if (isForced(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumb
     // ESNext
     'fromString,range'
   ).split(','), j = 0, key; keys.length > j; j++) {
-    if (hasOwn(NativeNumber, key = keys[j]) && !hasOwn(NumberWrapper, key)) {
-      defineProperty(NumberWrapper, key, getOwnPropertyDescriptor(NativeNumber, key));
+    if (hasOwn(source, key = keys[j]) && !hasOwn(target, key)) {
+      defineProperty(target, key, getOwnPropertyDescriptor(source, key));
     }
   }
-  NumberWrapper.prototype = NumberPrototype;
-  NumberPrototype.constructor = NumberWrapper;
-  defineBuiltIn(global, NUMBER, NumberWrapper, { constructor: true });
-}
+};
+
+if (IS_PURE && PureNumberNamespace) copyConstructorProperties(path[NUMBER], PureNumberNamespace);
+if (FORCED || IS_PURE) copyConstructorProperties(path[NUMBER], NativeNumber);
 
 
 /***/ }),
@@ -5921,7 +6176,7 @@ var assign = __webpack_require__(47);
 
 // `Object.assign` method
 // https://tc39.es/ecma262/#sec-object.assign
-// eslint-disable-next-line es-x/no-object-assign -- required for testing
+// eslint-disable-next-line es/no-object-assign -- required for testing
 $({ target: 'Object', stat: true, arity: 2, forced: Object.assign !== assign }, {
   assign: assign
 });
@@ -5955,8 +6210,7 @@ var toIndexedObject = __webpack_require__(905);
 var nativeGetOwnPropertyDescriptor = (__webpack_require__(7933).f);
 var DESCRIPTORS = __webpack_require__(7400);
 
-var FAILS_ON_PRIMITIVES = fails(function () { nativeGetOwnPropertyDescriptor(1); });
-var FORCED = !DESCRIPTORS || FAILS_ON_PRIMITIVES;
+var FORCED = !DESCRIPTORS || fails(function () { nativeGetOwnPropertyDescriptor(1); });
 
 // `Object.getOwnPropertyDescriptor` method
 // https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
@@ -6004,7 +6258,7 @@ $({ target: 'Object', stat: true, sham: !DESCRIPTORS }, {
 /***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
 
 var $ = __webpack_require__(3103);
-var NATIVE_SYMBOL = __webpack_require__(3839);
+var NATIVE_SYMBOL = __webpack_require__(4860);
 var fails = __webpack_require__(4229);
 var getOwnPropertySymbolsModule = __webpack_require__(894);
 var toObject = __webpack_require__(2991);
@@ -6965,7 +7219,7 @@ if (DESCRIPTORS && MISSED_STICKY) {
   defineBuiltInAccessor(RegExpPrototype, 'sticky', {
     configurable: true,
     get: function sticky() {
-      if (this === RegExpPrototype) return undefined;
+      if (this === RegExpPrototype) return;
       // We can't use InternalStateModule.getterFor because
       // we don't add metadata for regexps created by a literal.
       if (classof(this) === 'RegExp') {
@@ -6988,9 +7242,9 @@ if (DESCRIPTORS && MISSED_STICKY) {
 __webpack_require__(7950);
 var $ = __webpack_require__(3103);
 var call = __webpack_require__(266);
-var uncurryThis = __webpack_require__(5968);
 var isCallable = __webpack_require__(6733);
-var isObject = __webpack_require__(5052);
+var anObject = __webpack_require__(1176);
+var toString = __webpack_require__(3326);
 
 var DELEGATES_TO_EXEC = function () {
   var execCalled = false;
@@ -7002,20 +7256,20 @@ var DELEGATES_TO_EXEC = function () {
   return re.test('abc') === true && execCalled;
 }();
 
-var $TypeError = TypeError;
-var un$Test = uncurryThis(/./.test);
+var nativeTest = /./.test;
 
 // `RegExp.prototype.test` method
 // https://tc39.es/ecma262/#sec-regexp.prototype.test
 $({ target: 'RegExp', proto: true, forced: !DELEGATES_TO_EXEC }, {
-  test: function (str) {
-    var exec = this.exec;
-    if (!isCallable(exec)) return un$Test(this, str);
-    var result = call(exec, this, str);
-    if (result !== null && !isObject(result)) {
-      throw new $TypeError('RegExp exec method returned something other than an Object or null');
-    }
-    return !!result;
+  test: function (S) {
+    var R = anObject(this);
+    var string = toString(S);
+    var exec = R.exec;
+    if (!isCallable(exec)) return call(nativeTest, R, string);
+    var result = call(exec, R, string);
+    if (result === null) return false;
+    anObject(result);
+    return true;
   }
 });
 
@@ -7036,11 +7290,11 @@ var getRegExpFlags = __webpack_require__(3349);
 
 var TO_STRING = 'toString';
 var RegExpPrototype = RegExp.prototype;
-var n$ToString = RegExpPrototype[TO_STRING];
+var nativeToString = RegExpPrototype[TO_STRING];
 
-var NOT_GENERIC = fails(function () { return n$ToString.call({ source: 'a', flags: 'b' }) != '/a/b'; });
+var NOT_GENERIC = fails(function () { return nativeToString.call({ source: 'a', flags: 'b' }) != '/a/b'; });
 // FF44- RegExp#toString has a wrong name
-var INCORRECT_NAME = PROPER_FUNCTION_NAME && n$ToString.name != TO_STRING;
+var INCORRECT_NAME = PROPER_FUNCTION_NAME && nativeToString.name != TO_STRING;
 
 // `RegExp.prototype.toString` method
 // https://tc39.es/ecma262/#sec-regexp.prototype.tostring
@@ -7119,7 +7373,8 @@ $({ target: 'String', proto: true, forced: !correctIsRegExpLogic('includes') }, 
 var charAt = (__webpack_require__(966).charAt);
 var toString = __webpack_require__(3326);
 var InternalStateModule = __webpack_require__(6407);
-var defineIterator = __webpack_require__(7675);
+var defineIterator = __webpack_require__(2707);
+var createIterResultObject = __webpack_require__(3684);
 
 var STRING_ITERATOR = 'String Iterator';
 var setInternalState = InternalStateModule.set;
@@ -7140,10 +7395,10 @@ defineIterator(String, 'String', function (iterated) {
   var string = state.string;
   var index = state.index;
   var point;
-  if (index >= string.length) return { value: undefined, done: true };
+  if (index >= string.length) return createIterResultObject(undefined, true);
   point = charAt(string, index);
   state.index += point.length;
-  return { value: point, done: false };
+  return createIterResultObject(point, false);
 });
 
 
@@ -7157,6 +7412,7 @@ defineIterator(String, 'String', function (iterated) {
 var call = __webpack_require__(266);
 var fixRegExpWellKnownSymbolLogic = __webpack_require__(4954);
 var anObject = __webpack_require__(1176);
+var isNullOrUndefined = __webpack_require__(9650);
 var toLength = __webpack_require__(4237);
 var toString = __webpack_require__(3326);
 var requireObjectCoercible = __webpack_require__(8885);
@@ -7171,7 +7427,7 @@ fixRegExpWellKnownSymbolLogic('match', function (MATCH, nativeMatch, maybeCallNa
     // https://tc39.es/ecma262/#sec-string.prototype.match
     function match(regexp) {
       var O = requireObjectCoercible(this);
-      var matcher = regexp == undefined ? undefined : getMethod(regexp, MATCH);
+      var matcher = isNullOrUndefined(regexp) ? undefined : getMethod(regexp, MATCH);
       return matcher ? call(matcher, regexp, O) : new RegExp(regexp)[MATCH](toString(O));
     },
     // `RegExp.prototype[@@match]` method
@@ -7236,6 +7492,7 @@ var fixRegExpWellKnownSymbolLogic = __webpack_require__(4954);
 var fails = __webpack_require__(4229);
 var anObject = __webpack_require__(1176);
 var isCallable = __webpack_require__(6733);
+var isNullOrUndefined = __webpack_require__(9650);
 var toIntegerOrInfinity = __webpack_require__(3329);
 var toLength = __webpack_require__(4237);
 var toString = __webpack_require__(3326);
@@ -7293,7 +7550,7 @@ fixRegExpWellKnownSymbolLogic('replace', function (_, nativeReplace, maybeCallNa
     // https://tc39.es/ecma262/#sec-string.prototype.replace
     function replace(searchValue, replaceValue) {
       var O = requireObjectCoercible(this);
-      var replacer = searchValue == undefined ? undefined : getMethod(searchValue, REPLACE);
+      var replacer = isNullOrUndefined(searchValue) ? undefined : getMethod(searchValue, REPLACE);
       return replacer
         ? call(replacer, searchValue, O, replaceValue)
         : call(nativeReplace, toString(O), searchValue, replaceValue);
@@ -7377,8 +7634,9 @@ var apply = __webpack_require__(3171);
 var call = __webpack_require__(266);
 var uncurryThis = __webpack_require__(5968);
 var fixRegExpWellKnownSymbolLogic = __webpack_require__(4954);
-var isRegExp = __webpack_require__(8311);
 var anObject = __webpack_require__(1176);
+var isNullOrUndefined = __webpack_require__(9650);
+var isRegExp = __webpack_require__(8311);
 var requireObjectCoercible = __webpack_require__(8885);
 var speciesConstructor = __webpack_require__(7942);
 var advanceStringIndex = __webpack_require__(6637);
@@ -7470,7 +7728,7 @@ fixRegExpWellKnownSymbolLogic('split', function (SPLIT, nativeSplit, maybeCallNa
     // https://tc39.es/ecma262/#sec-string.prototype.split
     function split(separator, limit) {
       var O = requireObjectCoercible(this);
-      var splitter = separator == undefined ? undefined : getMethod(separator, SPLIT);
+      var splitter = isNullOrUndefined(separator) ? undefined : getMethod(separator, SPLIT);
       return splitter
         ? call(splitter, separator, O, limit)
         : call(internalSplit, toString(O), separator, limit);
@@ -7543,7 +7801,7 @@ var call = __webpack_require__(266);
 var uncurryThis = __webpack_require__(5968);
 var IS_PURE = __webpack_require__(4231);
 var DESCRIPTORS = __webpack_require__(7400);
-var NATIVE_SYMBOL = __webpack_require__(3839);
+var NATIVE_SYMBOL = __webpack_require__(4860);
 var fails = __webpack_require__(4229);
 var hasOwn = __webpack_require__(8270);
 var isPrototypeOf = __webpack_require__(1321);
@@ -7562,13 +7820,14 @@ var definePropertyModule = __webpack_require__(1787);
 var definePropertiesModule = __webpack_require__(219);
 var propertyIsEnumerableModule = __webpack_require__(9195);
 var defineBuiltIn = __webpack_require__(4768);
+var defineBuiltInAccessor = __webpack_require__(6616);
 var shared = __webpack_require__(3036);
 var sharedKey = __webpack_require__(4399);
 var hiddenKeys = __webpack_require__(5977);
 var uid = __webpack_require__(1441);
 var wellKnownSymbol = __webpack_require__(95);
 var wrappedWellKnownSymbolModule = __webpack_require__(5391);
-var defineWellKnownSymbol = __webpack_require__(8423);
+var defineWellKnownSymbol = __webpack_require__(3524);
 var defineSymbolToPrimitive = __webpack_require__(6481);
 var setToStringTag = __webpack_require__(4555);
 var InternalStateModule = __webpack_require__(6407);
@@ -7733,7 +7992,7 @@ if (!NATIVE_SYMBOL) {
 
   if (DESCRIPTORS) {
     // https://github.com/tc39/proposal-Symbol-description
-    nativeDefineProperty(SymbolPrototype, 'description', {
+    defineBuiltInAccessor(SymbolPrototype, 'description', {
       configurable: true,
       get: function description() {
         return getInternalState(this).description;
@@ -7807,7 +8066,7 @@ var hasOwn = __webpack_require__(8270);
 var isCallable = __webpack_require__(6733);
 var isPrototypeOf = __webpack_require__(1321);
 var toString = __webpack_require__(3326);
-var defineProperty = (__webpack_require__(1787).f);
+var defineBuiltInAccessor = __webpack_require__(6616);
 var copyConstructorProperties = __webpack_require__(7081);
 
 var NativeSymbol = global.Symbol;
@@ -7834,18 +8093,18 @@ if (DESCRIPTORS && isCallable(NativeSymbol) && (!('description' in SymbolPrototy
   SymbolPrototype.constructor = SymbolWrapper;
 
   var NATIVE_SYMBOL = String(NativeSymbol('test')) == 'Symbol(test)';
-  var symbolToString = uncurryThis(SymbolPrototype.toString);
-  var symbolValueOf = uncurryThis(SymbolPrototype.valueOf);
+  var thisSymbolValue = uncurryThis(SymbolPrototype.valueOf);
+  var symbolDescriptiveString = uncurryThis(SymbolPrototype.toString);
   var regexp = /^Symbol\((.*)\)[^)]+$/;
   var replace = uncurryThis(''.replace);
   var stringSlice = uncurryThis(''.slice);
 
-  defineProperty(SymbolPrototype, 'description', {
+  defineBuiltInAccessor(SymbolPrototype, 'description', {
     configurable: true,
     get: function description() {
-      var symbol = symbolValueOf(this);
-      var string = symbolToString(symbol);
+      var symbol = thisSymbolValue(this);
       if (hasOwn(EmptyStringDescriptionStore, symbol)) return '';
+      var string = symbolDescriptiveString(symbol);
       var desc = NATIVE_SYMBOL ? stringSlice(string, 7, -1) : replace(string, regexp, '$1');
       return desc === '' ? undefined : desc;
     }
@@ -7867,7 +8126,7 @@ var getBuiltIn = __webpack_require__(1333);
 var hasOwn = __webpack_require__(8270);
 var toString = __webpack_require__(3326);
 var shared = __webpack_require__(3036);
-var NATIVE_SYMBOL_REGISTRY = __webpack_require__(5506);
+var NATIVE_SYMBOL_REGISTRY = __webpack_require__(5957);
 
 var StringToSymbolRegistry = shared('string-to-symbol-registry');
 var SymbolToStringRegistry = shared('symbol-to-string-registry');
@@ -7891,7 +8150,7 @@ $({ target: 'Symbol', stat: true, forced: !NATIVE_SYMBOL_REGISTRY }, {
 /***/ 796:
 /***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
 
-var defineWellKnownSymbol = __webpack_require__(8423);
+var defineWellKnownSymbol = __webpack_require__(3524);
 
 // `Symbol.iterator` well-known symbol
 // https://tc39.es/ecma262/#sec-symbol.iterator
@@ -7921,7 +8180,7 @@ var hasOwn = __webpack_require__(8270);
 var isSymbol = __webpack_require__(9395);
 var tryToString = __webpack_require__(9821);
 var shared = __webpack_require__(3036);
-var NATIVE_SYMBOL_REGISTRY = __webpack_require__(5506);
+var NATIVE_SYMBOL_REGISTRY = __webpack_require__(5957);
 
 var SymbolToStringRegistry = shared('symbol-to-string-registry');
 
@@ -7933,6 +8192,23 @@ $({ target: 'Symbol', stat: true, forced: !NATIVE_SYMBOL_REGISTRY }, {
     if (hasOwn(SymbolToStringRegistry, sym)) return SymbolToStringRegistry[sym];
   }
 });
+
+
+/***/ }),
+
+/***/ 9575:
+/***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
+
+var defineWellKnownSymbol = __webpack_require__(3524);
+var defineSymbolToPrimitive = __webpack_require__(6481);
+
+// `Symbol.toPrimitive` well-known symbol
+// https://tc39.es/ecma262/#sec-symbol.toprimitive
+defineWellKnownSymbol('toPrimitive');
+
+// `Symbol.prototype[@@toPrimitive]` method
+// https://tc39.es/ecma262/#sec-symbol.prototype-@@toprimitive
+defineSymbolToPrimitive();
 
 
 /***/ }),
@@ -8014,7 +8290,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 /***/ 5368:
 /***/ (function(module) {
 
-/*! @license DOMPurify 2.3.8 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.3.8/LICENSE */
+/*! @license DOMPurify 2.4.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.5/LICENSE */
 
 (function (global, factory) {
    true ? module.exports = factory() :
@@ -8144,6 +8420,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
   var arrayPop = unapply(Array.prototype.pop);
   var arrayPush = unapply(Array.prototype.push);
   var stringToLowerCase = unapply(String.prototype.toLowerCase);
+  var stringToString = unapply(String.prototype.toString);
   var stringMatch = unapply(String.prototype.match);
   var stringReplace = unapply(String.prototype.replace);
   var stringIndexOf = unapply(String.prototype.indexOf);
@@ -8170,7 +8447,9 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
   }
   /* Add properties to a lookup table */
 
-  function addToSet(set, array) {
+  function addToSet(set, array, transformCaseFunc) {
+    transformCaseFunc = transformCaseFunc ? transformCaseFunc : stringToLowerCase;
+
     if (setPrototypeOf) {
       // Make 'in' and truthy checks like Boolean(set.constructor)
       // independent of any properties defined on Object.prototype.
@@ -8184,7 +8463,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
       var element = array[l];
 
       if (typeof element === 'string') {
-        var lcElement = stringToLowerCase(element);
+        var lcElement = transformCaseFunc(element);
 
         if (lcElement !== element) {
           // Config presets (e.g. tags.js, attrs.js) are immutable.
@@ -8208,7 +8487,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
     var property;
 
     for (property in object) {
-      if (apply(hasOwnProperty, object, [property])) {
+      if (apply(hasOwnProperty, object, [property]) === true) {
         newObject[property] = object[property];
       }
     }
@@ -8268,6 +8547,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
   var MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
 
   var ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+  var TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
   var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
 
   var ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
@@ -8313,6 +8593,9 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
       return trustedTypes.createPolicy(policyName, {
         createHTML: function createHTML(html) {
           return html;
+        },
+        createScriptURL: function createScriptURL(scriptUrl) {
+          return scriptUrl;
         }
       });
     } catch (_) {
@@ -8336,7 +8619,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
      */
 
 
-    DOMPurify.version = '2.3.8';
+    DOMPurify.version = '2.4.5';
     /**
      * Array of elements that DOMPurify removed during sanitation.
      * Empty if nothing was removed.
@@ -8405,6 +8688,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
     DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
     var MUSTACHE_EXPR$1 = MUSTACHE_EXPR,
         ERB_EXPR$1 = ERB_EXPR,
+        TMPLIT_EXPR$1 = TMPLIT_EXPR,
         DATA_ATTR$1 = DATA_ATTR,
         ARIA_ATTR$1 = ARIA_ATTR,
         IS_SCRIPT_OR_DATA$1 = IS_SCRIPT_OR_DATA,
@@ -8465,6 +8749,10 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
     /* Decide if unknown protocols are okay */
 
     var ALLOW_UNKNOWN_PROTOCOLS = false;
+    /* Decide if self-closing tags in attributes are allowed.
+     * Usually removed due to a mXSS issue in jQuery 3.0 */
+
+    var ALLOW_SELF_CLOSE_IN_ATTR = true;
     /* Output should be safe for common template engines.
      * This means, DOMPurify removes data attributes, mustaches and ERB
      */
@@ -8494,9 +8782,27 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
      * case Trusted Types are not supported  */
 
     var RETURN_TRUSTED_TYPE = false;
-    /* Output should be free from DOM clobbering attacks? */
+    /* Output should be free from DOM clobbering attacks?
+     * This sanitizes markups named with colliding, clobberable built-in DOM APIs.
+     */
 
     var SANITIZE_DOM = true;
+    /* Achieve full DOM Clobbering protection by isolating the namespace of named
+     * properties and JS variables, mitigating attacks that abuse the HTML/DOM spec rules.
+     *
+     * HTML/DOM spec rules that enable DOM Clobbering:
+     *   - Named Access on Window (§7.3.3)
+     *   - DOM Tree Accessors (§3.1.5)
+     *   - Form Element Parent-Child Relations (§4.10.3)
+     *   - Iframe srcdoc / Nested WindowProxies (§4.8.5)
+     *   - HTMLCollection (§4.2.10.2)
+     *
+     * Namespace isolation is implemented by prefixing `id` and `name` attributes
+     * with a constant string, i.e., `user-content-`
+     */
+
+    var SANITIZE_NAMED_PROPS = false;
+    var SANITIZE_NAMED_PROPS_PREFIX = 'user-content-';
     /* Keep element content when removing element? */
 
     var KEEP_CONTENT = true;
@@ -8526,6 +8832,10 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 
     var NAMESPACE = HTML_NAMESPACE;
     var IS_EMPTY_INPUT = false;
+    /* Allowed XHTML+XML namespaces */
+
+    var ALLOWED_NAMESPACES = null;
+    var DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
     /* Parsing of strict XHTML documents */
 
     var PARSER_MEDIA_TYPE;
@@ -8566,21 +8876,36 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 
 
       cfg = clone(cfg);
+      PARSER_MEDIA_TYPE = // eslint-disable-next-line unicorn/prefer-includes
+      SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+
+      transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
       /* Set configuration parameters */
 
-      ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS) : DEFAULT_ALLOWED_TAGS;
-      ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR) : DEFAULT_ALLOWED_ATTR;
-      URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR) : DEFAULT_URI_SAFE_ATTRIBUTES;
-      DATA_URI_TAGS = 'ADD_DATA_URI_TAGS' in cfg ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS) : DEFAULT_DATA_URI_TAGS;
-      FORBID_CONTENTS = 'FORBID_CONTENTS' in cfg ? addToSet({}, cfg.FORBID_CONTENTS) : DEFAULT_FORBID_CONTENTS;
-      FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
-      FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
+      ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
+      ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+      ALLOWED_NAMESPACES = 'ALLOWED_NAMESPACES' in cfg ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
+      URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
+      cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
+      transformCaseFunc // eslint-disable-line indent
+      ) // eslint-disable-line indent
+      : DEFAULT_URI_SAFE_ATTRIBUTES;
+      DATA_URI_TAGS = 'ADD_DATA_URI_TAGS' in cfg ? addToSet(clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
+      cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
+      transformCaseFunc // eslint-disable-line indent
+      ) // eslint-disable-line indent
+      : DEFAULT_DATA_URI_TAGS;
+      FORBID_CONTENTS = 'FORBID_CONTENTS' in cfg ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
+      FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
+      FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
       USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
       ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
 
       ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
 
       ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
+
+      ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
 
       SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
 
@@ -8596,12 +8921,15 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 
       SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
 
+      SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false; // Default false
+
       KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
 
       IN_PLACE = cfg.IN_PLACE || false; // Default false
 
       IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$1;
       NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+      CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
 
       if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
         CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
@@ -8614,13 +8942,6 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
       if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === 'boolean') {
         CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
       }
-
-      PARSER_MEDIA_TYPE = // eslint-disable-next-line unicorn/prefer-includes
-      SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
-
-      transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? function (x) {
-        return x;
-      } : stringToLowerCase;
 
       if (SAFE_FOR_TEMPLATES) {
         ALLOW_DATA_ATTR = false;
@@ -8667,7 +8988,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
           ALLOWED_TAGS = clone(ALLOWED_TAGS);
         }
 
-        addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
+        addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
       }
 
       if (cfg.ADD_ATTR) {
@@ -8675,11 +8996,11 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
           ALLOWED_ATTR = clone(ALLOWED_ATTR);
         }
 
-        addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+        addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
       }
 
       if (cfg.ADD_URI_SAFE_ATTR) {
-        addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
+        addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
       }
 
       if (cfg.FORBID_CONTENTS) {
@@ -8687,7 +9008,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
           FORBID_CONTENTS = clone(FORBID_CONTENTS);
         }
 
-        addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS);
+        addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
       }
       /* Add #text in case KEEP_CONTENT is set to true */
 
@@ -8749,7 +9070,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 
       if (!parent || !parent.tagName) {
         parent = {
-          namespaceURI: HTML_NAMESPACE,
+          namespaceURI: NAMESPACE,
           tagName: 'template'
         };
       }
@@ -8757,13 +9078,17 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
       var tagName = stringToLowerCase(element.tagName);
       var parentTagName = stringToLowerCase(parent.tagName);
 
+      if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+        return false;
+      }
+
       if (element.namespaceURI === SVG_NAMESPACE) {
         // The only way to switch from HTML namespace to SVG
         // is via <svg>. If it happens via any other tag, then
         // it should be killed.
         if (parent.namespaceURI === HTML_NAMESPACE) {
           return tagName === 'svg';
-        } // The only way to switch from MathML to SVG is via
+        } // The only way to switch from MathML to SVG is via`
         // svg if parent is either <annotation-xml> or MathML
         // text integration points.
 
@@ -8811,9 +9136,15 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 
 
         return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+      } // For XHTML and XML documents that support custom namespaces
+
+
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && ALLOWED_NAMESPACES[element.namespaceURI]) {
+        return true;
       } // The code should never reach this place (this means
       // that the element somehow got namespace that is not
-      // HTML, SVG or MathML). Return false just in case.
+      // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
+      // Return false just in case.
 
 
       return false;
@@ -8897,7 +9228,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
         leadingWhitespace = matches && matches[0];
       }
 
-      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
         // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
         dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
       }
@@ -8920,7 +9251,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
         doc = implementation.createDocument(NAMESPACE, 'template', null);
 
         try {
-          doc.documentElement.innerHTML = IS_EMPTY_INPUT ? '' : dirtyPayload;
+          doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
         } catch (_) {// Syntax error if dirtyPayload is invalid xml
         }
       }
@@ -8960,7 +9291,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 
 
     var _isClobbered = function _isClobbered(elm) {
-      return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function');
+      return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
     };
     /**
      * _isNode
@@ -9102,6 +9433,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
         content = currentNode.textContent;
         content = stringReplace(content, MUSTACHE_EXPR$1, ' ');
         content = stringReplace(content, ERB_EXPR$1, ' ');
+        content = stringReplace(content, TMPLIT_EXPR$1, ' ');
 
         if (currentNode.textContent !== content) {
           arrayPush(DOMPurify.removed, {
@@ -9239,7 +9571,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
         /* Work around a security issue in jQuery 3.0 */
 
 
-        if (regExpTest(/\/>/i, value)) {
+        if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
           _removeAttribute(name, currentNode);
 
           continue;
@@ -9250,6 +9582,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
         if (SAFE_FOR_TEMPLATES) {
           value = stringReplace(value, MUSTACHE_EXPR$1, ' ');
           value = stringReplace(value, ERB_EXPR$1, ' ');
+          value = stringReplace(value, TMPLIT_EXPR$1, ' ');
         }
         /* Is `value` valid for this attribute? */
 
@@ -9258,6 +9591,34 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
 
         if (!_isValidAttribute(lcTag, lcName, value)) {
           continue;
+        }
+        /* Full DOM Clobbering protection via namespace isolation,
+         * Prefix id and name attributes with `user-content-`
+         */
+
+
+        if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
+          // Remove the attribute with this value
+          _removeAttribute(name, currentNode); // Prefix the value and later re-create the attribute with the sanitized value
+
+
+          value = SANITIZE_NAMED_PROPS_PREFIX + value;
+        }
+        /* Handle attributes that require Trusted Types */
+
+
+        if (trustedTypesPolicy && _typeof(trustedTypes) === 'object' && typeof trustedTypes.getAttributeType === 'function') {
+          if (namespaceURI) ; else {
+            switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+              case 'TrustedHTML':
+                value = trustedTypesPolicy.createHTML(value);
+                break;
+
+              case 'TrustedScriptURL':
+                value = trustedTypesPolicy.createScriptURL(value);
+                break;
+            }
+          }
         }
         /* Handle invalid data-* attribute set by try-catching it */
 
@@ -9329,7 +9690,8 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
     // eslint-disable-next-line complexity
 
 
-    DOMPurify.sanitize = function (dirty, cfg) {
+    DOMPurify.sanitize = function (dirty) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var body;
       var importedNode;
       var currentNode;
@@ -9490,7 +9852,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
           returnNode = body;
         }
 
-        if (ALLOWED_ATTR.shadowroot) {
+        if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmod) {
           /*
             AdoptNode() is not used because internal state is not reset
             (e.g. the past names map of a HTMLFormElement), this is safe
@@ -9516,6 +9878,7 @@ handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
       if (SAFE_FOR_TEMPLATES) {
         serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR$1, ' ');
         serializedHTML = stringReplace(serializedHTML, ERB_EXPR$1, ' ');
+        serializedHTML = stringReplace(serializedHTML, TMPLIT_EXPR$1, ' ');
       }
 
       return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
@@ -10923,10 +11286,10 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__4268__;
 
 "use strict";
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "pV": function() { return /* binding */ N; }
+/* harmony export */   "pV": function() { return /* binding */ F; }
 /* harmony export */ });
 /* unused harmony exports Immer, applyPatches, castDraft, castImmutable, createDraft, current, enableAllPlugins, enableMapSet, enablePatches, finishDraft, freeze, immerable, isDraft, isDraftable, nothing, original, produce, produceWithPatches, setAutoFreeze, setUseProxies */
-function n(n){for(var r=arguments.length,t=Array(r>1?r-1:0),e=1;e<r;e++)t[e-1]=arguments[e];if(false){ var i, o; }throw Error("[Immer] minified error nr: "+n+(t.length?" "+t.map((function(n){return"'"+n+"'"})).join(","):"")+". Find the full error at: https://bit.ly/3cXEKWf")}function r(n){return!!n&&!!n[Q]}function t(n){return!!n&&(function(n){if(!n||"object"!=typeof n)return!1;var r=Object.getPrototypeOf(n);if(null===r)return!0;var t=Object.hasOwnProperty.call(r,"constructor")&&r.constructor;return t===Object||"function"==typeof t&&Function.toString.call(t)===Z}(n)||Array.isArray(n)||!!n[L]||!!n.constructor[L]||s(n)||v(n))}function e(t){return r(t)||n(23,t),t[Q].t}function i(n,r,t){void 0===t&&(t=!1),0===o(n)?(t?Object.keys:nn)(n).forEach((function(e){t&&"symbol"==typeof e||r(e,n[e],n)})):n.forEach((function(t,e){return r(e,t,n)}))}function o(n){var r=n[Q];return r?r.i>3?r.i-4:r.i:Array.isArray(n)?1:s(n)?2:v(n)?3:0}function u(n,r){return 2===o(n)?n.has(r):Object.prototype.hasOwnProperty.call(n,r)}function a(n,r){return 2===o(n)?n.get(r):n[r]}function f(n,r,t){var e=o(n);2===e?n.set(r,t):3===e?(n.delete(r),n.add(t)):n[r]=t}function c(n,r){return n===r?0!==n||1/n==1/r:n!=n&&r!=r}function s(n){return X&&n instanceof Map}function v(n){return q&&n instanceof Set}function p(n){return n.o||n.t}function l(n){if(Array.isArray(n))return Array.prototype.slice.call(n);var r=rn(n);delete r[Q];for(var t=nn(r),e=0;e<t.length;e++){var i=t[e],o=r[i];!1===o.writable&&(o.writable=!0,o.configurable=!0),(o.get||o.set)&&(r[i]={configurable:!0,writable:!0,enumerable:o.enumerable,value:n[i]})}return Object.create(Object.getPrototypeOf(n),r)}function d(n,e){return void 0===e&&(e=!1),y(n)||r(n)||!t(n)?n:(o(n)>1&&(n.set=n.add=n.clear=n.delete=h),Object.freeze(n),e&&i(n,(function(n,r){return d(r,!0)}),!0),n)}function h(){n(2)}function y(n){return null==n||"object"!=typeof n||Object.isFrozen(n)}function b(r){var t=tn[r];return t||n(18,r),t}function m(n,r){tn[n]||(tn[n]=r)}function _(){return true||0,U}function j(n,r){r&&(b("Patches"),n.u=[],n.s=[],n.v=r)}function O(n){g(n),n.p.forEach(S),n.p=null}function g(n){n===U&&(U=n.l)}function w(n){return U={p:[],l:U,h:n,m:!0,_:0}}function S(n){var r=n[Q];0===r.i||1===r.i?r.j():r.O=!0}function P(r,e){e._=e.p.length;var i=e.p[0],o=void 0!==r&&r!==i;return e.h.g||b("ES5").S(e,r,o),o?(i[Q].P&&(O(e),n(4)),t(r)&&(r=M(e,r),e.l||x(e,r)),e.u&&b("Patches").M(i[Q].t,r,e.u,e.s)):r=M(e,i,[]),O(e),e.u&&e.v(e.u,e.s),r!==H?r:void 0}function M(n,r,t){if(y(r))return r;var e=r[Q];if(!e)return i(r,(function(i,o){return A(n,e,r,i,o,t)}),!0),r;if(e.A!==n)return r;if(!e.P)return x(n,e.t,!0),e.t;if(!e.I){e.I=!0,e.A._--;var o=4===e.i||5===e.i?e.o=l(e.k):e.o;i(3===e.i?new Set(o):o,(function(r,i){return A(n,e,o,r,i,t)})),x(n,o,!1),t&&n.u&&b("Patches").R(e,t,n.u,n.s)}return e.o}function A(e,i,o,a,c,s){if( false&&0,r(c)){var v=M(e,c,s&&i&&3!==i.i&&!u(i.D,a)?s.concat(a):void 0);if(f(o,a,v),!r(v))return;e.m=!1}if(t(c)&&!y(c)){if(!e.h.F&&e._<1)return;M(e,c),i&&i.A.l||x(e,c)}}function x(n,r,t){void 0===t&&(t=!1),n.h.F&&n.m&&d(r,t)}function z(n,r){var t=n[Q];return(t?p(t):n)[r]}function I(n,r){if(r in n)for(var t=Object.getPrototypeOf(n);t;){var e=Object.getOwnPropertyDescriptor(t,r);if(e)return e;t=Object.getPrototypeOf(t)}}function k(n){n.P||(n.P=!0,n.l&&k(n.l))}function E(n){n.o||(n.o=l(n.t))}function R(n,r,t){var e=s(r)?b("MapSet").N(r,t):v(r)?b("MapSet").T(r,t):n.g?function(n,r){var t=Array.isArray(n),e={i:t?1:0,A:r?r.A:_(),P:!1,I:!1,D:{},l:r,t:n,k:null,o:null,j:null,C:!1},i=e,o=en;t&&(i=[e],o=on);var u=Proxy.revocable(i,o),a=u.revoke,f=u.proxy;return e.k=f,e.j=a,f}(r,t):b("ES5").J(r,t);return(t?t.A:_()).p.push(e),e}function D(e){return r(e)||n(22,e),function n(r){if(!t(r))return r;var e,u=r[Q],c=o(r);if(u){if(!u.P&&(u.i<4||!b("ES5").K(u)))return u.t;u.I=!0,e=F(r,c),u.I=!1}else e=F(r,c);return i(e,(function(r,t){u&&a(u.t,r)===t||f(e,r,n(t))})),3===c?new Set(e):e}(e)}function F(n,r){switch(r){case 2:return new Map(n);case 3:return Array.from(n)}return l(n)}function N(){function t(n,r){var t=s[n];return t?t.enumerable=r:s[n]=t={configurable:!0,enumerable:r,get:function(){var r=this[Q];return false&&0,en.get(r,n)},set:function(r){var t=this[Q]; false&&0,en.set(t,n,r)}},t}function e(n){for(var r=n.length-1;r>=0;r--){var t=n[r][Q];if(!t.P)switch(t.i){case 5:a(t)&&k(t);break;case 4:o(t)&&k(t)}}}function o(n){for(var r=n.t,t=n.k,e=nn(t),i=e.length-1;i>=0;i--){var o=e[i];if(o!==Q){var a=r[o];if(void 0===a&&!u(r,o))return!0;var f=t[o],s=f&&f[Q];if(s?s.t!==a:!c(f,a))return!0}}var v=!!r[Q];return e.length!==nn(r).length+(v?0:1)}function a(n){var r=n.k;if(r.length!==n.t.length)return!0;var t=Object.getOwnPropertyDescriptor(r,r.length-1);if(t&&!t.get)return!0;for(var e=0;e<r.length;e++)if(!r.hasOwnProperty(e))return!0;return!1}function f(r){r.O&&n(3,JSON.stringify(p(r)))}var s={};m("ES5",{J:function(n,r){var e=Array.isArray(n),i=function(n,r){if(n){for(var e=Array(r.length),i=0;i<r.length;i++)Object.defineProperty(e,""+i,t(i,!0));return e}var o=rn(r);delete o[Q];for(var u=nn(o),a=0;a<u.length;a++){var f=u[a];o[f]=t(f,n||!!o[f].enumerable)}return Object.create(Object.getPrototypeOf(r),o)}(e,n),o={i:e?5:4,A:r?r.A:_(),P:!1,I:!1,D:{},l:r,t:n,k:i,o:null,O:!1,C:!1};return Object.defineProperty(i,Q,{value:o,writable:!0}),i},S:function(n,t,o){o?r(t)&&t[Q].A===n&&e(n.p):(n.u&&function n(r){if(r&&"object"==typeof r){var t=r[Q];if(t){var e=t.t,o=t.k,f=t.D,c=t.i;if(4===c)i(o,(function(r){r!==Q&&(void 0!==e[r]||u(e,r)?f[r]||n(o[r]):(f[r]=!0,k(t)))})),i(e,(function(n){void 0!==o[n]||u(o,n)||(f[n]=!1,k(t))}));else if(5===c){if(a(t)&&(k(t),f.length=!0),o.length<e.length)for(var s=o.length;s<e.length;s++)f[s]=!1;else for(var v=e.length;v<o.length;v++)f[v]=!0;for(var p=Math.min(o.length,e.length),l=0;l<p;l++)o.hasOwnProperty(l)||(f[l]=!0),void 0===f[l]&&n(o[l])}}}}(n.p[0]),e(n.p))},K:function(n){return 4===n.i?o(n):a(n)}})}function T(){function e(n){if(!t(n))return n;if(Array.isArray(n))return n.map(e);if(s(n))return new Map(Array.from(n.entries()).map((function(n){return[n[0],e(n[1])]})));if(v(n))return new Set(Array.from(n).map(e));var r=Object.create(Object.getPrototypeOf(n));for(var i in n)r[i]=e(n[i]);return u(n,L)&&(r[L]=n[L]),r}function f(n){return r(n)?e(n):n}var c="add";m("Patches",{$:function(r,t){return t.forEach((function(t){for(var i=t.path,u=t.op,f=r,s=0;s<i.length-1;s++){var v=o(f),p=""+i[s];0!==v&&1!==v||"__proto__"!==p&&"constructor"!==p||n(24),"function"==typeof f&&"prototype"===p&&n(24),"object"!=typeof(f=a(f,p))&&n(15,i.join("/"))}var l=o(f),d=e(t.value),h=i[i.length-1];switch(u){case"replace":switch(l){case 2:return f.set(h,d);case 3:n(16);default:return f[h]=d}case c:switch(l){case 1:return"-"===h?f.push(d):f.splice(h,0,d);case 2:return f.set(h,d);case 3:return f.add(d);default:return f[h]=d}case"remove":switch(l){case 1:return f.splice(h,1);case 2:return f.delete(h);case 3:return f.delete(t.value);default:return delete f[h]}default:n(17,u)}})),r},R:function(n,r,t,e){switch(n.i){case 0:case 4:case 2:return function(n,r,t,e){var o=n.t,s=n.o;i(n.D,(function(n,i){var v=a(o,n),p=a(s,n),l=i?u(o,n)?"replace":c:"remove";if(v!==p||"replace"!==l){var d=r.concat(n);t.push("remove"===l?{op:l,path:d}:{op:l,path:d,value:p}),e.push(l===c?{op:"remove",path:d}:"remove"===l?{op:c,path:d,value:f(v)}:{op:"replace",path:d,value:f(v)})}}))}(n,r,t,e);case 5:case 1:return function(n,r,t,e){var i=n.t,o=n.D,u=n.o;if(u.length<i.length){var a=[u,i];i=a[0],u=a[1];var s=[e,t];t=s[0],e=s[1]}for(var v=0;v<i.length;v++)if(o[v]&&u[v]!==i[v]){var p=r.concat([v]);t.push({op:"replace",path:p,value:f(u[v])}),e.push({op:"replace",path:p,value:f(i[v])})}for(var l=i.length;l<u.length;l++){var d=r.concat([l]);t.push({op:c,path:d,value:f(u[l])})}i.length<u.length&&e.push({op:"replace",path:r.concat(["length"]),value:i.length})}(n,r,t,e);case 3:return function(n,r,t,e){var i=n.t,o=n.o,u=0;i.forEach((function(n){if(!o.has(n)){var i=r.concat([u]);t.push({op:"remove",path:i,value:n}),e.unshift({op:c,path:i,value:n})}u++})),u=0,o.forEach((function(n){if(!i.has(n)){var o=r.concat([u]);t.push({op:c,path:o,value:n}),e.unshift({op:"remove",path:o,value:n})}u++}))}(n,r,t,e)}},M:function(n,r,t,e){t.push({op:"replace",path:[],value:r===H?void 0:r}),e.push({op:"replace",path:[],value:n})}})}function C(){function r(n,r){function t(){this.constructor=n}a(n,r),n.prototype=(t.prototype=r.prototype,new t)}function e(n){n.o||(n.D=new Map,n.o=new Map(n.t))}function o(n){n.o||(n.o=new Set,n.t.forEach((function(r){if(t(r)){var e=R(n.A.h,r,n);n.p.set(r,e),n.o.add(e)}else n.o.add(r)})))}function u(r){r.O&&n(3,JSON.stringify(p(r)))}var a=function(n,r){return(a=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(n,r){n.__proto__=r}||function(n,r){for(var t in r)r.hasOwnProperty(t)&&(n[t]=r[t])})(n,r)},f=function(){function n(n,r){return this[Q]={i:2,l:r,A:r?r.A:_(),P:!1,I:!1,o:void 0,D:void 0,t:n,k:this,C:!1,O:!1},this}r(n,Map);var o=n.prototype;return Object.defineProperty(o,"size",{get:function(){return p(this[Q]).size}}),o.has=function(n){return p(this[Q]).has(n)},o.set=function(n,r){var t=this[Q];return u(t),p(t).has(n)&&p(t).get(n)===r||(e(t),k(t),t.D.set(n,!0),t.o.set(n,r),t.D.set(n,!0)),this},o.delete=function(n){if(!this.has(n))return!1;var r=this[Q];return u(r),e(r),k(r),r.t.has(n)?r.D.set(n,!1):r.D.delete(n),r.o.delete(n),!0},o.clear=function(){var n=this[Q];u(n),p(n).size&&(e(n),k(n),n.D=new Map,i(n.t,(function(r){n.D.set(r,!1)})),n.o.clear())},o.forEach=function(n,r){var t=this;p(this[Q]).forEach((function(e,i){n.call(r,t.get(i),i,t)}))},o.get=function(n){var r=this[Q];u(r);var i=p(r).get(n);if(r.I||!t(i))return i;if(i!==r.t.get(n))return i;var o=R(r.A.h,i,r);return e(r),r.o.set(n,o),o},o.keys=function(){return p(this[Q]).keys()},o.values=function(){var n,r=this,t=this.keys();return(n={})[V]=function(){return r.values()},n.next=function(){var n=t.next();return n.done?n:{done:!1,value:r.get(n.value)}},n},o.entries=function(){var n,r=this,t=this.keys();return(n={})[V]=function(){return r.entries()},n.next=function(){var n=t.next();if(n.done)return n;var e=r.get(n.value);return{done:!1,value:[n.value,e]}},n},o[V]=function(){return this.entries()},n}(),c=function(){function n(n,r){return this[Q]={i:3,l:r,A:r?r.A:_(),P:!1,I:!1,o:void 0,t:n,k:this,p:new Map,O:!1,C:!1},this}r(n,Set);var t=n.prototype;return Object.defineProperty(t,"size",{get:function(){return p(this[Q]).size}}),t.has=function(n){var r=this[Q];return u(r),r.o?!!r.o.has(n)||!(!r.p.has(n)||!r.o.has(r.p.get(n))):r.t.has(n)},t.add=function(n){var r=this[Q];return u(r),this.has(n)||(o(r),k(r),r.o.add(n)),this},t.delete=function(n){if(!this.has(n))return!1;var r=this[Q];return u(r),o(r),k(r),r.o.delete(n)||!!r.p.has(n)&&r.o.delete(r.p.get(n))},t.clear=function(){var n=this[Q];u(n),p(n).size&&(o(n),k(n),n.o.clear())},t.values=function(){var n=this[Q];return u(n),o(n),n.o.values()},t.entries=function(){var n=this[Q];return u(n),o(n),n.o.entries()},t.keys=function(){return this.values()},t[V]=function(){return this.values()},t.forEach=function(n,r){for(var t=this.values(),e=t.next();!e.done;)n.call(r,e.value,e.value,this),e=t.next()},n}();m("MapSet",{N:function(n,r){return new f(n,r)},T:function(n,r){return new c(n,r)}})}function J(){N(),C(),T()}function K(n){return n}function $(n){return n}var G,U,W="undefined"!=typeof Symbol&&"symbol"==typeof Symbol("x"),X="undefined"!=typeof Map,q="undefined"!=typeof Set,B="undefined"!=typeof Proxy&&void 0!==Proxy.revocable&&"undefined"!=typeof Reflect,H=W?Symbol.for("immer-nothing"):((G={})["immer-nothing"]=!0,G),L=W?Symbol.for("immer-draftable"):"__$immer_draftable",Q=W?Symbol.for("immer-state"):"__$immer_state",V="undefined"!=typeof Symbol&&Symbol.iterator||"@@iterator",Y={0:"Illegal state",1:"Immer drafts cannot have computed properties",2:"This object has been frozen and should not be mutated",3:function(n){return"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? "+n},4:"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.",5:"Immer forbids circular references",6:"The first or second argument to `produce` must be a function",7:"The third argument to `produce` must be a function or undefined",8:"First argument to `createDraft` must be a plain object, an array, or an immerable object",9:"First argument to `finishDraft` must be a draft returned by `createDraft`",10:"The given draft is already finalized",11:"Object.defineProperty() cannot be used on an Immer draft",12:"Object.setPrototypeOf() cannot be used on an Immer draft",13:"Immer only supports deleting array indices",14:"Immer only supports setting array indices and the 'length' property",15:function(n){return"Cannot apply patch, path doesn't resolve: "+n},16:'Sets cannot have "replace" patches.',17:function(n){return"Unsupported patch operation: "+n},18:function(n){return"The plugin for '"+n+"' has not been loaded into Immer. To enable the plugin, import and call `enable"+n+"()` when initializing your application."},20:"Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available",21:function(n){return"produce can only be called on things that are draftable: plain objects, arrays, Map, Set or classes that are marked with '[immerable]: true'. Got '"+n+"'"},22:function(n){return"'current' expects a draft, got: "+n},23:function(n){return"'original' expects a draft, got: "+n},24:"Patching reserved attributes like __proto__, prototype and constructor is not allowed"},Z=""+Object.prototype.constructor,nn="undefined"!=typeof Reflect&&Reflect.ownKeys?Reflect.ownKeys:void 0!==Object.getOwnPropertySymbols?function(n){return Object.getOwnPropertyNames(n).concat(Object.getOwnPropertySymbols(n))}:Object.getOwnPropertyNames,rn=Object.getOwnPropertyDescriptors||function(n){var r={};return nn(n).forEach((function(t){r[t]=Object.getOwnPropertyDescriptor(n,t)})),r},tn={},en={get:function(n,r){if(r===Q)return n;var e=p(n);if(!u(e,r))return function(n,r,t){var e,i=I(r,t);return i?"value"in i?i.value:null===(e=i.get)||void 0===e?void 0:e.call(n.k):void 0}(n,e,r);var i=e[r];return n.I||!t(i)?i:i===z(n.t,r)?(E(n),n.o[r]=R(n.A.h,i,n)):i},has:function(n,r){return r in p(n)},ownKeys:function(n){return Reflect.ownKeys(p(n))},set:function(n,r,t){var e=I(p(n),r);if(null==e?void 0:e.set)return e.set.call(n.k,t),!0;if(!n.P){var i=z(p(n),r),o=null==i?void 0:i[Q];if(o&&o.t===t)return n.o[r]=t,n.D[r]=!1,!0;if(c(t,i)&&(void 0!==t||u(n.t,r)))return!0;E(n),k(n)}return n.o[r]===t&&"number"!=typeof t&&(void 0!==t||r in n.o)||(n.o[r]=t,n.D[r]=!0,!0)},deleteProperty:function(n,r){return void 0!==z(n.t,r)||r in n.t?(n.D[r]=!1,E(n),k(n)):delete n.D[r],n.o&&delete n.o[r],!0},getOwnPropertyDescriptor:function(n,r){var t=p(n),e=Reflect.getOwnPropertyDescriptor(t,r);return e?{writable:!0,configurable:1!==n.i||"length"!==r,enumerable:e.enumerable,value:t[r]}:e},defineProperty:function(){n(11)},getPrototypeOf:function(n){return Object.getPrototypeOf(n.t)},setPrototypeOf:function(){n(12)}},on={};i(en,(function(n,r){on[n]=function(){return arguments[0]=arguments[0][0],r.apply(this,arguments)}})),on.deleteProperty=function(r,t){return false&&0,on.set.call(this,r,t,void 0)},on.set=function(r,t,e){return false&&0,en.set.call(this,r[0],t,e,r[0])};var un=function(){function e(r){var e=this;this.g=B,this.F=!0,this.produce=function(r,i,o){if("function"==typeof r&&"function"!=typeof i){var u=i;i=r;var a=e;return function(n){var r=this;void 0===n&&(n=u);for(var t=arguments.length,e=Array(t>1?t-1:0),o=1;o<t;o++)e[o-1]=arguments[o];return a.produce(n,(function(n){var t;return(t=i).call.apply(t,[r,n].concat(e))}))}}var f;if("function"!=typeof i&&n(6),void 0!==o&&"function"!=typeof o&&n(7),t(r)){var c=w(e),s=R(e,r,void 0),v=!0;try{f=i(s),v=!1}finally{v?O(c):g(c)}return"undefined"!=typeof Promise&&f instanceof Promise?f.then((function(n){return j(c,o),P(n,c)}),(function(n){throw O(c),n})):(j(c,o),P(f,c))}if(!r||"object"!=typeof r){if(void 0===(f=i(r))&&(f=r),f===H&&(f=void 0),e.F&&d(f,!0),o){var p=[],l=[];b("Patches").M(r,f,p,l),o(p,l)}return f}n(21,r)},this.produceWithPatches=function(n,r){if("function"==typeof n)return function(r){for(var t=arguments.length,i=Array(t>1?t-1:0),o=1;o<t;o++)i[o-1]=arguments[o];return e.produceWithPatches(r,(function(r){return n.apply(void 0,[r].concat(i))}))};var t,i,o=e.produce(n,r,(function(n,r){t=n,i=r}));return"undefined"!=typeof Promise&&o instanceof Promise?o.then((function(n){return[n,t,i]})):[o,t,i]},"boolean"==typeof(null==r?void 0:r.useProxies)&&this.setUseProxies(r.useProxies),"boolean"==typeof(null==r?void 0:r.autoFreeze)&&this.setAutoFreeze(r.autoFreeze)}var i=e.prototype;return i.createDraft=function(e){t(e)||n(8),r(e)&&(e=D(e));var i=w(this),o=R(this,e,void 0);return o[Q].C=!0,g(i),o},i.finishDraft=function(r,t){var e=r&&r[Q]; false&&(0);var i=e.A;return j(i,t),P(void 0,i)},i.setAutoFreeze=function(n){this.F=n},i.setUseProxies=function(r){r&&!B&&n(20),this.g=r},i.applyPatches=function(n,t){var e;for(e=t.length-1;e>=0;e--){var i=t[e];if(0===i.path.length&&"replace"===i.op){n=i.value;break}}e>-1&&(t=t.slice(e+1));var o=b("Patches").$;return r(n)?o(n,t):this.produce(n,(function(n){return o(n,t)}))},e}(),an=new un,fn=an.produce,cn=an.produceWithPatches.bind(an),sn=an.setAutoFreeze.bind(an),vn=an.setUseProxies.bind(an),pn=an.applyPatches.bind(an),ln=an.createDraft.bind(an),dn=an.finishDraft.bind(an);/* harmony default export */ __webpack_exports__["ZP"] = (fn);
+function n(n){for(var r=arguments.length,t=Array(r>1?r-1:0),e=1;e<r;e++)t[e-1]=arguments[e];if(false){ var i, o; }throw Error("[Immer] minified error nr: "+n+(t.length?" "+t.map((function(n){return"'"+n+"'"})).join(","):"")+". Find the full error at: https://bit.ly/3cXEKWf")}function r(n){return!!n&&!!n[Q]}function t(n){var r;return!!n&&(function(n){if(!n||"object"!=typeof n)return!1;var r=Object.getPrototypeOf(n);if(null===r)return!0;var t=Object.hasOwnProperty.call(r,"constructor")&&r.constructor;return t===Object||"function"==typeof t&&Function.toString.call(t)===Z}(n)||Array.isArray(n)||!!n[L]||!!(null===(r=n.constructor)||void 0===r?void 0:r[L])||s(n)||v(n))}function e(t){return r(t)||n(23,t),t[Q].t}function i(n,r,t){void 0===t&&(t=!1),0===o(n)?(t?Object.keys:nn)(n).forEach((function(e){t&&"symbol"==typeof e||r(e,n[e],n)})):n.forEach((function(t,e){return r(e,t,n)}))}function o(n){var r=n[Q];return r?r.i>3?r.i-4:r.i:Array.isArray(n)?1:s(n)?2:v(n)?3:0}function u(n,r){return 2===o(n)?n.has(r):Object.prototype.hasOwnProperty.call(n,r)}function a(n,r){return 2===o(n)?n.get(r):n[r]}function f(n,r,t){var e=o(n);2===e?n.set(r,t):3===e?n.add(t):n[r]=t}function c(n,r){return n===r?0!==n||1/n==1/r:n!=n&&r!=r}function s(n){return X&&n instanceof Map}function v(n){return q&&n instanceof Set}function p(n){return n.o||n.t}function l(n){if(Array.isArray(n))return Array.prototype.slice.call(n);var r=rn(n);delete r[Q];for(var t=nn(r),e=0;e<t.length;e++){var i=t[e],o=r[i];!1===o.writable&&(o.writable=!0,o.configurable=!0),(o.get||o.set)&&(r[i]={configurable:!0,writable:!0,enumerable:o.enumerable,value:n[i]})}return Object.create(Object.getPrototypeOf(n),r)}function d(n,e){return void 0===e&&(e=!1),y(n)||r(n)||!t(n)||(o(n)>1&&(n.set=n.add=n.clear=n.delete=h),Object.freeze(n),e&&i(n,(function(n,r){return d(r,!0)}),!0)),n}function h(){n(2)}function y(n){return null==n||"object"!=typeof n||Object.isFrozen(n)}function b(r){var t=tn[r];return t||n(18,r),t}function m(n,r){tn[n]||(tn[n]=r)}function _(){return true||0,U}function j(n,r){r&&(b("Patches"),n.u=[],n.s=[],n.v=r)}function g(n){O(n),n.p.forEach(S),n.p=null}function O(n){n===U&&(U=n.l)}function w(n){return U={p:[],l:U,h:n,m:!0,_:0}}function S(n){var r=n[Q];0===r.i||1===r.i?r.j():r.g=!0}function P(r,e){e._=e.p.length;var i=e.p[0],o=void 0!==r&&r!==i;return e.h.O||b("ES5").S(e,r,o),o?(i[Q].P&&(g(e),n(4)),t(r)&&(r=M(e,r),e.l||x(e,r)),e.u&&b("Patches").M(i[Q].t,r,e.u,e.s)):r=M(e,i,[]),g(e),e.u&&e.v(e.u,e.s),r!==H?r:void 0}function M(n,r,t){if(y(r))return r;var e=r[Q];if(!e)return i(r,(function(i,o){return A(n,e,r,i,o,t)}),!0),r;if(e.A!==n)return r;if(!e.P)return x(n,e.t,!0),e.t;if(!e.I){e.I=!0,e.A._--;var o=4===e.i||5===e.i?e.o=l(e.k):e.o,u=o,a=!1;3===e.i&&(u=new Set(o),o.clear(),a=!0),i(u,(function(r,i){return A(n,e,o,r,i,t,a)})),x(n,o,!1),t&&n.u&&b("Patches").N(e,t,n.u,n.s)}return e.o}function A(e,i,o,a,c,s,v){if( false&&0,r(c)){var p=M(e,c,s&&i&&3!==i.i&&!u(i.R,a)?s.concat(a):void 0);if(f(o,a,p),!r(p))return;e.m=!1}else v&&o.add(c);if(t(c)&&!y(c)){if(!e.h.D&&e._<1)return;M(e,c),i&&i.A.l||x(e,c)}}function x(n,r,t){void 0===t&&(t=!1),!n.l&&n.h.D&&n.m&&d(r,t)}function z(n,r){var t=n[Q];return(t?p(t):n)[r]}function I(n,r){if(r in n)for(var t=Object.getPrototypeOf(n);t;){var e=Object.getOwnPropertyDescriptor(t,r);if(e)return e;t=Object.getPrototypeOf(t)}}function k(n){n.P||(n.P=!0,n.l&&k(n.l))}function E(n){n.o||(n.o=l(n.t))}function N(n,r,t){var e=s(r)?b("MapSet").F(r,t):v(r)?b("MapSet").T(r,t):n.O?function(n,r){var t=Array.isArray(n),e={i:t?1:0,A:r?r.A:_(),P:!1,I:!1,R:{},l:r,t:n,k:null,o:null,j:null,C:!1},i=e,o=en;t&&(i=[e],o=on);var u=Proxy.revocable(i,o),a=u.revoke,f=u.proxy;return e.k=f,e.j=a,f}(r,t):b("ES5").J(r,t);return(t?t.A:_()).p.push(e),e}function R(e){return r(e)||n(22,e),function n(r){if(!t(r))return r;var e,u=r[Q],c=o(r);if(u){if(!u.P&&(u.i<4||!b("ES5").K(u)))return u.t;u.I=!0,e=D(r,c),u.I=!1}else e=D(r,c);return i(e,(function(r,t){u&&a(u.t,r)===t||f(e,r,n(t))})),3===c?new Set(e):e}(e)}function D(n,r){switch(r){case 2:return new Map(n);case 3:return Array.from(n)}return l(n)}function F(){function t(n,r){var t=s[n];return t?t.enumerable=r:s[n]=t={configurable:!0,enumerable:r,get:function(){var r=this[Q];return false&&0,en.get(r,n)},set:function(r){var t=this[Q]; false&&0,en.set(t,n,r)}},t}function e(n){for(var r=n.length-1;r>=0;r--){var t=n[r][Q];if(!t.P)switch(t.i){case 5:a(t)&&k(t);break;case 4:o(t)&&k(t)}}}function o(n){for(var r=n.t,t=n.k,e=nn(t),i=e.length-1;i>=0;i--){var o=e[i];if(o!==Q){var a=r[o];if(void 0===a&&!u(r,o))return!0;var f=t[o],s=f&&f[Q];if(s?s.t!==a:!c(f,a))return!0}}var v=!!r[Q];return e.length!==nn(r).length+(v?0:1)}function a(n){var r=n.k;if(r.length!==n.t.length)return!0;var t=Object.getOwnPropertyDescriptor(r,r.length-1);if(t&&!t.get)return!0;for(var e=0;e<r.length;e++)if(!r.hasOwnProperty(e))return!0;return!1}function f(r){r.g&&n(3,JSON.stringify(p(r)))}var s={};m("ES5",{J:function(n,r){var e=Array.isArray(n),i=function(n,r){if(n){for(var e=Array(r.length),i=0;i<r.length;i++)Object.defineProperty(e,""+i,t(i,!0));return e}var o=rn(r);delete o[Q];for(var u=nn(o),a=0;a<u.length;a++){var f=u[a];o[f]=t(f,n||!!o[f].enumerable)}return Object.create(Object.getPrototypeOf(r),o)}(e,n),o={i:e?5:4,A:r?r.A:_(),P:!1,I:!1,R:{},l:r,t:n,k:i,o:null,g:!1,C:!1};return Object.defineProperty(i,Q,{value:o,writable:!0}),i},S:function(n,t,o){o?r(t)&&t[Q].A===n&&e(n.p):(n.u&&function n(r){if(r&&"object"==typeof r){var t=r[Q];if(t){var e=t.t,o=t.k,f=t.R,c=t.i;if(4===c)i(o,(function(r){r!==Q&&(void 0!==e[r]||u(e,r)?f[r]||n(o[r]):(f[r]=!0,k(t)))})),i(e,(function(n){void 0!==o[n]||u(o,n)||(f[n]=!1,k(t))}));else if(5===c){if(a(t)&&(k(t),f.length=!0),o.length<e.length)for(var s=o.length;s<e.length;s++)f[s]=!1;else for(var v=e.length;v<o.length;v++)f[v]=!0;for(var p=Math.min(o.length,e.length),l=0;l<p;l++)o.hasOwnProperty(l)||(f[l]=!0),void 0===f[l]&&n(o[l])}}}}(n.p[0]),e(n.p))},K:function(n){return 4===n.i?o(n):a(n)}})}function T(){function e(n){if(!t(n))return n;if(Array.isArray(n))return n.map(e);if(s(n))return new Map(Array.from(n.entries()).map((function(n){return[n[0],e(n[1])]})));if(v(n))return new Set(Array.from(n).map(e));var r=Object.create(Object.getPrototypeOf(n));for(var i in n)r[i]=e(n[i]);return u(n,L)&&(r[L]=n[L]),r}function f(n){return r(n)?e(n):n}var c="add";m("Patches",{$:function(r,t){return t.forEach((function(t){for(var i=t.path,u=t.op,f=r,s=0;s<i.length-1;s++){var v=o(f),p=i[s];"string"!=typeof p&&"number"!=typeof p&&(p=""+p),0!==v&&1!==v||"__proto__"!==p&&"constructor"!==p||n(24),"function"==typeof f&&"prototype"===p&&n(24),"object"!=typeof(f=a(f,p))&&n(15,i.join("/"))}var l=o(f),d=e(t.value),h=i[i.length-1];switch(u){case"replace":switch(l){case 2:return f.set(h,d);case 3:n(16);default:return f[h]=d}case c:switch(l){case 1:return"-"===h?f.push(d):f.splice(h,0,d);case 2:return f.set(h,d);case 3:return f.add(d);default:return f[h]=d}case"remove":switch(l){case 1:return f.splice(h,1);case 2:return f.delete(h);case 3:return f.delete(t.value);default:return delete f[h]}default:n(17,u)}})),r},N:function(n,r,t,e){switch(n.i){case 0:case 4:case 2:return function(n,r,t,e){var o=n.t,s=n.o;i(n.R,(function(n,i){var v=a(o,n),p=a(s,n),l=i?u(o,n)?"replace":c:"remove";if(v!==p||"replace"!==l){var d=r.concat(n);t.push("remove"===l?{op:l,path:d}:{op:l,path:d,value:p}),e.push(l===c?{op:"remove",path:d}:"remove"===l?{op:c,path:d,value:f(v)}:{op:"replace",path:d,value:f(v)})}}))}(n,r,t,e);case 5:case 1:return function(n,r,t,e){var i=n.t,o=n.R,u=n.o;if(u.length<i.length){var a=[u,i];i=a[0],u=a[1];var s=[e,t];t=s[0],e=s[1]}for(var v=0;v<i.length;v++)if(o[v]&&u[v]!==i[v]){var p=r.concat([v]);t.push({op:"replace",path:p,value:f(u[v])}),e.push({op:"replace",path:p,value:f(i[v])})}for(var l=i.length;l<u.length;l++){var d=r.concat([l]);t.push({op:c,path:d,value:f(u[l])})}i.length<u.length&&e.push({op:"replace",path:r.concat(["length"]),value:i.length})}(n,r,t,e);case 3:return function(n,r,t,e){var i=n.t,o=n.o,u=0;i.forEach((function(n){if(!o.has(n)){var i=r.concat([u]);t.push({op:"remove",path:i,value:n}),e.unshift({op:c,path:i,value:n})}u++})),u=0,o.forEach((function(n){if(!i.has(n)){var o=r.concat([u]);t.push({op:c,path:o,value:n}),e.unshift({op:"remove",path:o,value:n})}u++}))}(n,r,t,e)}},M:function(n,r,t,e){t.push({op:"replace",path:[],value:r===H?void 0:r}),e.push({op:"replace",path:[],value:n})}})}function C(){function r(n,r){function t(){this.constructor=n}a(n,r),n.prototype=(t.prototype=r.prototype,new t)}function e(n){n.o||(n.R=new Map,n.o=new Map(n.t))}function o(n){n.o||(n.o=new Set,n.t.forEach((function(r){if(t(r)){var e=N(n.A.h,r,n);n.p.set(r,e),n.o.add(e)}else n.o.add(r)})))}function u(r){r.g&&n(3,JSON.stringify(p(r)))}var a=function(n,r){return(a=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(n,r){n.__proto__=r}||function(n,r){for(var t in r)r.hasOwnProperty(t)&&(n[t]=r[t])})(n,r)},f=function(){function n(n,r){return this[Q]={i:2,l:r,A:r?r.A:_(),P:!1,I:!1,o:void 0,R:void 0,t:n,k:this,C:!1,g:!1},this}r(n,Map);var o=n.prototype;return Object.defineProperty(o,"size",{get:function(){return p(this[Q]).size}}),o.has=function(n){return p(this[Q]).has(n)},o.set=function(n,r){var t=this[Q];return u(t),p(t).has(n)&&p(t).get(n)===r||(e(t),k(t),t.R.set(n,!0),t.o.set(n,r),t.R.set(n,!0)),this},o.delete=function(n){if(!this.has(n))return!1;var r=this[Q];return u(r),e(r),k(r),r.t.has(n)?r.R.set(n,!1):r.R.delete(n),r.o.delete(n),!0},o.clear=function(){var n=this[Q];u(n),p(n).size&&(e(n),k(n),n.R=new Map,i(n.t,(function(r){n.R.set(r,!1)})),n.o.clear())},o.forEach=function(n,r){var t=this;p(this[Q]).forEach((function(e,i){n.call(r,t.get(i),i,t)}))},o.get=function(n){var r=this[Q];u(r);var i=p(r).get(n);if(r.I||!t(i))return i;if(i!==r.t.get(n))return i;var o=N(r.A.h,i,r);return e(r),r.o.set(n,o),o},o.keys=function(){return p(this[Q]).keys()},o.values=function(){var n,r=this,t=this.keys();return(n={})[V]=function(){return r.values()},n.next=function(){var n=t.next();return n.done?n:{done:!1,value:r.get(n.value)}},n},o.entries=function(){var n,r=this,t=this.keys();return(n={})[V]=function(){return r.entries()},n.next=function(){var n=t.next();if(n.done)return n;var e=r.get(n.value);return{done:!1,value:[n.value,e]}},n},o[V]=function(){return this.entries()},n}(),c=function(){function n(n,r){return this[Q]={i:3,l:r,A:r?r.A:_(),P:!1,I:!1,o:void 0,t:n,k:this,p:new Map,g:!1,C:!1},this}r(n,Set);var t=n.prototype;return Object.defineProperty(t,"size",{get:function(){return p(this[Q]).size}}),t.has=function(n){var r=this[Q];return u(r),r.o?!!r.o.has(n)||!(!r.p.has(n)||!r.o.has(r.p.get(n))):r.t.has(n)},t.add=function(n){var r=this[Q];return u(r),this.has(n)||(o(r),k(r),r.o.add(n)),this},t.delete=function(n){if(!this.has(n))return!1;var r=this[Q];return u(r),o(r),k(r),r.o.delete(n)||!!r.p.has(n)&&r.o.delete(r.p.get(n))},t.clear=function(){var n=this[Q];u(n),p(n).size&&(o(n),k(n),n.o.clear())},t.values=function(){var n=this[Q];return u(n),o(n),n.o.values()},t.entries=function(){var n=this[Q];return u(n),o(n),n.o.entries()},t.keys=function(){return this.values()},t[V]=function(){return this.values()},t.forEach=function(n,r){for(var t=this.values(),e=t.next();!e.done;)n.call(r,e.value,e.value,this),e=t.next()},n}();m("MapSet",{F:function(n,r){return new f(n,r)},T:function(n,r){return new c(n,r)}})}function J(){F(),C(),T()}function K(n){return n}function $(n){return n}var G,U,W="undefined"!=typeof Symbol&&"symbol"==typeof Symbol("x"),X="undefined"!=typeof Map,q="undefined"!=typeof Set,B="undefined"!=typeof Proxy&&void 0!==Proxy.revocable&&"undefined"!=typeof Reflect,H=W?Symbol.for("immer-nothing"):((G={})["immer-nothing"]=!0,G),L=W?Symbol.for("immer-draftable"):"__$immer_draftable",Q=W?Symbol.for("immer-state"):"__$immer_state",V="undefined"!=typeof Symbol&&Symbol.iterator||"@@iterator",Y={0:"Illegal state",1:"Immer drafts cannot have computed properties",2:"This object has been frozen and should not be mutated",3:function(n){return"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? "+n},4:"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.",5:"Immer forbids circular references",6:"The first or second argument to `produce` must be a function",7:"The third argument to `produce` must be a function or undefined",8:"First argument to `createDraft` must be a plain object, an array, or an immerable object",9:"First argument to `finishDraft` must be a draft returned by `createDraft`",10:"The given draft is already finalized",11:"Object.defineProperty() cannot be used on an Immer draft",12:"Object.setPrototypeOf() cannot be used on an Immer draft",13:"Immer only supports deleting array indices",14:"Immer only supports setting array indices and the 'length' property",15:function(n){return"Cannot apply patch, path doesn't resolve: "+n},16:'Sets cannot have "replace" patches.',17:function(n){return"Unsupported patch operation: "+n},18:function(n){return"The plugin for '"+n+"' has not been loaded into Immer. To enable the plugin, import and call `enable"+n+"()` when initializing your application."},20:"Cannot use proxies if Proxy, Proxy.revocable or Reflect are not available",21:function(n){return"produce can only be called on things that are draftable: plain objects, arrays, Map, Set or classes that are marked with '[immerable]: true'. Got '"+n+"'"},22:function(n){return"'current' expects a draft, got: "+n},23:function(n){return"'original' expects a draft, got: "+n},24:"Patching reserved attributes like __proto__, prototype and constructor is not allowed"},Z=""+Object.prototype.constructor,nn="undefined"!=typeof Reflect&&Reflect.ownKeys?Reflect.ownKeys:void 0!==Object.getOwnPropertySymbols?function(n){return Object.getOwnPropertyNames(n).concat(Object.getOwnPropertySymbols(n))}:Object.getOwnPropertyNames,rn=Object.getOwnPropertyDescriptors||function(n){var r={};return nn(n).forEach((function(t){r[t]=Object.getOwnPropertyDescriptor(n,t)})),r},tn={},en={get:function(n,r){if(r===Q)return n;var e=p(n);if(!u(e,r))return function(n,r,t){var e,i=I(r,t);return i?"value"in i?i.value:null===(e=i.get)||void 0===e?void 0:e.call(n.k):void 0}(n,e,r);var i=e[r];return n.I||!t(i)?i:i===z(n.t,r)?(E(n),n.o[r]=N(n.A.h,i,n)):i},has:function(n,r){return r in p(n)},ownKeys:function(n){return Reflect.ownKeys(p(n))},set:function(n,r,t){var e=I(p(n),r);if(null==e?void 0:e.set)return e.set.call(n.k,t),!0;if(!n.P){var i=z(p(n),r),o=null==i?void 0:i[Q];if(o&&o.t===t)return n.o[r]=t,n.R[r]=!1,!0;if(c(t,i)&&(void 0!==t||u(n.t,r)))return!0;E(n),k(n)}return n.o[r]===t&&(void 0!==t||r in n.o)||Number.isNaN(t)&&Number.isNaN(n.o[r])||(n.o[r]=t,n.R[r]=!0),!0},deleteProperty:function(n,r){return void 0!==z(n.t,r)||r in n.t?(n.R[r]=!1,E(n),k(n)):delete n.R[r],n.o&&delete n.o[r],!0},getOwnPropertyDescriptor:function(n,r){var t=p(n),e=Reflect.getOwnPropertyDescriptor(t,r);return e?{writable:!0,configurable:1!==n.i||"length"!==r,enumerable:e.enumerable,value:t[r]}:e},defineProperty:function(){n(11)},getPrototypeOf:function(n){return Object.getPrototypeOf(n.t)},setPrototypeOf:function(){n(12)}},on={};i(en,(function(n,r){on[n]=function(){return arguments[0]=arguments[0][0],r.apply(this,arguments)}})),on.deleteProperty=function(r,t){return false&&0,on.set.call(this,r,t,void 0)},on.set=function(r,t,e){return false&&0,en.set.call(this,r[0],t,e,r[0])};var un=function(){function e(r){var e=this;this.O=B,this.D=!0,this.produce=function(r,i,o){if("function"==typeof r&&"function"!=typeof i){var u=i;i=r;var a=e;return function(n){var r=this;void 0===n&&(n=u);for(var t=arguments.length,e=Array(t>1?t-1:0),o=1;o<t;o++)e[o-1]=arguments[o];return a.produce(n,(function(n){var t;return(t=i).call.apply(t,[r,n].concat(e))}))}}var f;if("function"!=typeof i&&n(6),void 0!==o&&"function"!=typeof o&&n(7),t(r)){var c=w(e),s=N(e,r,void 0),v=!0;try{f=i(s),v=!1}finally{v?g(c):O(c)}return"undefined"!=typeof Promise&&f instanceof Promise?f.then((function(n){return j(c,o),P(n,c)}),(function(n){throw g(c),n})):(j(c,o),P(f,c))}if(!r||"object"!=typeof r){if(void 0===(f=i(r))&&(f=r),f===H&&(f=void 0),e.D&&d(f,!0),o){var p=[],l=[];b("Patches").M(r,f,p,l),o(p,l)}return f}n(21,r)},this.produceWithPatches=function(n,r){if("function"==typeof n)return function(r){for(var t=arguments.length,i=Array(t>1?t-1:0),o=1;o<t;o++)i[o-1]=arguments[o];return e.produceWithPatches(r,(function(r){return n.apply(void 0,[r].concat(i))}))};var t,i,o=e.produce(n,r,(function(n,r){t=n,i=r}));return"undefined"!=typeof Promise&&o instanceof Promise?o.then((function(n){return[n,t,i]})):[o,t,i]},"boolean"==typeof(null==r?void 0:r.useProxies)&&this.setUseProxies(r.useProxies),"boolean"==typeof(null==r?void 0:r.autoFreeze)&&this.setAutoFreeze(r.autoFreeze)}var i=e.prototype;return i.createDraft=function(e){t(e)||n(8),r(e)&&(e=R(e));var i=w(this),o=N(this,e,void 0);return o[Q].C=!0,O(i),o},i.finishDraft=function(r,t){var e=r&&r[Q]; false&&(0);var i=e.A;return j(i,t),P(void 0,i)},i.setAutoFreeze=function(n){this.D=n},i.setUseProxies=function(r){r&&!B&&n(20),this.O=r},i.applyPatches=function(n,t){var e;for(e=t.length-1;e>=0;e--){var i=t[e];if(0===i.path.length&&"replace"===i.op){n=i.value;break}}e>-1&&(t=t.slice(e+1));var o=b("Patches").$;return r(n)?o(n,t):this.produce(n,(function(n){return o(n,t)}))},e}(),an=new un,fn=an.produce,cn=an.produceWithPatches.bind(an),sn=an.setAutoFreeze.bind(an),vn=an.setUseProxies.bind(an),pn=an.applyPatches.bind(an),ln=an.createDraft.bind(an),dn=an.finishDraft.bind(an);/* harmony default export */ __webpack_exports__["ZP"] = (fn);
 //# sourceMappingURL=immer.esm.js.map
 
 
@@ -11033,10 +11396,16 @@ var es_reflect_to_string_tag = __webpack_require__(2215);
 var es_reflect_construct = __webpack_require__(1229);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.error.cause.js
 var es_error_cause = __webpack_require__(1372);
+// EXTERNAL MODULE: ../../node_modules/core-js/modules/es.symbol.to-primitive.js
+var es_symbol_to_primitive = __webpack_require__(9575);
+// EXTERNAL MODULE: ../../node_modules/core-js/modules/es.date.to-primitive.js
+var es_date_to_primitive = __webpack_require__(6264);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.symbol.js
 var es_symbol = __webpack_require__(4115);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.symbol.description.js
 var es_symbol_description = __webpack_require__(634);
+// EXTERNAL MODULE: ../../node_modules/core-js/modules/es.number.constructor.js
+var es_number_constructor = __webpack_require__(1245);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.symbol.iterator.js
 var es_symbol_iterator = __webpack_require__(796);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.array.iterator.js
@@ -11046,11 +11415,11 @@ var es_string_iterator = __webpack_require__(8673);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/web.dom-collections.iterator.js
 var web_dom_collections_iterator = __webpack_require__(6886);
 ;// CONCATENATED MODULE: ../../node_modules/preact/dist/preact.module.js
-var n,preact_module_l,u,i,t,o,r,f={},e=[],c=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;function s(n,l){for(var u in l)n[u]=l[u];return n}function a(n){var l=n.parentNode;l&&l.removeChild(n)}function h(l,u,i){var t,o,r,f={};for(r in u)"key"==r?t=u[r]:"ref"==r?o=u[r]:f[r]=u[r];if(arguments.length>2&&(f.children=arguments.length>3?n.call(arguments,2):i),"function"==typeof l&&null!=l.defaultProps)for(r in l.defaultProps)void 0===f[r]&&(f[r]=l.defaultProps[r]);return v(l,f,t,o,null)}function v(n,i,t,o,r){var f={type:n,props:i,key:t,ref:o,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:null==r?++u:r};return null==r&&null!=preact_module_l.vnode&&preact_module_l.vnode(f),f}function y(){return{current:null}}function p(n){return n.children}function d(n,l){this.props=n,this.context=l}function _(n,l){if(null==l)return n.__?_(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return"function"==typeof n.type?_(n):null}function k(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return k(n)}}function b(n){(!n.__d&&(n.__d=!0)&&t.push(n)&&!g.__r++||o!==preact_module_l.debounceRendering)&&((o=preact_module_l.debounceRendering)||setTimeout)(g)}function g(){for(var n;g.__r=t.length;)n=t.sort(function(n,l){return n.__v.__b-l.__v.__b}),t=[],n.some(function(n){var l,u,i,t,o,r;n.__d&&(o=(t=(l=n).__v).__e,(r=l.__P)&&(u=[],(i=s({},t)).__v=t.__v+1,j(r,t,i,l.__n,void 0!==r.ownerSVGElement,null!=t.__h?[o]:null,u,null==o?_(t):o,t.__h),z(u,t),t.__e!=o&&k(t)))})}function w(n,l,u,i,t,o,r,c,s,a){var h,y,d,k,b,g,w,x=i&&i.__k||e,C=x.length;for(u.__k=[],h=0;h<l.length;h++)if(null!=(k=u.__k[h]=null==(k=l[h])||"boolean"==typeof k?null:"string"==typeof k||"number"==typeof k||"bigint"==typeof k?v(null,k,null,null,k):Array.isArray(k)?v(p,{children:k},null,null,null):k.__b>0?v(k.type,k.props,k.key,null,k.__v):k)){if(k.__=u,k.__b=u.__b+1,null===(d=x[h])||d&&k.key==d.key&&k.type===d.type)x[h]=void 0;else for(y=0;y<C;y++){if((d=x[y])&&k.key==d.key&&k.type===d.type){x[y]=void 0;break}d=null}j(n,k,d=d||f,t,o,r,c,s,a),b=k.__e,(y=k.ref)&&d.ref!=y&&(w||(w=[]),d.ref&&w.push(d.ref,null,k),w.push(y,k.__c||b,k)),null!=b?(null==g&&(g=b),"function"==typeof k.type&&k.__k===d.__k?k.__d=s=m(k,s,n):s=A(n,k,d,x,b,s),"function"==typeof u.type&&(u.__d=s)):s&&d.__e==s&&s.parentNode!=n&&(s=_(d))}for(u.__e=g,h=C;h--;)null!=x[h]&&("function"==typeof u.type&&null!=x[h].__e&&x[h].__e==u.__d&&(u.__d=_(i,h+1)),N(x[h],x[h]));if(w)for(h=0;h<w.length;h++)M(w[h],w[++h],w[++h])}function m(n,l,u){for(var i,t=n.__k,o=0;t&&o<t.length;o++)(i=t[o])&&(i.__=n,l="function"==typeof i.type?m(i,l,u):A(u,i,i,t,i.__e,l));return l}function x(n,l){return l=l||[],null==n||"boolean"==typeof n||(Array.isArray(n)?n.some(function(n){x(n,l)}):l.push(n)),l}function A(n,l,u,i,t,o){var r,f,e;if(void 0!==l.__d)r=l.__d,l.__d=void 0;else if(null==u||t!=o||null==t.parentNode)n:if(null==o||o.parentNode!==n)n.appendChild(t),r=null;else{for(f=o,e=0;(f=f.nextSibling)&&e<i.length;e+=2)if(f==t)break n;n.insertBefore(t,o),r=o}return void 0!==r?r:t.nextSibling}function C(n,l,u,i,t){var o;for(o in u)"children"===o||"key"===o||o in l||H(n,o,null,u[o],i);for(o in l)t&&"function"!=typeof l[o]||"children"===o||"key"===o||"value"===o||"checked"===o||u[o]===l[o]||H(n,o,l[o],u[o],i)}function $(n,l,u){"-"===l[0]?n.setProperty(l,u):n[l]=null==u?"":"number"!=typeof u||c.test(l)?u:u+"px"}function H(n,l,u,i,t){var o;n:if("style"===l)if("string"==typeof u)n.style.cssText=u;else{if("string"==typeof i&&(n.style.cssText=i=""),i)for(l in i)u&&l in u||$(n.style,l,"");if(u)for(l in u)i&&u[l]===i[l]||$(n.style,l,u[l])}else if("o"===l[0]&&"n"===l[1])o=l!==(l=l.replace(/Capture$/,"")),l=l.toLowerCase()in n?l.toLowerCase().slice(2):l.slice(2),n.l||(n.l={}),n.l[l+o]=u,u?i||n.addEventListener(l,o?T:I,o):n.removeEventListener(l,o?T:I,o);else if("dangerouslySetInnerHTML"!==l){if(t)l=l.replace(/xlink(H|:h)/,"h").replace(/sName$/,"s");else if("href"!==l&&"list"!==l&&"form"!==l&&"tabIndex"!==l&&"download"!==l&&l in n)try{n[l]=null==u?"":u;break n}catch(n){}"function"==typeof u||(null!=u&&(!1!==u||"a"===l[0]&&"r"===l[1])?n.setAttribute(l,u):n.removeAttribute(l))}}function I(n){this.l[n.type+!1](preact_module_l.event?preact_module_l.event(n):n)}function T(n){this.l[n.type+!0](preact_module_l.event?preact_module_l.event(n):n)}function j(n,u,i,t,o,r,f,e,c){var a,h,v,y,_,k,b,g,m,x,A,C,$,H=u.type;if(void 0!==u.constructor)return null;null!=i.__h&&(c=i.__h,e=u.__e=i.__e,u.__h=null,r=[e]),(a=preact_module_l.__b)&&a(u);try{n:if("function"==typeof H){if(g=u.props,m=(a=H.contextType)&&t[a.__c],x=a?m?m.props.value:a.__:t,i.__c?b=(h=u.__c=i.__c).__=h.__E:("prototype"in H&&H.prototype.render?u.__c=h=new H(g,x):(u.__c=h=new d(g,x),h.constructor=H,h.render=O),m&&m.sub(h),h.props=g,h.state||(h.state={}),h.context=x,h.__n=t,v=h.__d=!0,h.__h=[]),null==h.__s&&(h.__s=h.state),null!=H.getDerivedStateFromProps&&(h.__s==h.state&&(h.__s=s({},h.__s)),s(h.__s,H.getDerivedStateFromProps(g,h.__s))),y=h.props,_=h.state,v)null==H.getDerivedStateFromProps&&null!=h.componentWillMount&&h.componentWillMount(),null!=h.componentDidMount&&h.__h.push(h.componentDidMount);else{if(null==H.getDerivedStateFromProps&&g!==y&&null!=h.componentWillReceiveProps&&h.componentWillReceiveProps(g,x),!h.__e&&null!=h.shouldComponentUpdate&&!1===h.shouldComponentUpdate(g,h.__s,x)||u.__v===i.__v){h.props=g,h.state=h.__s,u.__v!==i.__v&&(h.__d=!1),h.__v=u,u.__e=i.__e,u.__k=i.__k,u.__k.forEach(function(n){n&&(n.__=u)}),h.__h.length&&f.push(h);break n}null!=h.componentWillUpdate&&h.componentWillUpdate(g,h.__s,x),null!=h.componentDidUpdate&&h.__h.push(function(){h.componentDidUpdate(y,_,k)})}if(h.context=x,h.props=g,h.__v=u,h.__P=n,A=preact_module_l.__r,C=0,"prototype"in H&&H.prototype.render)h.state=h.__s,h.__d=!1,A&&A(u),a=h.render(h.props,h.state,h.context);else do{h.__d=!1,A&&A(u),a=h.render(h.props,h.state,h.context),h.state=h.__s}while(h.__d&&++C<25);h.state=h.__s,null!=h.getChildContext&&(t=s(s({},t),h.getChildContext())),v||null==h.getSnapshotBeforeUpdate||(k=h.getSnapshotBeforeUpdate(y,_)),$=null!=a&&a.type===p&&null==a.key?a.props.children:a,w(n,Array.isArray($)?$:[$],u,i,t,o,r,f,e,c),h.base=u.__e,u.__h=null,h.__h.length&&f.push(h),b&&(h.__E=h.__=null),h.__e=!1}else null==r&&u.__v===i.__v?(u.__k=i.__k,u.__e=i.__e):u.__e=L(i.__e,u,i,t,o,r,f,c);(a=preact_module_l.diffed)&&a(u)}catch(n){u.__v=null,(c||null!=r)&&(u.__e=e,u.__h=!!c,r[r.indexOf(e)]=null),preact_module_l.__e(n,u,i)}}function z(n,u){preact_module_l.__c&&preact_module_l.__c(u,n),n.some(function(u){try{n=u.__h,u.__h=[],n.some(function(n){n.call(u)})}catch(n){preact_module_l.__e(n,u.__v)}})}function L(l,u,i,t,o,r,e,c){var s,h,v,y=i.props,p=u.props,d=u.type,k=0;if("svg"===d&&(o=!0),null!=r)for(;k<r.length;k++)if((s=r[k])&&"setAttribute"in s==!!d&&(d?s.localName===d:3===s.nodeType)){l=s,r[k]=null;break}if(null==l){if(null===d)return document.createTextNode(p);l=o?document.createElementNS("http://www.w3.org/2000/svg",d):document.createElement(d,p.is&&p),r=null,c=!1}if(null===d)y===p||c&&l.data===p||(l.data=p);else{if(r=r&&n.call(l.childNodes),h=(y=i.props||f).dangerouslySetInnerHTML,v=p.dangerouslySetInnerHTML,!c){if(null!=r)for(y={},k=0;k<l.attributes.length;k++)y[l.attributes[k].name]=l.attributes[k].value;(v||h)&&(v&&(h&&v.__html==h.__html||v.__html===l.innerHTML)||(l.innerHTML=v&&v.__html||""))}if(C(l,p,y,o,c),v)u.__k=[];else if(k=u.props.children,w(l,Array.isArray(k)?k:[k],u,i,t,o&&"foreignObject"!==d,r,e,r?r[0]:i.__k&&_(i,0),c),null!=r)for(k=r.length;k--;)null!=r[k]&&a(r[k]);c||("value"in p&&void 0!==(k=p.value)&&(k!==l.value||"progress"===d&&!k||"option"===d&&k!==y.value)&&H(l,"value",k,y.value,!1),"checked"in p&&void 0!==(k=p.checked)&&k!==l.checked&&H(l,"checked",k,y.checked,!1))}return l}function M(n,u,i){try{"function"==typeof n?n(u):n.current=u}catch(n){preact_module_l.__e(n,i)}}function N(n,u,i){var t,o;if(preact_module_l.unmount&&preact_module_l.unmount(n),(t=n.ref)&&(t.current&&t.current!==n.__e||M(t,null,u)),null!=(t=n.__c)){if(t.componentWillUnmount)try{t.componentWillUnmount()}catch(n){preact_module_l.__e(n,u)}t.base=t.__P=null}if(t=n.__k)for(o=0;o<t.length;o++)t[o]&&N(t[o],u,"function"!=typeof n.type);i||null==n.__e||a(n.__e),n.__e=n.__d=void 0}function O(n,l,u){return this.constructor(n,u)}function P(u,i,t){var o,r,e;preact_module_l.__&&preact_module_l.__(u,i),r=(o="function"==typeof t)?null:t&&t.__k||i.__k,e=[],j(i,u=(!o&&t||i).__k=h(p,null,[u]),r||f,f,void 0!==i.ownerSVGElement,!o&&t?[t]:r?null:i.firstChild?n.call(i.childNodes):null,e,!o&&t?t:r?r.__e:i.firstChild,o),z(e,u)}function S(n,l){P(n,l,S)}function q(l,u,i){var t,o,r,f=s({},l.props);for(r in u)"key"==r?t=u[r]:"ref"==r?o=u[r]:f[r]=u[r];return arguments.length>2&&(f.children=arguments.length>3?n.call(arguments,2):i),v(l.type,f,t||l.key,o||l.ref,null)}function B(n,l){var u={__c:l="__cC"+r++,__:n,Consumer:function(n,l){return n.children(l)},Provider:function(n){var u,i;return this.getChildContext||(u=[],(i={})[l]=this,this.getChildContext=function(){return i},this.shouldComponentUpdate=function(n){this.props.value!==n.value&&u.some(b)},this.sub=function(n){u.push(n);var l=n.componentWillUnmount;n.componentWillUnmount=function(){u.splice(u.indexOf(n),1),l&&l.call(n)}}),n.children}};return u.Provider.__=u.Consumer.contextType=u}n=e.slice,preact_module_l={__e:function(n,l,u,i){for(var t,o,r;l=l.__;)if((t=l.__c)&&!t.__)try{if((o=t.constructor)&&null!=o.getDerivedStateFromError&&(t.setState(o.getDerivedStateFromError(n)),r=t.__d),null!=t.componentDidCatch&&(t.componentDidCatch(n,i||{}),r=t.__d),r)return t.__E=t}catch(l){n=l}throw n}},u=0,i=function(n){return null!=n&&void 0===n.constructor},d.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!==this.state?this.__s:this.__s=s({},this.state),"function"==typeof n&&(n=n(s({},u),this.props)),n&&s(u,n),null!=n&&this.__v&&(l&&this.__h.push(l),b(this))},d.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),b(this))},d.prototype.render=p,t=[],g.__r=0,r=0;
+var n,preact_module_l,u,i,t,r,o,f,e,c={},s=[],a=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;function h(n,l){for(var u in l)n[u]=l[u];return n}function v(n){var l=n.parentNode;l&&l.removeChild(n)}function y(l,u,i){var t,r,o,f={};for(o in u)"key"==o?t=u[o]:"ref"==o?r=u[o]:f[o]=u[o];if(arguments.length>2&&(f.children=arguments.length>3?n.call(arguments,2):i),"function"==typeof l&&null!=l.defaultProps)for(o in l.defaultProps)void 0===f[o]&&(f[o]=l.defaultProps[o]);return p(l,f,t,r,null)}function p(n,i,t,r,o){var f={type:n,props:i,key:t,ref:r,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,__h:null,constructor:void 0,__v:null==o?++u:o};return null==o&&null!=preact_module_l.vnode&&preact_module_l.vnode(f),f}function d(){return{current:null}}function preact_module_(n){return n.children}function k(n,l){this.props=n,this.context=l}function b(n,l){if(null==l)return n.__?b(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return"function"==typeof n.type?b(n):null}function g(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return g(n)}}function m(n){(!n.__d&&(n.__d=!0)&&t.push(n)&&!w.__r++||r!==preact_module_l.debounceRendering)&&((r=preact_module_l.debounceRendering)||o)(w)}function w(){var n,l,u,i,r,o,e,c;for(t.sort(f);n=t.shift();)n.__d&&(l=t.length,i=void 0,r=void 0,e=(o=(u=n).__v).__e,(c=u.__P)&&(i=[],(r=h({},o)).__v=o.__v+1,L(c,o,r,u.__n,void 0!==c.ownerSVGElement,null!=o.__h?[e]:null,i,null==e?b(o):e,o.__h),M(i,o),o.__e!=e&&g(o)),t.length>l&&t.sort(f));w.__r=0}function x(n,l,u,i,t,r,o,f,e,a){var h,v,y,d,k,g,m,w=i&&i.__k||s,x=w.length;for(u.__k=[],h=0;h<l.length;h++)if(null!=(d=u.__k[h]=null==(d=l[h])||"boolean"==typeof d||"function"==typeof d?null:"string"==typeof d||"number"==typeof d||"bigint"==typeof d?p(null,d,null,null,d):Array.isArray(d)?p(preact_module_,{children:d},null,null,null):d.__b>0?p(d.type,d.props,d.key,d.ref?d.ref:null,d.__v):d)){if(d.__=u,d.__b=u.__b+1,null===(y=w[h])||y&&d.key==y.key&&d.type===y.type)w[h]=void 0;else for(v=0;v<x;v++){if((y=w[v])&&d.key==y.key&&d.type===y.type){w[v]=void 0;break}y=null}L(n,d,y=y||c,t,r,o,f,e,a),k=d.__e,(v=d.ref)&&y.ref!=v&&(m||(m=[]),y.ref&&m.push(y.ref,null,d),m.push(v,d.__c||k,d)),null!=k?(null==g&&(g=k),"function"==typeof d.type&&d.__k===y.__k?d.__d=e=A(d,e,n):e=C(n,d,y,w,k,e),"function"==typeof u.type&&(u.__d=e)):e&&y.__e==e&&e.parentNode!=n&&(e=b(y))}for(u.__e=g,h=x;h--;)null!=w[h]&&("function"==typeof u.type&&null!=w[h].__e&&w[h].__e==u.__d&&(u.__d=$(i).nextSibling),S(w[h],w[h]));if(m)for(h=0;h<m.length;h++)O(m[h],m[++h],m[++h])}function A(n,l,u){for(var i,t=n.__k,r=0;t&&r<t.length;r++)(i=t[r])&&(i.__=n,l="function"==typeof i.type?A(i,l,u):C(u,i,i,t,i.__e,l));return l}function P(n,l){return l=l||[],null==n||"boolean"==typeof n||(Array.isArray(n)?n.some(function(n){P(n,l)}):l.push(n)),l}function C(n,l,u,i,t,r){var o,f,e;if(void 0!==l.__d)o=l.__d,l.__d=void 0;else if(null==u||t!=r||null==t.parentNode)n:if(null==r||r.parentNode!==n)n.appendChild(t),o=null;else{for(f=r,e=0;(f=f.nextSibling)&&e<i.length;e+=1)if(f==t)break n;n.insertBefore(t,r),o=r}return void 0!==o?o:t.nextSibling}function $(n){var l,u,i;if(null==n.type||"string"==typeof n.type)return n.__e;if(n.__k)for(l=n.__k.length-1;l>=0;l--)if((u=n.__k[l])&&(i=$(u)))return i;return null}function H(n,l,u,i,t){var r;for(r in u)"children"===r||"key"===r||r in l||T(n,r,null,u[r],i);for(r in l)t&&"function"!=typeof l[r]||"children"===r||"key"===r||"value"===r||"checked"===r||u[r]===l[r]||T(n,r,l[r],u[r],i)}function I(n,l,u){"-"===l[0]?n.setProperty(l,null==u?"":u):n[l]=null==u?"":"number"!=typeof u||a.test(l)?u:u+"px"}function T(n,l,u,i,t){var r;n:if("style"===l)if("string"==typeof u)n.style.cssText=u;else{if("string"==typeof i&&(n.style.cssText=i=""),i)for(l in i)u&&l in u||I(n.style,l,"");if(u)for(l in u)i&&u[l]===i[l]||I(n.style,l,u[l])}else if("o"===l[0]&&"n"===l[1])r=l!==(l=l.replace(/Capture$/,"")),l=l.toLowerCase()in n?l.toLowerCase().slice(2):l.slice(2),n.l||(n.l={}),n.l[l+r]=u,u?i||n.addEventListener(l,r?z:j,r):n.removeEventListener(l,r?z:j,r);else if("dangerouslySetInnerHTML"!==l){if(t)l=l.replace(/xlink(H|:h)/,"h").replace(/sName$/,"s");else if("width"!==l&&"height"!==l&&"href"!==l&&"list"!==l&&"form"!==l&&"tabIndex"!==l&&"download"!==l&&l in n)try{n[l]=null==u?"":u;break n}catch(n){}"function"==typeof u||(null==u||!1===u&&"-"!==l[4]?n.removeAttribute(l):n.setAttribute(l,u))}}function j(n){return this.l[n.type+!1](preact_module_l.event?preact_module_l.event(n):n)}function z(n){return this.l[n.type+!0](preact_module_l.event?preact_module_l.event(n):n)}function L(n,u,i,t,r,o,f,e,c){var s,a,v,y,p,d,b,g,m,w,A,P,C,$,H,I=u.type;if(void 0!==u.constructor)return null;null!=i.__h&&(c=i.__h,e=u.__e=i.__e,u.__h=null,o=[e]),(s=preact_module_l.__b)&&s(u);try{n:if("function"==typeof I){if(g=u.props,m=(s=I.contextType)&&t[s.__c],w=s?m?m.props.value:s.__:t,i.__c?b=(a=u.__c=i.__c).__=a.__E:("prototype"in I&&I.prototype.render?u.__c=a=new I(g,w):(u.__c=a=new k(g,w),a.constructor=I,a.render=q),m&&m.sub(a),a.props=g,a.state||(a.state={}),a.context=w,a.__n=t,v=a.__d=!0,a.__h=[],a._sb=[]),null==a.__s&&(a.__s=a.state),null!=I.getDerivedStateFromProps&&(a.__s==a.state&&(a.__s=h({},a.__s)),h(a.__s,I.getDerivedStateFromProps(g,a.__s))),y=a.props,p=a.state,a.__v=u,v)null==I.getDerivedStateFromProps&&null!=a.componentWillMount&&a.componentWillMount(),null!=a.componentDidMount&&a.__h.push(a.componentDidMount);else{if(null==I.getDerivedStateFromProps&&g!==y&&null!=a.componentWillReceiveProps&&a.componentWillReceiveProps(g,w),!a.__e&&null!=a.shouldComponentUpdate&&!1===a.shouldComponentUpdate(g,a.__s,w)||u.__v===i.__v){for(u.__v!==i.__v&&(a.props=g,a.state=a.__s,a.__d=!1),a.__e=!1,u.__e=i.__e,u.__k=i.__k,u.__k.forEach(function(n){n&&(n.__=u)}),A=0;A<a._sb.length;A++)a.__h.push(a._sb[A]);a._sb=[],a.__h.length&&f.push(a);break n}null!=a.componentWillUpdate&&a.componentWillUpdate(g,a.__s,w),null!=a.componentDidUpdate&&a.__h.push(function(){a.componentDidUpdate(y,p,d)})}if(a.context=w,a.props=g,a.__P=n,P=preact_module_l.__r,C=0,"prototype"in I&&I.prototype.render){for(a.state=a.__s,a.__d=!1,P&&P(u),s=a.render(a.props,a.state,a.context),$=0;$<a._sb.length;$++)a.__h.push(a._sb[$]);a._sb=[]}else do{a.__d=!1,P&&P(u),s=a.render(a.props,a.state,a.context),a.state=a.__s}while(a.__d&&++C<25);a.state=a.__s,null!=a.getChildContext&&(t=h(h({},t),a.getChildContext())),v||null==a.getSnapshotBeforeUpdate||(d=a.getSnapshotBeforeUpdate(y,p)),H=null!=s&&s.type===preact_module_&&null==s.key?s.props.children:s,x(n,Array.isArray(H)?H:[H],u,i,t,r,o,f,e,c),a.base=u.__e,u.__h=null,a.__h.length&&f.push(a),b&&(a.__E=a.__=null),a.__e=!1}else null==o&&u.__v===i.__v?(u.__k=i.__k,u.__e=i.__e):u.__e=N(i.__e,u,i,t,r,o,f,c);(s=preact_module_l.diffed)&&s(u)}catch(n){u.__v=null,(c||null!=o)&&(u.__e=e,u.__h=!!c,o[o.indexOf(e)]=null),preact_module_l.__e(n,u,i)}}function M(n,u){preact_module_l.__c&&preact_module_l.__c(u,n),n.some(function(u){try{n=u.__h,u.__h=[],n.some(function(n){n.call(u)})}catch(n){preact_module_l.__e(n,u.__v)}})}function N(l,u,i,t,r,o,f,e){var s,a,h,y=i.props,p=u.props,d=u.type,_=0;if("svg"===d&&(r=!0),null!=o)for(;_<o.length;_++)if((s=o[_])&&"setAttribute"in s==!!d&&(d?s.localName===d:3===s.nodeType)){l=s,o[_]=null;break}if(null==l){if(null===d)return document.createTextNode(p);l=r?document.createElementNS("http://www.w3.org/2000/svg",d):document.createElement(d,p.is&&p),o=null,e=!1}if(null===d)y===p||e&&l.data===p||(l.data=p);else{if(o=o&&n.call(l.childNodes),a=(y=i.props||c).dangerouslySetInnerHTML,h=p.dangerouslySetInnerHTML,!e){if(null!=o)for(y={},_=0;_<l.attributes.length;_++)y[l.attributes[_].name]=l.attributes[_].value;(h||a)&&(h&&(a&&h.__html==a.__html||h.__html===l.innerHTML)||(l.innerHTML=h&&h.__html||""))}if(H(l,p,y,r,e),h)u.__k=[];else if(_=u.props.children,x(l,Array.isArray(_)?_:[_],u,i,t,r&&"foreignObject"!==d,o,f,o?o[0]:i.__k&&b(i,0),e),null!=o)for(_=o.length;_--;)null!=o[_]&&v(o[_]);e||("value"in p&&void 0!==(_=p.value)&&(_!==l.value||"progress"===d&&!_||"option"===d&&_!==y.value)&&T(l,"value",_,y.value,!1),"checked"in p&&void 0!==(_=p.checked)&&_!==l.checked&&T(l,"checked",_,y.checked,!1))}return l}function O(n,u,i){try{"function"==typeof n?n(u):n.current=u}catch(n){preact_module_l.__e(n,i)}}function S(n,u,i){var t,r;if(preact_module_l.unmount&&preact_module_l.unmount(n),(t=n.ref)&&(t.current&&t.current!==n.__e||O(t,null,u)),null!=(t=n.__c)){if(t.componentWillUnmount)try{t.componentWillUnmount()}catch(n){preact_module_l.__e(n,u)}t.base=t.__P=null,n.__c=void 0}if(t=n.__k)for(r=0;r<t.length;r++)t[r]&&S(t[r],u,i||"function"!=typeof n.type);i||null==n.__e||v(n.__e),n.__=n.__e=n.__d=void 0}function q(n,l,u){return this.constructor(n,u)}function B(u,i,t){var r,o,f;preact_module_l.__&&preact_module_l.__(u,i),o=(r="function"==typeof t)?null:t&&t.__k||i.__k,f=[],L(i,u=(!r&&t||i).__k=y(preact_module_,null,[u]),o||c,c,void 0!==i.ownerSVGElement,!r&&t?[t]:o?null:i.firstChild?n.call(i.childNodes):null,f,!r&&t?t:o?o.__e:i.firstChild,r),M(f,u)}function D(n,l){B(n,l,D)}function E(l,u,i){var t,r,o,f=h({},l.props);for(o in u)"key"==o?t=u[o]:"ref"==o?r=u[o]:f[o]=u[o];return arguments.length>2&&(f.children=arguments.length>3?n.call(arguments,2):i),p(l.type,f,t||l.key,r||l.ref,null)}function F(n,l){var u={__c:l="__cC"+e++,__:n,Consumer:function(n,l){return n.children(l)},Provider:function(n){var u,i;return this.getChildContext||(u=[],(i={})[l]=this,this.getChildContext=function(){return i},this.shouldComponentUpdate=function(n){this.props.value!==n.value&&u.some(function(n){n.__e=!0,m(n)})},this.sub=function(n){u.push(n);var l=n.componentWillUnmount;n.componentWillUnmount=function(){u.splice(u.indexOf(n),1),l&&l.call(n)}}),n.children}};return u.Provider.__=u.Consumer.contextType=u}n=s.slice,preact_module_l={__e:function(n,l,u,i){for(var t,r,o;l=l.__;)if((t=l.__c)&&!t.__)try{if((r=t.constructor)&&null!=r.getDerivedStateFromError&&(t.setState(r.getDerivedStateFromError(n)),o=t.__d),null!=t.componentDidCatch&&(t.componentDidCatch(n,i||{}),o=t.__d),o)return t.__E=t}catch(l){n=l}throw n}},u=0,i=function(n){return null!=n&&void 0===n.constructor},k.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!==this.state?this.__s:this.__s=h({},this.state),"function"==typeof n&&(n=n(h({},u),this.props)),n&&h(u,n),null!=n&&this.__v&&(l&&this._sb.push(l),m(this))},k.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),m(this))},k.prototype.render=preact_module_,t=[],o="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,f=function(n,l){return n.__v.__b-l.__v.__b},w.__r=0,e=0;
 //# sourceMappingURL=preact.module.js.map
 
 ;// CONCATENATED MODULE: ../../node_modules/preact/hooks/dist/hooks.module.js
-var hooks_module_t,hooks_module_u,hooks_module_r,hooks_module_o,hooks_module_i=0,hooks_module_c=[],hooks_module_f=[],hooks_module_e=preact_module_l.__b,hooks_module_a=preact_module_l.__r,hooks_module_v=preact_module_l.diffed,l=preact_module_l.__c,hooks_module_m=preact_module_l.unmount;function hooks_module_p(t,r){preact_module_l.__h&&preact_module_l.__h(hooks_module_u,t,hooks_module_i||r),hooks_module_i=0;var o=hooks_module_u.__H||(hooks_module_u.__H={__:[],__h:[]});return t>=o.__.length&&o.__.push({__V:hooks_module_f}),o.__[t]}function hooks_module_y(n){return hooks_module_i=1,hooks_module_d(hooks_module_z,n)}function hooks_module_d(n,r,o){var i=hooks_module_p(hooks_module_t++,2);return i.t=n,i.__c||(i.__=[o?o(r):hooks_module_z(void 0,r),function(n){var t=i.t(i.__[0],n);i.__[0]!==t&&(i.__=[t,i.__[1]],i.__c.setState({}))}],i.__c=hooks_module_u),i.__}function hooks_module_(r,o){var i=hooks_module_p(hooks_module_t++,3);!preact_module_l.__s&&hooks_module_w(i.__H,o)&&(i.__=r,i.u=o,hooks_module_u.__H.__h.push(i))}function hooks_module_h(r,o){var i=hooks_module_p(hooks_module_t++,4);!preact_module_l.__s&&hooks_module_w(i.__H,o)&&(i.__=r,i.u=o,hooks_module_u.__h.push(i))}function hooks_module_s(n){return hooks_module_i=5,F(function(){return{current:n}},[])}function hooks_module_A(n,t,u){hooks_module_i=6,hooks_module_h(function(){return"function"==typeof n?(n(t()),function(){return n(null)}):n?(n.current=t(),function(){return n.current=null}):void 0},null==u?u:u.concat(n))}function F(n,u){var r=hooks_module_p(hooks_module_t++,7);return hooks_module_w(r.__H,u)?(r.__V=n(),r.u=u,r.__h=n,r.__V):r.__}function hooks_module_T(n,t){return hooks_module_i=8,F(function(){return n},t)}function hooks_module_q(n){var r=hooks_module_u.context[n.__c],o=hooks_module_p(hooks_module_t++,9);return o.c=n,r?(null==o.__&&(o.__=!0,r.sub(hooks_module_u)),r.props.value):n.__}function hooks_module_x(t,u){preact_module_l.useDebugValue&&preact_module_l.useDebugValue(u?u(t):t)}function V(n){var r=hooks_module_p(hooks_module_t++,10),o=hooks_module_y();return r.__=n,hooks_module_u.componentDidCatch||(hooks_module_u.componentDidCatch=function(n){r.__&&r.__(n),o[1](n)}),[o[0],function(){o[1](void 0)}]}function hooks_module_b(){for(var t;t=hooks_module_c.shift();)if(t.__P)try{t.__H.__h.forEach(hooks_module_j),t.__H.__h.forEach(hooks_module_k),t.__H.__h=[]}catch(u){t.__H.__h=[],preact_module_l.__e(u,t.__v)}}preact_module_l.__b=function(n){hooks_module_u=null,hooks_module_e&&hooks_module_e(n)},preact_module_l.__r=function(n){hooks_module_a&&hooks_module_a(n),hooks_module_t=0;var o=(hooks_module_u=n.__c).__H;o&&(hooks_module_r===hooks_module_u?(o.__h=[],hooks_module_u.__h=[],o.__.forEach(function(n){n.__V=hooks_module_f,n.u=void 0})):(o.__h.forEach(hooks_module_j),o.__h.forEach(hooks_module_k),o.__h=[])),hooks_module_r=hooks_module_u},preact_module_l.diffed=function(t){hooks_module_v&&hooks_module_v(t);var i=t.__c;i&&i.__H&&(i.__H.__h.length&&(1!==hooks_module_c.push(i)&&hooks_module_o===preact_module_l.requestAnimationFrame||((hooks_module_o=preact_module_l.requestAnimationFrame)||function(n){var t,u=function(){clearTimeout(r),hooks_module_g&&cancelAnimationFrame(t),setTimeout(n)},r=setTimeout(u,100);hooks_module_g&&(t=requestAnimationFrame(u))})(hooks_module_b)),i.__H.__.forEach(function(n){n.u&&(n.__H=n.u),n.__V!==hooks_module_f&&(n.__=n.__V),n.u=void 0,n.__V=hooks_module_f})),hooks_module_r=hooks_module_u=null},preact_module_l.__c=function(t,u){u.some(function(t){try{t.__h.forEach(hooks_module_j),t.__h=t.__h.filter(function(n){return!n.__||hooks_module_k(n)})}catch(r){u.some(function(n){n.__h&&(n.__h=[])}),u=[],preact_module_l.__e(r,t.__v)}}),l&&l(t,u)},preact_module_l.unmount=function(t){hooks_module_m&&hooks_module_m(t);var u,r=t.__c;r&&r.__H&&(r.__H.__.forEach(function(n){try{hooks_module_j(n)}catch(n){u=n}}),u&&preact_module_l.__e(u,r.__v))};var hooks_module_g="function"==typeof requestAnimationFrame;function hooks_module_j(n){var t=hooks_module_u,r=n.__c;"function"==typeof r&&(n.__c=void 0,r()),hooks_module_u=t}function hooks_module_k(n){var t=hooks_module_u;n.__c=n.__(),hooks_module_u=t}function hooks_module_w(n,t){return!n||n.length!==t.length||t.some(function(t,u){return t!==n[u]})}function hooks_module_z(n,t){return"function"==typeof t?t(n):t}
+var hooks_module_t,hooks_module_r,hooks_module_u,hooks_module_i,hooks_module_o=0,hooks_module_f=[],hooks_module_c=[],hooks_module_e=preact_module_l.__b,hooks_module_a=preact_module_l.__r,hooks_module_v=preact_module_l.diffed,l=preact_module_l.__c,hooks_module_m=preact_module_l.unmount;function hooks_module_d(t,u){preact_module_l.__h&&preact_module_l.__h(hooks_module_r,t,hooks_module_o||u),hooks_module_o=0;var i=hooks_module_r.__H||(hooks_module_r.__H={__:[],__h:[]});return t>=i.__.length&&i.__.push({__V:hooks_module_c}),i.__[t]}function hooks_module_h(n){return hooks_module_o=1,hooks_module_s(hooks_module_B,n)}function hooks_module_s(n,u,i){var o=hooks_module_d(hooks_module_t++,2);if(o.t=n,!o.__c&&(o.__=[i?i(u):hooks_module_B(void 0,u),function(n){var t=o.__N?o.__N[0]:o.__[0],r=o.t(t,n);t!==r&&(o.__N=[r,o.__[1]],o.__c.setState({}))}],o.__c=hooks_module_r,!hooks_module_r.u)){var f=function(n,t,r){if(!o.__c.__H)return!0;var u=o.__c.__H.__.filter(function(n){return n.__c});if(u.every(function(n){return!n.__N}))return!c||c.call(this,n,t,r);var i=!1;return u.forEach(function(n){if(n.__N){var t=n.__[0];n.__=n.__N,n.__N=void 0,t!==n.__[0]&&(i=!0)}}),!(!i&&o.__c.props===n)&&(!c||c.call(this,n,t,r))};hooks_module_r.u=!0;var c=hooks_module_r.shouldComponentUpdate,e=hooks_module_r.componentWillUpdate;hooks_module_r.componentWillUpdate=function(n,t,r){if(this.__e){var u=c;c=void 0,f(n,t,r),c=u}e&&e.call(this,n,t,r)},hooks_module_r.shouldComponentUpdate=f}return o.__N||o.__}function hooks_module_p(u,i){var o=hooks_module_d(hooks_module_t++,3);!preact_module_l.__s&&hooks_module_z(o.__H,i)&&(o.__=u,o.i=i,hooks_module_r.__H.__h.push(o))}function hooks_module_y(u,i){var o=hooks_module_d(hooks_module_t++,4);!preact_module_l.__s&&hooks_module_z(o.__H,i)&&(o.__=u,o.i=i,hooks_module_r.__h.push(o))}function _(n){return hooks_module_o=5,hooks_module_F(function(){return{current:n}},[])}function hooks_module_A(n,t,r){hooks_module_o=6,hooks_module_y(function(){return"function"==typeof n?(n(t()),function(){return n(null)}):n?(n.current=t(),function(){return n.current=null}):void 0},null==r?r:r.concat(n))}function hooks_module_F(n,r){var u=hooks_module_d(hooks_module_t++,7);return hooks_module_z(u.__H,r)?(u.__V=n(),u.i=r,u.__h=n,u.__V):u.__}function hooks_module_T(n,t){return hooks_module_o=8,hooks_module_F(function(){return n},t)}function hooks_module_q(n){var u=hooks_module_r.context[n.__c],i=hooks_module_d(hooks_module_t++,9);return i.c=n,u?(null==i.__&&(i.__=!0,u.sub(hooks_module_r)),u.props.value):n.__}function hooks_module_x(t,r){preact_module_l.useDebugValue&&preact_module_l.useDebugValue(r?r(t):t)}function hooks_module_P(n){var u=hooks_module_d(hooks_module_t++,10),i=hooks_module_h();return u.__=n,hooks_module_r.componentDidCatch||(hooks_module_r.componentDidCatch=function(n,t){u.__&&u.__(n,t),i[1](n)}),[i[0],function(){i[1](void 0)}]}function V(){var n=hooks_module_d(hooks_module_t++,11);if(!n.__){for(var u=hooks_module_r.__v;null!==u&&!u.__m&&null!==u.__;)u=u.__;var i=u.__m||(u.__m=[0,0]);n.__="P"+i[0]+"-"+i[1]++}return n.__}function hooks_module_b(){for(var t;t=hooks_module_f.shift();)if(t.__P&&t.__H)try{t.__H.__h.forEach(hooks_module_k),t.__H.__h.forEach(hooks_module_w),t.__H.__h=[]}catch(r){t.__H.__h=[],preact_module_l.__e(r,t.__v)}}preact_module_l.__b=function(n){hooks_module_r=null,hooks_module_e&&hooks_module_e(n)},preact_module_l.__r=function(n){hooks_module_a&&hooks_module_a(n),hooks_module_t=0;var i=(hooks_module_r=n.__c).__H;i&&(hooks_module_u===hooks_module_r?(i.__h=[],hooks_module_r.__h=[],i.__.forEach(function(n){n.__N&&(n.__=n.__N),n.__V=hooks_module_c,n.__N=n.i=void 0})):(i.__h.forEach(hooks_module_k),i.__h.forEach(hooks_module_w),i.__h=[])),hooks_module_u=hooks_module_r},preact_module_l.diffed=function(t){hooks_module_v&&hooks_module_v(t);var o=t.__c;o&&o.__H&&(o.__H.__h.length&&(1!==hooks_module_f.push(o)&&hooks_module_i===preact_module_l.requestAnimationFrame||((hooks_module_i=preact_module_l.requestAnimationFrame)||hooks_module_j)(hooks_module_b)),o.__H.__.forEach(function(n){n.i&&(n.__H=n.i),n.__V!==hooks_module_c&&(n.__=n.__V),n.i=void 0,n.__V=hooks_module_c})),hooks_module_u=hooks_module_r=null},preact_module_l.__c=function(t,r){r.some(function(t){try{t.__h.forEach(hooks_module_k),t.__h=t.__h.filter(function(n){return!n.__||hooks_module_w(n)})}catch(u){r.some(function(n){n.__h&&(n.__h=[])}),r=[],preact_module_l.__e(u,t.__v)}}),l&&l(t,r)},preact_module_l.unmount=function(t){hooks_module_m&&hooks_module_m(t);var r,u=t.__c;u&&u.__H&&(u.__H.__.forEach(function(n){try{hooks_module_k(n)}catch(n){r=n}}),u.__H=void 0,r&&preact_module_l.__e(r,u.__v))};var hooks_module_g="function"==typeof requestAnimationFrame;function hooks_module_j(n){var t,r=function(){clearTimeout(u),hooks_module_g&&cancelAnimationFrame(t),setTimeout(n)},u=setTimeout(r,100);hooks_module_g&&(t=requestAnimationFrame(r))}function hooks_module_k(n){var t=hooks_module_r,u=n.__c;"function"==typeof u&&(n.__c=void 0,u()),hooks_module_r=t}function hooks_module_w(n){var t=hooks_module_r;n.__c=n.__(),hooks_module_r=t}function hooks_module_z(n,t){return!n||n.length!==t.length||t.some(function(t,r){return t!==n[r]})}function hooks_module_B(n,t){return"function"==typeof t?t(n):t}
 //# sourceMappingURL=hooks.module.js.map
 
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.array.map.js
@@ -11085,8 +11454,6 @@ var es_object_get_own_property_descriptors = __webpack_require__(2775);
 var es_promise = __webpack_require__(3439);
 // EXTERNAL MODULE: ../../node_modules/immer/dist/immer.esm.mjs
 var immer_esm = __webpack_require__(6665);
-// EXTERNAL MODULE: ../../node_modules/core-js/modules/es.number.constructor.js
-var es_number_constructor = __webpack_require__(1245);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.array.splice.js
 var es_array_splice = __webpack_require__(9805);
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.array.join.js
@@ -11104,38 +11471,46 @@ var range = __webpack_require__(7386);
 var range_default = /*#__PURE__*/__webpack_require__.n(range);
 ;// CONCATENATED MODULE: ./src/constants/style.ts
 // common day name
-var DEFAULT_DAY_NAME_MARGIN_LEFT = '0'; // month day name
+var DEFAULT_DAY_NAME_MARGIN_LEFT = '0';
 
-var MONTH_DAY_NAME_HEIGHT = 31; // month event
+// month day name
+var MONTH_DAY_NAME_HEIGHT = 31;
 
+// month event
 var MONTH_EVENT_BORDER_RADIUS = 2;
 var MONTH_EVENT_HEIGHT = 24;
 var MONTH_EVENT_MARGIN_TOP = 2;
 var MONTH_EVENT_MARGIN_LEFT = 8;
-var MONTH_EVENT_MARGIN_RIGHT = 8; // month cell
+var MONTH_EVENT_MARGIN_RIGHT = 8;
 
+// month cell
 var MONTH_CELL_PADDING_TOP = 3;
-var MONTH_CELL_BAR_HEIGHT = 27; // month more view
+var MONTH_CELL_BAR_HEIGHT = 27;
 
+// month more view
 var MONTH_MORE_VIEW_PADDING = 5;
 var MONTH_MORE_VIEW_MIN_WIDTH = 280;
 var MONTH_MORE_VIEW_HEADER_HEIGHT = 44;
 var MONTH_MORE_VIEW_HEADER_MARGIN_BOTTOM = 12;
 var MONTH_MORE_VIEW_HEADER_PADDING_TOP = 12;
-var MONTH_MORE_VIEW_HEADER_PADDING = '12px 17px 0'; // week day name
+var MONTH_MORE_VIEW_HEADER_PADDING = '12px 17px 0';
 
+// week day name
 var WEEK_DAY_NAME_HEIGHT = 42;
-var WEEK_DAY_NAME_BORDER = 1; // week panel resizer
+var WEEK_DAY_NAME_BORDER = 1;
 
-var WEEK_PANEL_RESIZER_HEIGHT = 3; // week event
+// week panel resizer
+var WEEK_PANEL_RESIZER_HEIGHT = 3;
 
+// week event
 var WEEK_EVENT_BORDER_RADIUS = 2;
 var WEEK_EVENT_HEIGHT = 24;
 var WEEK_EVENT_MARGIN_TOP = 2;
 var WEEK_EVENT_MARGIN_LEFT = 8;
 var WEEK_EVENT_MARGIN_RIGHT = 8;
-var DEFAULT_PANEL_HEIGHT = 72; // default color values for events
+var DEFAULT_PANEL_HEIGHT = 72;
 
+// default color values for events
 var DEFAULT_EVENT_COLORS = {
   color: '#000',
   backgroundColor: '#a1b56c',
@@ -11161,16 +11536,13 @@ var isString_default = /*#__PURE__*/__webpack_require__.n(isString);
 var CSS_PREFIX = 'toastui-calendar-';
 function cls() {
   var result = [];
-
   for (var _len = arguments.length, args = new Array(_len), _key2 = 0; _key2 < _len; _key2++) {
     args[_key2] = arguments[_key2];
   }
-
   args.forEach(function (arg) {
     if (!arg) {
       return;
     }
-
     if (isString_default()(arg)) {
       result.push(arg);
     } else {
@@ -11191,13 +11563,13 @@ function toPercent(value) {
 function toPx(value) {
   return "".concat(value, "px");
 }
+
 /**
  * ex)
  * extractPercentPx('calc(100% - 22px)') // { percent: 100, px: -22 }
  * extractPercentPx('100%') // { percent: 100, px: 0 }
  * extractPercentPx('-22px') // { percent: 0, px: -22 }
  */
-
 function extractPercentPx(value) {
   var percentRegexp = /(\d+)%/;
   var percentResult = value.match(percentRegexp);
@@ -11212,7 +11584,6 @@ function getEventColors(uiModel, calendarColor) {
   var eventColors = uiModel.model.getColors();
   return Object.keys(DEFAULT_EVENT_COLORS).reduce(function (colors, _key) {
     var _ref, _eventColors$key;
-
     var key = _key;
     colors[key] = (_ref = (_eventColors$key = eventColors[key]) !== null && _eventColors$key !== void 0 ? _eventColors$key : calendarColor[key]) !== null && _ref !== void 0 ? _ref : DEFAULT_EVENT_COLORS[key];
     return colors;
@@ -11221,29 +11592,22 @@ function getEventColors(uiModel, calendarColor) {
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.regexp.to-string.js
 var es_regexp_to_string = __webpack_require__(8233);
 ;// CONCATENATED MODULE: ../../libs/date/src/localDate.js
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _construct(Parent, args, Class) { if (_isNativeReflectConstruct()) { _construct = Reflect.construct.bind(); } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
-
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 
 
 
@@ -11267,27 +11631,22 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
  * datetime regex from https://www.regexpal.com/94925
  * timezone regex from moment
  */
-
 var rISO8601 = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.)?([0-9]+)?([+-]\d\d(?::?\d\d)?|\s*Z)?$/;
-
 function throwNotSupported() {
   throw new Error('This operation is not supported.');
 }
-
 function getDateTime(dateString) {
   var match = rISO8601.exec(dateString);
-
   if (match) {
     var _match = _slicedToArray(match, 10),
-        y = _match[1],
-        M = _match[2],
-        d = _match[3],
-        h = _match[4],
-        m = _match[5],
-        s = _match[6],
-        ms = _match[8],
-        zoneInfo = _match[9];
-
+      y = _match[1],
+      M = _match[2],
+      d = _match[3],
+      h = _match[4],
+      m = _match[5],
+      s = _match[6],
+      ms = _match[8],
+      zoneInfo = _match[9];
     return {
       y: Number(y),
       M: Number(M) - 1,
@@ -11299,48 +11658,38 @@ function getDateTime(dateString) {
       zoneInfo: zoneInfo
     };
   }
-
   return null;
 }
-
 function createFromDateString(dateString) {
   var info = getDateTime(dateString);
-
   if (info && !info.zoneInfo) {
     var y = info.y,
-        M = info.M,
-        d = info.d,
-        h = info.h,
-        m = info.m,
-        s = info.s,
-        ms = info.ms;
+      M = info.M,
+      d = info.d,
+      h = info.h,
+      m = info.m,
+      s = info.s,
+      ms = info.ms;
     return new Date(y, M, d, h, m, s, ms);
   }
-
   return null;
 }
-
 var LocalDate = /*#__PURE__*/function () {
   function LocalDate() {
     _classCallCheck(this, LocalDate);
-
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
-
     var firstArg = args[0];
-
     if (firstArg instanceof Date) {
       this.d = new Date(firstArg.getTime());
     } else if (isString_default()(firstArg) && args.length === 1) {
       this.d = createFromDateString(firstArg);
     }
-
     if (!this.d) {
       this.d = _construct(Date, args);
     }
   }
-
   _createClass(LocalDate, [{
     key: "setTimezoneOffset",
     value: function setTimezoneOffset() {
@@ -11367,29 +11716,26 @@ var LocalDate = /*#__PURE__*/function () {
       return this.d.toString();
     }
   }]);
-
   return LocalDate;
 }();
-
 
 var getterMethods = ['getTime', 'getTimezoneOffset', 'getFullYear', 'getMonth', 'getDate', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getDay'];
 var setterMethods = ['setTime', 'setFullYear', 'setMonth', 'setDate', 'setHours', 'setMinutes', 'setSeconds', 'setMilliseconds'];
 getterMethods.forEach(function (methodName) {
   LocalDate.prototype[methodName] = function () {
     var _this$d;
-
     return (_this$d = this.d)[methodName].apply(_this$d, arguments);
   };
 });
 setterMethods.forEach(function (methodName) {
   LocalDate.prototype[methodName] = function () {
     var _this$d2;
-
     return (_this$d2 = this.d)[methodName].apply(_this$d2, arguments);
   };
 });
 ;// CONCATENATED MODULE: ../../libs/date/src/utcDate.js
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function utcDate_typeof(obj) { "@babel/helpers - typeof"; return utcDate_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, utcDate_typeof(obj); }
+
 
 
 
@@ -11404,38 +11750,25 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
 
 
 function utcDate_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function utcDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function utcDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, utcDate_toPropertyKey(descriptor.key), descriptor); } }
 function utcDate_createClass(Constructor, protoProps, staticProps) { if (protoProps) utcDate_defineProperties(Constructor.prototype, protoProps); if (staticProps) utcDate_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function utcDate_toPropertyKey(arg) { var key = utcDate_toPrimitive(arg, "string"); return utcDate_typeof(key) === "symbol" ? key : String(key); }
+function utcDate_toPrimitive(input, hint) { if (utcDate_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (utcDate_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) utcDate_setPrototypeOf(subClass, superClass); }
-
 function utcDate_setPrototypeOf(o, p) { utcDate_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return utcDate_setPrototypeOf(o, p); }
-
 function _createSuper(Derived) { var hasNativeReflectConstruct = utcDate_isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
-
+function _possibleConstructorReturn(self, call) { if (call && (utcDate_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function utcDate_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-
 
 var UTCDate = /*#__PURE__*/function (_LocalDate) {
   _inherits(UTCDate, _LocalDate);
-
   var _super = _createSuper(UTCDate);
-
   function UTCDate() {
     utcDate_classCallCheck(this, UTCDate);
-
     return _super.apply(this, arguments);
   }
-
   utcDate_createClass(UTCDate, [{
     key: "clone",
     value: function clone() {
@@ -11447,53 +11780,52 @@ var UTCDate = /*#__PURE__*/function (_LocalDate) {
       return 0;
     }
   }]);
-
   return UTCDate;
 }(LocalDate);
-
 
 var getterProperties = ['FullYear', 'Month', 'Date', 'Hours', 'Minutes', 'Seconds', 'Milliseconds', 'Day'];
 var setterProperties = ['FullYear', 'Month', 'Date', 'Hours', 'Minutes', 'Seconds', 'Milliseconds'];
 getterProperties.forEach(function (prop) {
   var methodName = "get".concat(prop);
-
   UTCDate.prototype[methodName] = function () {
     var _this$d;
-
     return (_this$d = this.d)["getUTC".concat(prop)].apply(_this$d, arguments);
   };
 });
 setterProperties.forEach(function (prop) {
   var methodName = "set".concat(prop);
-
   UTCDate.prototype[methodName] = function () {
     var _this$d2;
-
     return (_this$d2 = this.d)["setUTC".concat(prop)].apply(_this$d2, arguments);
   };
 });
 ;// CONCATENATED MODULE: ../../libs/date/src/momentDate.js
+function momentDate_typeof(obj) { "@babel/helpers - typeof"; return momentDate_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, momentDate_typeof(obj); }
+
+
+
+
+
+
+
+
+
 
 
 function momentDate_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function momentDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function momentDate_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, momentDate_toPropertyKey(descriptor.key), descriptor); } }
 function momentDate_createClass(Constructor, protoProps, staticProps) { if (protoProps) momentDate_defineProperties(Constructor.prototype, protoProps); if (staticProps) momentDate_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function momentDate_toPropertyKey(arg) { var key = momentDate_toPrimitive(arg, "string"); return momentDate_typeof(key) === "symbol" ? key : String(key); }
+function momentDate_toPrimitive(input, hint) { if (momentDate_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (momentDate_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 var moment;
-
 var MomentDate = /*#__PURE__*/function () {
   function MomentDate() {
     momentDate_classCallCheck(this, MomentDate);
-
     if (!moment) {
       throw new Error('MomentDate requires Moment constructor. Use "MomentDate.setMoment(moment);".');
     }
-
     this.m = moment.apply(void 0, arguments);
   }
-
   momentDate_createClass(MomentDate, [{
     key: "setTimezoneOffset",
     value: function setTimezoneOffset(offset) {
@@ -11508,7 +11840,6 @@ var MomentDate = /*#__PURE__*/function () {
       } else {
         throw new Error('It requires moment-timezone. Use "MomentDate.setMoment()" with moment-timezone');
       }
-
       return this;
     }
   }, {
@@ -11641,10 +11972,8 @@ var MomentDate = /*#__PURE__*/function () {
       return MomentDate;
     }
   }]);
-
   return MomentDate;
 }();
-
 
 ;// CONCATENATED MODULE: ../../libs/date/src/index.js
 
@@ -11683,30 +12012,21 @@ function error_typeof(obj) { "@babel/helpers - typeof"; return error_typeof = "f
 
 
 
-function error_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
+function error_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, error_toPropertyKey(descriptor.key), descriptor); } }
 function error_createClass(Constructor, protoProps, staticProps) { if (protoProps) error_defineProperties(Constructor.prototype, protoProps); if (staticProps) error_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function error_toPropertyKey(arg) { var key = error_toPrimitive(arg, "string"); return error_typeof(key) === "symbol" ? key : String(key); }
+function error_toPrimitive(input, hint) { if (error_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (error_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function error_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 function error_inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) error_setPrototypeOf(subClass, superClass); }
-
 function error_createSuper(Derived) { var hasNativeReflectConstruct = error_isNativeReflectConstruct(); return function _createSuperInternal() { var Super = error_getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = error_getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return error_possibleConstructorReturn(this, result); }; }
-
 function error_possibleConstructorReturn(self, call) { if (call && (error_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return error_assertThisInitialized(self); }
-
 function error_assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function _wrapNativeSuper(Class) { var _cache = typeof Map === "function" ? new Map() : undefined; _wrapNativeSuper = function _wrapNativeSuper(Class) { if (Class === null || !_isNativeFunction(Class)) return Class; if (typeof Class !== "function") { throw new TypeError("Super expression must either be null or a function"); } if (typeof _cache !== "undefined") { if (_cache.has(Class)) return _cache.get(Class); _cache.set(Class, Wrapper); } function Wrapper() { return error_construct(Class, arguments, error_getPrototypeOf(this).constructor); } Wrapper.prototype = Object.create(Class.prototype, { constructor: { value: Wrapper, enumerable: false, writable: true, configurable: true } }); return error_setPrototypeOf(Wrapper, Class); }; return _wrapNativeSuper(Class); }
-
 function error_construct(Parent, args, Class) { if (error_isNativeReflectConstruct()) { error_construct = Reflect.construct.bind(); } else { error_construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) error_setPrototypeOf(instance, Class.prototype); return instance; }; } return error_construct.apply(null, arguments); }
-
 function error_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function _isNativeFunction(fn) { return Function.toString.call(fn).indexOf("[native code]") !== -1; }
-
 function error_setPrototypeOf(o, p) { error_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return error_setPrototypeOf(o, p); }
-
 function error_getPrototypeOf(o) { error_getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return error_getPrototypeOf(o); }
 
 
@@ -11720,77 +12040,58 @@ function error_getPrototypeOf(o) { error_getPrototypeOf = Object.setPrototypeOf 
 
 var InvalidTimezoneNameError = /*#__PURE__*/function (_Error) {
   error_inherits(InvalidTimezoneNameError, _Error);
-
   var _super = error_createSuper(InvalidTimezoneNameError);
-
   function InvalidTimezoneNameError(timezoneName) {
     var _this;
-
     error_classCallCheck(this, InvalidTimezoneNameError);
-
     _this = _super.call(this, "".concat(MESSAGE_PREFIX).concat(INVALID_TIMEZONE_NAME, " - ").concat(timezoneName));
     _this.name = 'InvalidTimezoneNameError';
     return _this;
   }
-
   return error_createClass(InvalidTimezoneNameError);
 }( /*#__PURE__*/_wrapNativeSuper(Error));
 var InvalidDateTimeFormatError = /*#__PURE__*/function (_Error2) {
   error_inherits(InvalidDateTimeFormatError, _Error2);
-
   var _super2 = error_createSuper(InvalidDateTimeFormatError);
-
   function InvalidDateTimeFormatError(dateTimeString) {
     var _this2;
-
     error_classCallCheck(this, InvalidDateTimeFormatError);
-
     _this2 = _super2.call(this, "".concat(MESSAGE_PREFIX).concat(INVALID_DATETIME_FORMAT, " - ").concat(dateTimeString));
     _this2.name = 'InvalidDateTimeFormatError';
     return _this2;
   }
-
   return error_createClass(InvalidDateTimeFormatError);
 }( /*#__PURE__*/_wrapNativeSuper(Error));
 var InvalidViewTypeError = /*#__PURE__*/function (_Error3) {
   error_inherits(InvalidViewTypeError, _Error3);
-
   var _super3 = error_createSuper(InvalidViewTypeError);
-
   function InvalidViewTypeError(viewType) {
     var _this3;
-
     error_classCallCheck(this, InvalidViewTypeError);
-
     _this3 = _super3.call(this, "".concat(MESSAGE_PREFIX).concat(INVALID_VIEW_TYPE, " - ").concat(viewType));
     _this3.name = 'InvalidViewTypeError';
     return _this3;
   }
-
   return error_createClass(InvalidViewTypeError);
 }( /*#__PURE__*/_wrapNativeSuper(Error));
 ;// CONCATENATED MODULE: ./src/utils/logger.ts
 
 
-/* eslint-disable no-console */
 
+/* eslint-disable no-console */
 var logger = {
   error: function error(firstArg) {
     var _console;
-
     for (var _len = arguments.length, restArgs = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       restArgs[_key - 1] = arguments[_key];
     }
-
     (_console = console).error.apply(_console, ["".concat(MESSAGE_PREFIX).concat(firstArg)].concat(restArgs));
   },
   warn: function warn(firstArg) {
     var _console2;
-
     for (var _len2 = arguments.length, restArgs = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
       restArgs[_key2 - 1] = arguments[_key2];
     }
-
     (_console2 = console).warn.apply(_console2, ["".concat(MESSAGE_PREFIX).concat(firstArg)].concat(restArgs));
   }
 };
@@ -11824,15 +12125,10 @@ function isFunction(value) {
 
 ;// CONCATENATED MODULE: ./src/time/timezone.ts
 function timezone_slicedToArray(arr, i) { return timezone_arrayWithHoles(arr) || timezone_iterableToArrayLimit(arr, i) || timezone_unsupportedIterableToArray(arr, i) || timezone_nonIterableRest(); }
-
 function timezone_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function timezone_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return timezone_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return timezone_arrayLikeToArray(o, minLen); }
-
-function timezone_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function timezone_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function timezone_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function timezone_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function timezone_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
@@ -11849,14 +12145,9 @@ function timezone_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
-
-
 function timezone_construct(Parent, args, Class) { if (timezone_isNativeReflectConstruct()) { timezone_construct = Reflect.construct.bind(); } else { timezone_construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) timezone_setPrototypeOf(instance, Class.prototype); return instance; }; } return timezone_construct.apply(null, arguments); }
-
 function timezone_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function timezone_setPrototypeOf(o, p) { timezone_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return timezone_setPrototypeOf(o, p); }
-
 
 
 
@@ -11870,66 +12161,58 @@ function date() {
   for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
     args[_key] = arguments[_key];
   }
-
   return timezone_construct(Constructor, args);
-} // Get the timezone offset from the system using the calendar.
+}
 
+// Get the timezone offset from the system using the calendar.
 function getLocalTimezoneOffset() {
   return -new Date().getTimezoneOffset();
 }
+
 /**
  * Calculate timezone offset from UTC.
  *
  * Target date is needed for the case when the timezone is applicable to DST.
  */
-
 function calculateTimezoneOffset(timezoneName) {
   var targetDate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new date_TZDate();
-
   if (!isIntlDateTimeFormatSupported()) {
     logger.warn('Intl.DateTimeFormat is not fully supported. So It will return the local timezone offset only.\nYou can use a polyfill to fix this issue.');
     return -targetDate.toDate().getTimezoneOffset();
   }
-
   validateIANATimezoneName(timezoneName);
   var token = tokenizeTZDate(targetDate, timezoneName);
   var utcDate = tokenToUtcDate(token);
   return Math.round((utcDate.getTime() - targetDate.getTime()) / 60 / 1000);
-} // Reference: https://stackoverflow.com/a/30280636/16702531
-// If there's no timezoneName, it handles Native OS timezone.
+}
 
+// Reference: https://stackoverflow.com/a/30280636/16702531
+// If there's no timezoneName, it handles Native OS timezone.
 function isUsingDST(targetDate, timezoneName) {
   if (timezoneName) {
     validateIANATimezoneName(timezoneName);
   }
-
   var jan = new date_TZDate(targetDate.getFullYear(), 0, 1);
   var jul = new date_TZDate(targetDate.getFullYear(), 6, 1);
-
   if (timezoneName) {
     return Math.max(-calculateTimezoneOffset(timezoneName, jan), -calculateTimezoneOffset(timezoneName, jul)) !== -calculateTimezoneOffset(timezoneName, targetDate);
   }
-
   return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset()) !== targetDate.toDate().getTimezoneOffset();
 }
 var dtfCache = {};
 var timezoneNameValidationCache = {};
-
 function isIntlDateTimeFormatSupported() {
   var _Intl, _Intl$DateTimeFormat, _Intl$DateTimeFormat$;
-
   /**
    * Intl.DateTimeFormat & IANA Timezone Data should be supported.
    * also, hourCycle options should be supported.
    */
   return isFunction((_Intl = Intl) === null || _Intl === void 0 ? void 0 : (_Intl$DateTimeFormat = _Intl.DateTimeFormat) === null || _Intl$DateTimeFormat === void 0 ? void 0 : (_Intl$DateTimeFormat$ = _Intl$DateTimeFormat.prototype) === null || _Intl$DateTimeFormat$ === void 0 ? void 0 : _Intl$DateTimeFormat$.formatToParts);
 }
-
 function validateIANATimezoneName(timezoneName) {
   if (timezoneNameValidationCache[timezoneName]) {
     return true;
   }
-
   try {
     // Just try to create a dtf with the timezoneName.
     // eslint-disable-next-line new-cap
@@ -11943,12 +12226,10 @@ function validateIANATimezoneName(timezoneName) {
     throw new InvalidTimezoneNameError(timezoneName);
   }
 }
-
 function getDateTimeFormat(timezoneName) {
   if (dtfCache[timezoneName]) {
     return dtfCache[timezoneName];
   }
-
   var dtf = new Intl.DateTimeFormat('en-US', {
     timeZone: timezoneName,
     hourCycle: 'h23',
@@ -11963,7 +12244,6 @@ function getDateTimeFormat(timezoneName) {
   dtfCache[timezoneName] = dtf;
   return dtf;
 }
-
 var typeToPos = {
   year: 0,
   month: 1,
@@ -11972,53 +12252,55 @@ var typeToPos = {
   minute: 4,
   second: 5
 };
-
 function tokenizeTZDate(tzDate, timezoneName) {
   var dtf = getDateTimeFormat(timezoneName);
   var formatted = dtf.formatToParts(tzDate.toDate());
   return formatted.reduce(function (result, cur) {
     var pos = typeToPos[cur.type];
-
     if (isPresent(pos)) {
       result[pos] = parseInt(cur.value, 10);
     }
-
     return result;
   }, []);
 }
-
 function tokenToUtcDate(token) {
   var _token = timezone_slicedToArray(token, 6),
-      year = _token[0],
-      monthPlusOne = _token[1],
-      day = _token[2],
-      hour = _token[3],
-      minute = _token[4],
-      second = _token[5];
-
+    year = _token[0],
+    monthPlusOne = _token[1],
+    day = _token[2],
+    hour = _token[3],
+    minute = _token[4],
+    second = _token[5];
   var month = monthPlusOne - 1;
   return new Date(Date.UTC(year, month, day, hour % 24, minute, second));
 }
 ;// CONCATENATED MODULE: ./src/time/date.ts
+function date_typeof(obj) { "@babel/helpers - typeof"; return date_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, date_typeof(obj); }
+
+
+
+
+
+
+
+
 
 
 
 
 function date_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function date_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function date_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, date_toPropertyKey(descriptor.key), descriptor); } }
 function date_createClass(Constructor, protoProps, staticProps) { if (protoProps) date_defineProperties(Constructor.prototype, protoProps); if (staticProps) date_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
+function _defineProperty(obj, key, value) { key = date_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function date_toPropertyKey(arg) { var key = date_toPrimitive(arg, "string"); return date_typeof(key) === "symbol" ? key : String(key); }
+function date_toPrimitive(input, hint) { if (date_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (date_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
 function getTZOffsetMSDifference(offset) {
   return (getLocalTimezoneOffset() - offset) * MS_PER_MINUTES;
 }
+
 /**
  * Custom Date Class to handle timezone offset.
  *
@@ -12027,121 +12309,115 @@ function getTZOffsetMSDifference(offset) {
  * @class TZDate
  * @param {number|TZDate|Date|string} date - date value to be converted. If date is number or string, it should be eligible to parse by Date constructor.
  */
-
-
 var date_TZDate = /*#__PURE__*/function () {
   function TZDate() {
     date_classCallCheck(this, TZDate);
-
     _defineProperty(this, "tzOffset", null);
-
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
-
     if (args[0] instanceof TZDate) {
       this.d = date(args[0].getTime());
     } else {
       this.d = date.apply(void 0, args);
     }
   }
+
   /**
    * Get the string representation of the date.
    * @returns {string} string representation of the date.
    */
-
-
   date_createClass(TZDate, [{
     key: "toString",
     value: function toString() {
       return this.d.toString();
     }
+
     /**
      * Add years to the instance.
      * @param {number} y - number of years to be added.
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "addFullYear",
     value: function addFullYear(y) {
       this.setFullYear(this.getFullYear() + y);
       return this;
     }
+
     /**
      * Add months to the instance.
      * @param {number} m - number of months to be added.
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "addMonth",
     value: function addMonth(m) {
       this.setMonth(this.getMonth() + m);
       return this;
     }
+
     /**
      * Add dates to the instance.
      * @param {number} d - number of days to be added.
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "addDate",
     value: function addDate(d) {
       this.setDate(this.getDate() + d);
       return this;
     }
+
     /**
      * Add hours to the instance.
      * @param {number} h - number of hours to be added.
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "addHours",
     value: function addHours(h) {
       this.setHours(this.getHours() + h);
       return this;
     }
+
     /**
      * Add minutes to the instance.
      * @param {number} M - number of minutes to be added.
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "addMinutes",
     value: function addMinutes(M) {
       this.setMinutes(this.getMinutes() + M);
       return this;
     }
+
     /**
      * Add seconds to the instance.
      * @param {number} s - number of seconds to be added.
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "addSeconds",
     value: function addSeconds(s) {
       this.setSeconds(this.getSeconds() + s);
       return this;
     }
+
     /**
      * Add milliseconds to the instance.
      * @param {number} ms - number of milliseconds to be added.
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "addMilliseconds",
     value: function addMilliseconds(ms) {
       this.setMilliseconds(this.getMilliseconds() + ms);
       return this;
     }
-    /* eslint-disable max-params*/
 
+    /* eslint-disable max-params*/
     /**
      * Set the date and time all at once.
      * @param {number} y - year
@@ -12153,7 +12429,6 @@ var date_TZDate = /*#__PURE__*/function () {
      * @param {number} ms - milliseconds
      * @returns {TZDate} - returns the instance itself.
      */
-
   }, {
     key: "setWithRaw",
     value: function setWithRaw(y, m, d, h, M, s, ms) {
@@ -12161,140 +12436,140 @@ var date_TZDate = /*#__PURE__*/function () {
       this.setHours(h, M, s, ms);
       return this;
     }
+
     /**
      * Convert the instance to the native `Date` object.
      * @returns {Date} - The native `Date` object.
      */
-
   }, {
     key: "toDate",
     value: function toDate() {
       return this.d.toDate();
     }
+
     /**
      * Get the value of the date. (milliseconds since 1970-01-01 00:00:00 (UTC+0))
      * @returns {number} - value of the date.
      */
-
   }, {
     key: "valueOf",
     value: function valueOf() {
       return this.getTime();
     }
+
     /**
      * Get the timezone offset from UTC in minutes.
      * @returns {number} - timezone offset in minutes.
      */
-
   }, {
     key: "getTimezoneOffset",
     value: function getTimezoneOffset() {
       var _this$tzOffset;
-
       return (_this$tzOffset = this.tzOffset) !== null && _this$tzOffset !== void 0 ? _this$tzOffset : this.d.getTimezoneOffset();
-    } // Native properties
+    }
 
+    // Native properties
     /**
      * Get milliseconds which is converted by timezone
      * @returns {number} milliseconds
      */
-
   }, {
     key: "getTime",
     value: function getTime() {
       return this.d.getTime();
     }
+
     /**
      * Get the year of the instance.
      * @returns {number} - full year
      */
-
   }, {
     key: "getFullYear",
     value: function getFullYear() {
       return this.d.getFullYear();
     }
+
     /**
      * Get the month of the instance. (zero-based)
      * @returns {number} - month
      */
-
   }, {
     key: "getMonth",
     value: function getMonth() {
       return this.d.getMonth();
     }
+
     /**
      * Get the date of the instance.
      * @returns {number} - date
      */
-
   }, {
     key: "getDate",
     value: function getDate() {
       return this.d.getDate();
     }
+
     /**
      * Get the hours of the instance.
      * @returns {number} - hours
      */
-
   }, {
     key: "getHours",
     value: function getHours() {
       return this.d.getHours();
     }
+
     /**
      * Get the minutes of the instance.
      * @returns {number} - minutes
      */
-
   }, {
     key: "getMinutes",
     value: function getMinutes() {
       return this.d.getMinutes();
     }
+
     /**
      * Get the seconds of the instance.
      * @returns {number} - seconds
      */
-
   }, {
     key: "getSeconds",
     value: function getSeconds() {
       return this.d.getSeconds();
     }
+
     /**
      * Get the milliseconds of the instance.
      * @returns {number} - milliseconds
      */
-
   }, {
     key: "getMilliseconds",
     value: function getMilliseconds() {
       return this.d.getMilliseconds();
     }
+
     /**
      * Get the day of the week of the instance.
      * @returns {number} - day of the week
      */
-
   }, {
     key: "getDay",
     value: function getDay() {
       return this.d.getDay();
     }
+
     /**
      * Sets the instance to the time represented by a number of milliseconds since 1970-01-01 00:00:00 (UTC+0).
      * @param {number} t - number of milliseconds
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setTime",
     value: function setTime(t) {
       return this.d.setTime(t);
     }
+
     /**
      * Sets the year-month-date of the instance. Equivalent to calling `setFullYear` of `Date` object.
      * @param {number} y - year
@@ -12302,7 +12577,6 @@ var date_TZDate = /*#__PURE__*/function () {
      * @param {number} d - date
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setFullYear",
     value: function setFullYear(y) {
@@ -12310,30 +12584,31 @@ var date_TZDate = /*#__PURE__*/function () {
       var d = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.getDate();
       return this.d.setFullYear(y, m, d);
     }
+
     /**
      * Sets the month of the instance. Equivalent to calling `setMonth` of `Date` object.
      * @param {number} m - month (zero-based)
      * @param {number} d - date
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setMonth",
     value: function setMonth(m) {
       var d = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.getDate();
       return this.d.setMonth(m, d);
     }
+
     /**
      * Sets the date of the instance. Equivalent to calling `setDate` of `Date` object.
      * @param {number} d - date
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setDate",
     value: function setDate(d) {
       return this.d.setDate(d);
     }
+
     /**
      * Sets the hours of the instance. Equivalent to calling `setHours` of `Date` object.
      * @param {number} h - hours
@@ -12342,7 +12617,6 @@ var date_TZDate = /*#__PURE__*/function () {
      * @param {number} ms - milliseconds
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setHours",
     value: function setHours(h) {
@@ -12351,6 +12625,7 @@ var date_TZDate = /*#__PURE__*/function () {
       var ms = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.getMilliseconds();
       return this.d.setHours(h, M, s, ms);
     }
+
     /**
      * Sets the minutes of the instance. Equivalent to calling `setMinutes` of `Date` object.
      * @param {number} M - minutes
@@ -12358,7 +12633,6 @@ var date_TZDate = /*#__PURE__*/function () {
      * @param {number} ms - milliseconds
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setMinutes",
     value: function setMinutes(M) {
@@ -12366,48 +12640,48 @@ var date_TZDate = /*#__PURE__*/function () {
       var ms = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.getMilliseconds();
       return this.d.setMinutes(M, s, ms);
     }
+
     /**
      * Sets the seconds of the instance. Equivalent to calling `setSeconds` of `Date` object.
      * @param {number} s - seconds
      * @param {number} ms - milliseconds
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setSeconds",
     value: function setSeconds(s) {
       var ms = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.getMilliseconds();
       return this.d.setSeconds(s, ms);
     }
+
     /**
      * Sets the milliseconds of the instance. Equivalent to calling `setMilliseconds` of `Date` object.
      * @param {number} ms - milliseconds
      * @returns {number} - Passed milliseconds of the instance since 1970-01-01 00:00:00 (UTC+0).
      */
-
   }, {
     key: "setMilliseconds",
     value: function setMilliseconds(ms) {
       return this.d.setMilliseconds(ms);
     }
+
     /**
      * Set the timezone offset of the instance.
      * @param {string|number} tzValue - The name of timezone(IANA name) or timezone offset(in minutes).
      * @returns {TZDate} - New instance with the timezone offset.
      */
-
   }, {
     key: "tz",
     value: function tz(tzValue) {
       if (tzValue === 'Local') {
         return new TZDate(this.getTime());
       }
-
       var tzOffset = isString_default()(tzValue) ? calculateTimezoneOffset(tzValue, this) : tzValue;
       var newTZDate = new TZDate(this.getTime() - getTZOffsetMSDifference(tzOffset));
       newTZDate.tzOffset = tzOffset;
       return newTZDate;
     }
+
     /**
      * Get the new instance following the system's timezone.
      * If the system timezone is different from the timezone of the instance,
@@ -12418,7 +12692,6 @@ var date_TZDate = /*#__PURE__*/function () {
      * @param {string|number} tzValue - The name of timezone(IANA name) or timezone offset(in minutes).
      * @returns {TZDate} - New instance with the system timezone.
      */
-
   }, {
     key: "local",
     value: function local(tzValue) {
@@ -12426,14 +12699,11 @@ var date_TZDate = /*#__PURE__*/function () {
         var tzOffset = isString_default()(tzValue) ? calculateTimezoneOffset(tzValue, this) : tzValue;
         return new TZDate(this.getTime() + getTZOffsetMSDifference(tzOffset));
       }
-
       return new TZDate(this.getTime() + (isPresent(this.tzOffset) ? getTZOffsetMSDifference(this.tzOffset) : 0));
     }
   }]);
-
   return TZDate;
 }();
-
 
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.object.assign.js
 var es_object_assign = __webpack_require__(3105);
@@ -12449,15 +12719,14 @@ function pick(obj) {
   for (var _len = arguments.length, propNames = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     propNames[_key - 1] = arguments[_key];
   }
-
   return propNames.reduce(function (acc, key) {
     if (obj.hasOwnProperty(key)) {
       acc[key] = obj[key];
     }
-
     return acc;
   }, {});
 }
+
 /**
  * Clone an instance of a ES6 class.
  *
@@ -12465,10 +12734,10 @@ function pick(obj) {
  *
  * Reference: https://stackoverflow.com/a/44782052
  */
-
 function object_clone(source) {
   return Object.assign(Object.create(Object.getPrototypeOf(source)), source);
 }
+
 /**
  * Merge two objects together. And It has some pitfalls.
  *
@@ -12480,18 +12749,14 @@ function object_clone(source) {
  *
  * Since it mutates the target object, avoid using it outside immer `produce` function.
  */
-
 function mergeObject(target) {
   var source = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
   if (!isObject_default()(source)) {
     return target;
   }
-
   Object.keys(source).forEach(function (k) {
     var targetKey = k;
     var sourceKey = k;
-
     if (!Array.isArray(source[sourceKey]) && isObject_default()(target[targetKey]) && isObject_default()(source[sourceKey]) && !(source[sourceKey] instanceof date_TZDate)) {
       target[targetKey] = mergeObject(target[targetKey], source[sourceKey]);
     } else {
@@ -12501,6 +12766,15 @@ function mergeObject(target) {
   return target;
 }
 ;// CONCATENATED MODULE: ./src/model/eventUIModel.ts
+function eventUIModel_typeof(obj) { "@babel/helpers - typeof"; return eventUIModel_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, eventUIModel_typeof(obj); }
+
+
+
+
+
+
+
+
 
 
 
@@ -12508,133 +12782,99 @@ function mergeObject(target) {
 
 
 function eventUIModel_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function eventUIModel_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function eventUIModel_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, eventUIModel_toPropertyKey(descriptor.key), descriptor); } }
 function eventUIModel_createClass(Constructor, protoProps, staticProps) { if (protoProps) eventUIModel_defineProperties(Constructor.prototype, protoProps); if (staticProps) eventUIModel_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
-function eventUIModel_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function eventUIModel_defineProperty(obj, key, value) { key = eventUIModel_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function eventUIModel_toPropertyKey(arg) { var key = eventUIModel_toPrimitive(arg, "string"); return eventUIModel_typeof(key) === "symbol" ? key : String(key); }
+function eventUIModel_toPrimitive(input, hint) { if (eventUIModel_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (eventUIModel_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
 var eventUIPropsKey = ['top', 'left', 'width', 'height', 'exceedLeft', 'exceedRight', 'croppedStart', 'croppedEnd', 'goingDurationHeight', 'modelDurationHeight', 'comingDurationHeight', 'duplicateEvents', 'duplicateEventIndex', 'duplicateStarts', 'duplicateEnds', 'duplicateLeft', 'duplicateWidth', 'collapse', 'isMain'];
+
 /**
  * Set of UI-related properties for calendar event.
  * @class
  * @param {EventModel} event EventModel instance.
  */
-
 var EventUIModel = /*#__PURE__*/function () {
-  // If it is one of duplicate events, represents the left value of a group of duplicate events.
-  // If it is one of duplicate events, represents the width value of a group of duplicate events.
-
-  /**
-   * whether the actual start-date is before the render-start-date
-   * @type {boolean}
-   */
-
-  /**
-   * whether the actual end-date is after the render-end-date
-   * @type {boolean}
-   */
-
-  /**
-   * whether the actual start-date is before the render-start-date for column
-   * @type {boolean}
-   */
-
-  /**
-   * whether the actual end-date is after the render-end-date for column
-   * @type {boolean}
-   */
-
-  /**
-   * @type {number} percent
-   */
-
-  /**
-   * @type {number} percent
-   */
-
-  /**
-   * @type {number} percent
-   */
-
-  /**
-   * the sorted list of duplicate events.
-   * @type {EventUIModel[]}
-   */
-
-  /**
-   * the index of this event among the duplicate events.
-   * @type {number}
-   */
-
-  /**
-   * represent the left value of a duplicate event.
-   * ex) calc(50% - 24px), calc(50%), ...
-   *
-   * @type {string}
-   */
-
-  /**
-   * represent the width value of a duplicate event.
-   * ex) calc(50% - 24px), 9px, ...
-   *
-   * @type {string}
-   */
-
-  /**
-   * whether the event is collapsed or not among the duplicate events.
-   * @type {boolean}
-   */
-
-  /**
-   * whether the event is main or not.
-   * The main event is expanded on the initial rendering.
-   * @type {boolean}
-   */
   function EventUIModel(event) {
     eventUIModel_classCallCheck(this, EventUIModel);
-
     eventUIModel_defineProperty(this, "top", 0);
-
+    // If it is one of duplicate events, represents the left value of a group of duplicate events.
     eventUIModel_defineProperty(this, "left", 0);
-
+    // If it is one of duplicate events, represents the width value of a group of duplicate events.
     eventUIModel_defineProperty(this, "width", 0);
-
     eventUIModel_defineProperty(this, "height", 0);
-
+    /**
+     * whether the actual start-date is before the render-start-date
+     * @type {boolean}
+     */
     eventUIModel_defineProperty(this, "exceedLeft", false);
-
+    /**
+     * whether the actual end-date is after the render-end-date
+     * @type {boolean}
+     */
     eventUIModel_defineProperty(this, "exceedRight", false);
-
+    /**
+     * whether the actual start-date is before the render-start-date for column
+     * @type {boolean}
+     */
     eventUIModel_defineProperty(this, "croppedStart", false);
-
+    /**
+     * whether the actual end-date is after the render-end-date for column
+     * @type {boolean}
+     */
     eventUIModel_defineProperty(this, "croppedEnd", false);
-
+    /**
+     * @type {number} percent
+     */
     eventUIModel_defineProperty(this, "goingDurationHeight", 0);
-
+    /**
+     * @type {number} percent
+     */
     eventUIModel_defineProperty(this, "modelDurationHeight", 100);
-
+    /**
+     * @type {number} percent
+     */
     eventUIModel_defineProperty(this, "comingDurationHeight", 0);
-
+    /**
+     * the sorted list of duplicate events.
+     * @type {EventUIModel[]}
+     */
     eventUIModel_defineProperty(this, "duplicateEvents", []);
-
+    /**
+     * the index of this event among the duplicate events.
+     * @type {number}
+     */
     eventUIModel_defineProperty(this, "duplicateEventIndex", -1);
-
+    /**
+     * represent the left value of a duplicate event.
+     * ex) calc(50% - 24px), calc(50%), ...
+     *
+     * @type {string}
+     */
     eventUIModel_defineProperty(this, "duplicateLeft", '');
-
+    /**
+     * represent the width value of a duplicate event.
+     * ex) calc(50% - 24px), 9px, ...
+     *
+     * @type {string}
+     */
     eventUIModel_defineProperty(this, "duplicateWidth", '');
-
+    /**
+     * whether the event is collapsed or not among the duplicate events.
+     * @type {boolean}
+     */
     eventUIModel_defineProperty(this, "collapse", false);
-
+    /**
+     * whether the event is main or not.
+     * The main event is expanded on the initial rendering.
+     * @type {boolean}
+     */
     eventUIModel_defineProperty(this, "isMain", false);
-
     this.model = event;
   }
-
   eventUIModel_createClass(EventUIModel, [{
     key: "getUIProps",
     value: function getUIProps() {
@@ -12645,59 +12885,57 @@ var EventUIModel = /*#__PURE__*/function () {
     value: function setUIProps(props) {
       Object.assign(this, props);
     }
+
     /**
      * return renderStarts property to render properly when specific event that exceed rendering date range.
      *
      * if renderStarts is not set. return model's start property.
      */
-
   }, {
     key: "getStarts",
     value: function getStarts() {
       if (this.renderStarts) {
         return this.renderStarts;
       }
-
       return this.model.getStarts();
     }
+
     /**
      * return renderStarts property to render properly when specific event that exceed rendering date range.
      *
      * if renderEnds is not set. return model's end property.
      */
-
   }, {
     key: "getEnds",
     value: function getEnds() {
       if (this.renderEnds) {
         return this.renderEnds;
       }
-
       return this.model.getEnds();
     }
+
     /**
      * @returns {number} unique number for model.
      */
-
   }, {
     key: "cid",
     value: function cid() {
       return this.model.cid();
     }
+
     /**
      * Shadowing valueOf method for event sorting.
      */
-
   }, {
     key: "valueOf",
     value: function valueOf() {
       return this.model;
     }
+
     /**
      * Link duration method
      * @returns {number} EventModel#duration result.
      */
-
   }, {
     key: "duration",
     value: function duration() {
@@ -12710,7 +12948,6 @@ var EventUIModel = /*#__PURE__*/function () {
       var infos = [];
       [this, uiModel].forEach(function (event) {
         var isDuplicateEvent = event instanceof EventUIModel && event.duplicateEvents.length > 0;
-
         if (isDuplicateEvent) {
           infos.push({
             start: event.duplicateStarts,
@@ -12728,7 +12965,7 @@ var EventUIModel = /*#__PURE__*/function () {
         }
       });
       var thisInfo = infos[0],
-          targetInfo = infos[1];
+        targetInfo = infos[1];
       return events_collidesWith({
         start: thisInfo.start.getTime(),
         end: thisInfo.end.getTime(),
@@ -12739,7 +12976,6 @@ var EventUIModel = /*#__PURE__*/function () {
         targetGoingDuration: targetInfo.goingDuration,
         targetComingDuration: targetInfo.comingDuration,
         usingTravelTime: usingTravelTime // Daygrid does not use travelTime, TimeGrid uses travelTime.
-
       });
     }
   }, {
@@ -12748,25 +12984,19 @@ var EventUIModel = /*#__PURE__*/function () {
       var eventUIModelProps = this.getUIProps();
       var clonedEventUIModel = new EventUIModel(this.model);
       clonedEventUIModel.setUIProps(eventUIModelProps);
-
       if (this.renderStarts) {
         clonedEventUIModel.renderStarts = new date_TZDate(this.renderStarts);
       }
-
       if (this.renderEnds) {
         clonedEventUIModel.renderEnds = new date_TZDate(this.renderEnds);
       }
-
       return clonedEventUIModel;
     }
   }]);
-
   return EventUIModel;
 }();
 
-
 ;// CONCATENATED MODULE: ./src/utils/array.ts
-
 
 
 
@@ -12777,55 +13007,42 @@ function compareBooleansASC(a, b) {
   if (a !== b) {
     return a ? -1 : 1;
   }
-
   return 0;
 }
-
 function compareNumbersASC(a, b) {
   return Number(a) - Number(b);
 }
-
 function compareStringsASC(_a, _b) {
   var a = String(_a);
   var b = String(_b);
-
   if (a === b) {
     return 0;
   }
-
   return a > b ? 1 : -1;
-} // eslint-disable-next-line complexity
+}
 
-
+// eslint-disable-next-line complexity
 function compareEventsASC(a, b) {
   var modelA = a instanceof EventUIModel ? a.model : a;
   var modelB = b instanceof EventUIModel ? b.model : b;
   var alldayCompare = compareBooleansASC(modelA.isAllday || modelA.hasMultiDates, modelB.isAllday || modelB.hasMultiDates);
-
   if (alldayCompare) {
     return alldayCompare;
   }
-
   var startsCompare = compare(a.getStarts(), b.getStarts());
-
   if (startsCompare) {
     return startsCompare;
   }
-
   var durationA = a.duration();
   var durationB = b.duration();
-
   if (durationA < durationB) {
     return 1;
   }
-
   if (durationA > durationB) {
     return -1;
   }
-
   return modelA.cid() - modelB.cid();
 }
-
 function bsearch(arr, search, fn, compareFn) {
   var minIndex = 0;
   var maxIndex = arr.length - 1;
@@ -12833,13 +13050,10 @@ function bsearch(arr, search, fn, compareFn) {
   var value;
   var comp;
   compareFn = compareFn || compareStringsASC;
-
   while (minIndex <= maxIndex) {
     currentIndex = (minIndex + maxIndex) / 2 | 0; // Math.floor
-
     value = fn ? fn(arr[currentIndex]) : arr[currentIndex];
     comp = compareFn(value, search);
-
     if (comp < 0) {
       minIndex = currentIndex + 1;
     } else if (comp > 0) {
@@ -12848,7 +13062,6 @@ function bsearch(arr, search, fn, compareFn) {
       return currentIndex;
     }
   }
-
   return ~maxIndex;
 }
 /* harmony default export */ var array = ({
@@ -12874,7 +13087,6 @@ function findLastIndex(array, predicate) {
       return i;
     }
   }
-
   return -1;
 }
 function fill(length, value) {
@@ -12885,32 +13097,21 @@ function fill(length, value) {
       if (Array.isArray(value)) {
         return value.slice();
       }
-
       return value;
     });
   }
-
   return [];
 }
 ;// CONCATENATED MODULE: ./src/time/datetime.ts
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || datetime_unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return datetime_arrayLikeToArray(arr); }
-
 function datetime_slicedToArray(arr, i) { return datetime_arrayWithHoles(arr) || datetime_iterableToArrayLimit(arr, i) || datetime_unsupportedIterableToArray(arr, i) || datetime_nonIterableRest(); }
-
 function datetime_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function datetime_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return datetime_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return datetime_arrayLikeToArray(o, minLen); }
-
-function datetime_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function datetime_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function datetime_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function datetime_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function datetime_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
@@ -12940,10 +13141,7 @@ function datetime_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
-
-var Day;
-
-(function (Day) {
+var Day = /*#__PURE__*/function (Day) {
   Day[Day["SUN"] = 0] = "SUN";
   Day[Day["MON"] = 1] = "MON";
   Day[Day["TUE"] = 2] = "TUE";
@@ -12951,8 +13149,8 @@ var Day;
   Day[Day["THU"] = 4] = "THU";
   Day[Day["FRI"] = 5] = "FRI";
   Day[Day["SAT"] = 6] = "SAT";
-})(Day || (Day = {}));
-
+  return Day;
+}({});
 var WEEK_DAYS = 7;
 var dateFormatRx = /^(\d{4}[-|/]*\d{2}[-|/]*\d{2})\s?(\d{2}:\d{2}:\d{2})?$/;
 var memo = {
@@ -12960,39 +13158,31 @@ var memo = {
   millisecondsFrom: {}
 };
 var convByTimeUnit = [24, 60, 60, 1000];
+
 /**
  * pad left zero characters
  */
-
 function leadingZero(number, length) {
   var zero = '';
   var i = 0;
-
   if (String(number).length > length) {
     return String(number);
   }
-
   for (; i < length - 1; i += 1) {
     zero += '0';
   }
-
   return (zero + number).slice(length * -1);
 }
-
 function getHourForMeridiem(date) {
   var hour = date.getHours();
-
   if (hour === 0) {
     hour = 12;
   }
-
   if (hour > 12) {
     hour = hour % 12;
   }
-
   return hour;
 }
-
 var tokenFunc = {
   YYYYMMDD: function YYYYMMDD(date) {
     return [date.getFullYear(), leadingZero(date.getMonth() + 1, 2), leadingZero(date.getDate(), 2)].join('');
@@ -13028,13 +13218,14 @@ var tokenFunc = {
 var MS_PER_DAY = 86400000;
 var MS_PER_HOUR = 3600000;
 var MS_PER_MINUTES = 60000;
+
 /**
  * The number of milliseconds 20 minutes for event min duration
  */
-
 var MS_EVENT_MIN_DURATION = 20 * MS_PER_MINUTES;
 var MS_PER_THIRTY_MINUTES = 30 * 60 * 1000;
 var SIXTY_SECONDS = 60;
+
 /**
  * Return formatted string as basis of supplied string.
  *
@@ -13045,22 +13236,20 @@ var SIXTY_SECONDS = 60;
  * - DD => 01 ~ 31
  * - YYYYMMDD => 19880925
  */
-
 function datetime_toFormat(date, strFormat) {
   var result = strFormat;
   Object.entries(tokenFunc).forEach(function (_ref) {
     var _ref2 = datetime_slicedToArray(_ref, 2),
-        token = _ref2[0],
-        converter = _ref2[1];
-
+      token = _ref2[0],
+      converter = _ref2[1];
     result = result.replace(token, converter(date));
   });
   return result;
 }
+
 /**
  * convert to milliseconds
  */
-
 function convMilliseconds(type, value, iteratee) {
   var index = {
     date: 0,
@@ -13068,72 +13257,64 @@ function convMilliseconds(type, value, iteratee) {
     minute: 2,
     second: 3
   };
-
   if (!(type in index) || isNaN(value)) {
     return 0;
   }
-
   return [value].concat(convByTimeUnit.slice(index[type])).reduce(iteratee);
 }
+
 /**
  * Convert value to milliseconds
  */
-
-
 function millisecondsFrom(type, value) {
   var cache = memo.millisecondsFrom;
   var key = type + value;
-
   if (cache[key]) {
     return cache[key];
   }
-
   var result = convMilliseconds(type, value, function (m, v) {
     return m * v;
   });
-
   if (!result) {
     return 0;
   }
-
   cache[key] = result;
   return cache[key];
 }
+
 /**
  * Return 00:00:00 supplied date
  */
-
 function toStartOfDay(date) {
   var d = date ? new date_TZDate(date) : new date_TZDate();
   d.setHours(0, 0, 0, 0);
   return d;
 }
+
 /**
  * Make date array from supplied parameters
  */
-
 function makeDateRange(startDate, endDate, step) {
   var startTime = startDate.getTime();
   var endTime = endDate.getTime();
   var date = new date_TZDate(startDate);
   var result = [];
   var cursor = startTime;
-
   while (cursor <= endTime && endTime >= date.getTime()) {
     result.push(new date_TZDate(date));
     cursor = cursor + step;
     date.addMilliseconds(step);
   }
-
   return result;
 }
+
 /**
  * Clone supplied date
  */
-
 function datetime_clone(date) {
   return new date_TZDate(date);
 }
+
 /**
  * Compare two dates.
  *
@@ -13141,20 +13322,15 @@ function datetime_clone(date) {
  *
  * return +1 reverse, and return 0 is same.
  */
-
 function compare(d1, d2) {
   var _d1 = d1.getTime();
-
   var _d2 = d2.getTime();
-
   if (_d1 < _d2) {
     return -1;
   }
-
   if (_d1 > _d2) {
     return 1;
   }
-
   return 0;
 }
 function isSameYear(d1, d2) {
@@ -13172,6 +13348,7 @@ function max(d1, d2) {
 function min(d1, d2) {
   return compare(d1, d2) === -1 ? d1 : d2;
 }
+
 /**
  * Convert date string to date object.
  * Only listed below formats available.
@@ -13182,18 +13359,15 @@ function min(d1, d2) {
  * - YYYY/MM/DD HH:mm:SS
  * - YYYY-MM-DD HH:mm:SS
  */
-
 function parse(str) {
   var fixMonth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
   var matches = str.match(dateFormatRx);
   var separator;
   var ymd;
   var hms;
-
   if (!matches) {
     throw new InvalidDateTimeFormatError(str);
   }
-
   if (str.length > 8) {
     // YYYY/MM/DD
     // YYYY-MM-DD
@@ -13206,19 +13380,17 @@ function parse(str) {
   } else {
     // YYYYMMDD
     var _matches = datetime_slicedToArray(matches, 1),
-        _result = _matches[0];
-
+      _result = _matches[0];
     ymd = [_result.substr(0, 4), _result.substr(4, 2), _result.substr(6, 2)];
     hms = [0, 0, 0];
   }
-
   return new date_TZDate().setWithRaw(Number(ymd[0]), Number(ymd[1]) + fixMonth, Number(ymd[2]), Number(hms[0]), Number(hms[1]), Number(hms[2]), 0);
 }
+
 /**
  * Return 23:59:59 supplied date.
  * If you want to use milliseconds, use format 'YYYY-MM-DDTHH:mm:ss.sssZ' based on http://www.ecma-international.org/ecma-262/5.1/#sec-15.9.1.15
  */
-
 function toEndOfDay(date) {
   var d = date ? new date_TZDate(date) : new date_TZDate();
   d.setHours(23, 59, 59, 999);
@@ -13233,10 +13405,10 @@ function isSunday(day) {
 function isSaturday(day) {
   return day === Day.SAT;
 }
+
 /**
  * Whether date is between supplied dates with date value?
  */
-
 function isBetweenWithDate(d, d1, d2) {
   var format = 'YYYYMMDD';
   var n = parseInt(datetime_toFormat(d, format), 10);
@@ -13260,10 +13432,10 @@ function toEndOfMonth(date) {
   endDate.setHours(23, 59, 59, 999);
   return endDate;
 }
+
 /**
  * Calculate grid left(%), width(%) by narrowWeekend, startDayOfWeek, workweek
  */
-
 function getRowStyleInfo(days, narrowWeekend, startDayOfWeek, workweek) {
   var limitDaysToApplyNarrowWeekend = 5;
   var uniformWidth = 100 / days;
@@ -13273,11 +13445,9 @@ function getRowStyleInfo(days, narrowWeekend, startDayOfWeek, workweek) {
   narrowWeekend = workweek ? false : narrowWeekend;
   var rowStyleInfo = dates.map(function (day) {
     var width = narrowWeekend ? wideWidth : uniformWidth;
-
     if (days > limitDaysToApplyNarrowWeekend && narrowWeekend && isWeekend(day)) {
       width = wideWidth / 2;
     }
-
     var model = {
       width: width,
       left: accumulatedWidth
@@ -13289,7 +13459,6 @@ function getRowStyleInfo(days, narrowWeekend, startDayOfWeek, workweek) {
   var cellWidthMap = fill(length, fill(length, 0));
   rowStyleInfo.forEach(function (_ref3, index) {
     var width = _ref3.width;
-
     for (var i = 0; i <= index; i += 1) {
       for (var j = index; j < length; j += 1) {
         cellWidthMap[i][j] += width;
@@ -13334,29 +13503,25 @@ function subtractDate(d, steps) {
   date.setDate(d.getDate() - steps);
   return date;
 }
+
 /**
  * Inspired by `date-fns`
  *
  * See more: https://github.com/date-fns/date-fns/blob/master/src/addMonths/index.ts
  */
-
 function addMonths(d) {
   var step = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
   var date = datetime_clone(d);
-
   if (step !== 0) {
     var dayOfMonth = date.getDate();
     var endOfDesiredMonth = new date_TZDate(date.getTime());
     endOfDesiredMonth.setMonth(date.getMonth() + step + 1, 0);
     var daysInMonth = endOfDesiredMonth.getDate();
-
     if (dayOfMonth >= daysInMonth) {
       return endOfDesiredMonth;
     }
-
     date.setFullYear(endOfDesiredMonth.getFullYear(), endOfDesiredMonth.getMonth(), dayOfMonth);
   }
-
   return date;
 }
 function addYear(d, step) {
@@ -13366,44 +13531,36 @@ function addYear(d, step) {
 }
 function getDateDifference(d1, d2) {
   var _d1 = new date_TZDate(d1.getFullYear(), d1.getMonth(), d1.getDate()).getTime();
-
   var _d2 = new date_TZDate(d2.getFullYear(), d2.getMonth(), d2.getDate()).getTime();
-
   return Math.round((_d1 - _d2) / MS_PER_DAY);
 }
 ;// CONCATENATED MODULE: ./src/helpers/events.ts
 
-
 function hasCollision(start, end, targetStart, targetEnd) {
   return targetStart > start && targetStart < end || targetEnd > start && targetEnd < end || targetStart <= start && targetEnd >= end;
 }
-
 function events_collidesWith(_ref) {
   var start = _ref.start,
-      end = _ref.end,
-      targetStart = _ref.targetStart,
-      targetEnd = _ref.targetEnd,
-      goingDuration = _ref.goingDuration,
-      comingDuration = _ref.comingDuration,
-      targetGoingDuration = _ref.targetGoingDuration,
-      targetComingDuration = _ref.targetComingDuration,
-      usingTravelTime = _ref.usingTravelTime;
-
+    end = _ref.end,
+    targetStart = _ref.targetStart,
+    targetEnd = _ref.targetEnd,
+    goingDuration = _ref.goingDuration,
+    comingDuration = _ref.comingDuration,
+    targetGoingDuration = _ref.targetGoingDuration,
+    targetComingDuration = _ref.targetComingDuration,
+    usingTravelTime = _ref.usingTravelTime;
   if (Math.abs(end - start) < MS_EVENT_MIN_DURATION) {
     end += MS_EVENT_MIN_DURATION;
   }
-
   if (Math.abs(end - start) < MS_EVENT_MIN_DURATION) {
     end += MS_EVENT_MIN_DURATION;
   }
-
   if (usingTravelTime) {
     start -= millisecondsFrom('minute', goingDuration);
     end += millisecondsFrom('minute', comingDuration);
     targetStart -= millisecondsFrom('minute', targetGoingDuration);
     targetEnd += millisecondsFrom('minute', targetComingDuration);
   }
-
   return hasCollision(start, end, targetStart, targetEnd);
 }
 function isSameEvent(event, eventId, calendarId) {
@@ -13414,7 +13571,6 @@ function isVisibleEvent(event) {
 }
 ;// CONCATENATED MODULE: ./src/utils/stamp.ts
 
-
 function idGenerator() {
   var id = 0;
   return {
@@ -13424,38 +13580,41 @@ function idGenerator() {
     }
   };
 }
-
 var getId = function () {
   var generator = idGenerator();
   return function () {
     return generator.next();
   };
 }();
-
 function stamp(obj) {
   if (!obj.__fe_id) {
     // eslint-disable-next-line camelcase
     obj.__fe_id = getId();
   }
-
   return obj.__fe_id;
 }
 function hasStamp(obj) {
   return !isNil(obj.__fe_id);
 }
 ;// CONCATENATED MODULE: ./src/model/eventModel.ts
+function eventModel_typeof(obj) { "@babel/helpers - typeof"; return eventModel_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, eventModel_typeof(obj); }
+
+
+
+
+
+
+
+
 
 
 
 function eventModel_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function eventModel_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function eventModel_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, eventModel_toPropertyKey(descriptor.key), descriptor); } }
 function eventModel_createClass(Constructor, protoProps, staticProps) { if (protoProps) eventModel_defineProperties(Constructor.prototype, protoProps); if (staticProps) eventModel_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
-function eventModel_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
+function eventModel_defineProperty(obj, key, value) { key = eventModel_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function eventModel_toPropertyKey(arg) { var key = eventModel_toPrimitive(arg, "string"); return eventModel_typeof(key) === "symbol" ? key : String(key); }
+function eventModel_toPrimitive(input, hint) { if (eventModel_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (eventModel_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
@@ -13463,118 +13622,91 @@ function eventModel_defineProperty(obj, key, value) { if (key in obj) { Object.d
 
 
 var EventModel = /*#__PURE__*/function () {
-  /**
-   * whether the event includes multiple dates
-   */
   function EventModel() {
     var event = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
     eventModel_classCallCheck(this, EventModel);
-
     eventModel_defineProperty(this, "id", '');
-
     eventModel_defineProperty(this, "calendarId", '');
-
     eventModel_defineProperty(this, "title", '');
-
     eventModel_defineProperty(this, "body", '');
-
     eventModel_defineProperty(this, "isAllday", false);
-
     eventModel_defineProperty(this, "start", new date_TZDate());
-
     eventModel_defineProperty(this, "end", new date_TZDate());
-
     eventModel_defineProperty(this, "goingDuration", 0);
-
     eventModel_defineProperty(this, "comingDuration", 0);
-
     eventModel_defineProperty(this, "location", '');
-
     eventModel_defineProperty(this, "attendees", []);
-
     eventModel_defineProperty(this, "category", 'time');
-
     eventModel_defineProperty(this, "dueDateClass", '');
-
     eventModel_defineProperty(this, "recurrenceRule", '');
-
     eventModel_defineProperty(this, "state", 'Busy');
-
     eventModel_defineProperty(this, "isVisible", true);
-
     eventModel_defineProperty(this, "isPending", false);
-
     eventModel_defineProperty(this, "isFocused", false);
-
     eventModel_defineProperty(this, "isReadOnly", false);
-
     eventModel_defineProperty(this, "isPrivate", false);
-
     eventModel_defineProperty(this, "customStyle", {});
-
     eventModel_defineProperty(this, "raw", null);
-
+    /**
+     * whether the event includes multiple dates
+     */
     eventModel_defineProperty(this, "hasMultiDates", false);
-
     // initialize model id
     stamp(this);
     this.init(event);
   }
-
   eventModel_createClass(EventModel, [{
     key: "init",
     value: function init() {
       var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-          _ref$id = _ref.id,
-          id = _ref$id === void 0 ? '' : _ref$id,
-          _ref$calendarId = _ref.calendarId,
-          calendarId = _ref$calendarId === void 0 ? '' : _ref$calendarId,
-          _ref$title = _ref.title,
-          title = _ref$title === void 0 ? '' : _ref$title,
-          _ref$body = _ref.body,
-          body = _ref$body === void 0 ? '' : _ref$body,
-          _ref$isAllday = _ref.isAllday,
-          isAllday = _ref$isAllday === void 0 ? false : _ref$isAllday,
-          _ref$start = _ref.start,
-          start = _ref$start === void 0 ? new date_TZDate() : _ref$start,
-          _ref$end = _ref.end,
-          end = _ref$end === void 0 ? new date_TZDate() : _ref$end,
-          _ref$goingDuration = _ref.goingDuration,
-          goingDuration = _ref$goingDuration === void 0 ? 0 : _ref$goingDuration,
-          _ref$comingDuration = _ref.comingDuration,
-          comingDuration = _ref$comingDuration === void 0 ? 0 : _ref$comingDuration,
-          _ref$location = _ref.location,
-          location = _ref$location === void 0 ? '' : _ref$location,
-          _ref$attendees = _ref.attendees,
-          attendees = _ref$attendees === void 0 ? [] : _ref$attendees,
-          _ref$category = _ref.category,
-          category = _ref$category === void 0 ? 'time' : _ref$category,
-          _ref$dueDateClass = _ref.dueDateClass,
-          dueDateClass = _ref$dueDateClass === void 0 ? '' : _ref$dueDateClass,
-          _ref$recurrenceRule = _ref.recurrenceRule,
-          recurrenceRule = _ref$recurrenceRule === void 0 ? '' : _ref$recurrenceRule,
-          _ref$state = _ref.state,
-          state = _ref$state === void 0 ? 'Busy' : _ref$state,
-          _ref$isVisible = _ref.isVisible,
-          isVisible = _ref$isVisible === void 0 ? true : _ref$isVisible,
-          _ref$isPending = _ref.isPending,
-          isPending = _ref$isPending === void 0 ? false : _ref$isPending,
-          _ref$isFocused = _ref.isFocused,
-          isFocused = _ref$isFocused === void 0 ? false : _ref$isFocused,
-          _ref$isReadOnly = _ref.isReadOnly,
-          isReadOnly = _ref$isReadOnly === void 0 ? false : _ref$isReadOnly,
-          _ref$isPrivate = _ref.isPrivate,
-          isPrivate = _ref$isPrivate === void 0 ? false : _ref$isPrivate,
-          color = _ref.color,
-          backgroundColor = _ref.backgroundColor,
-          dragBackgroundColor = _ref.dragBackgroundColor,
-          borderColor = _ref.borderColor,
-          _ref$customStyle = _ref.customStyle,
-          customStyle = _ref$customStyle === void 0 ? {} : _ref$customStyle,
-          _ref$raw = _ref.raw,
-          raw = _ref$raw === void 0 ? null : _ref$raw;
-
+        _ref$id = _ref.id,
+        id = _ref$id === void 0 ? '' : _ref$id,
+        _ref$calendarId = _ref.calendarId,
+        calendarId = _ref$calendarId === void 0 ? '' : _ref$calendarId,
+        _ref$title = _ref.title,
+        title = _ref$title === void 0 ? '' : _ref$title,
+        _ref$body = _ref.body,
+        body = _ref$body === void 0 ? '' : _ref$body,
+        _ref$isAllday = _ref.isAllday,
+        isAllday = _ref$isAllday === void 0 ? false : _ref$isAllday,
+        _ref$start = _ref.start,
+        start = _ref$start === void 0 ? new date_TZDate() : _ref$start,
+        _ref$end = _ref.end,
+        end = _ref$end === void 0 ? new date_TZDate() : _ref$end,
+        _ref$goingDuration = _ref.goingDuration,
+        goingDuration = _ref$goingDuration === void 0 ? 0 : _ref$goingDuration,
+        _ref$comingDuration = _ref.comingDuration,
+        comingDuration = _ref$comingDuration === void 0 ? 0 : _ref$comingDuration,
+        _ref$location = _ref.location,
+        location = _ref$location === void 0 ? '' : _ref$location,
+        _ref$attendees = _ref.attendees,
+        attendees = _ref$attendees === void 0 ? [] : _ref$attendees,
+        _ref$category = _ref.category,
+        category = _ref$category === void 0 ? 'time' : _ref$category,
+        _ref$dueDateClass = _ref.dueDateClass,
+        dueDateClass = _ref$dueDateClass === void 0 ? '' : _ref$dueDateClass,
+        _ref$recurrenceRule = _ref.recurrenceRule,
+        recurrenceRule = _ref$recurrenceRule === void 0 ? '' : _ref$recurrenceRule,
+        _ref$state = _ref.state,
+        state = _ref$state === void 0 ? 'Busy' : _ref$state,
+        _ref$isVisible = _ref.isVisible,
+        isVisible = _ref$isVisible === void 0 ? true : _ref$isVisible,
+        _ref$isPending = _ref.isPending,
+        isPending = _ref$isPending === void 0 ? false : _ref$isPending,
+        _ref$isFocused = _ref.isFocused,
+        isFocused = _ref$isFocused === void 0 ? false : _ref$isFocused,
+        _ref$isReadOnly = _ref.isReadOnly,
+        isReadOnly = _ref$isReadOnly === void 0 ? false : _ref$isReadOnly,
+        _ref$isPrivate = _ref.isPrivate,
+        isPrivate = _ref$isPrivate === void 0 ? false : _ref$isPrivate,
+        color = _ref.color,
+        backgroundColor = _ref.backgroundColor,
+        dragBackgroundColor = _ref.dragBackgroundColor,
+        borderColor = _ref.borderColor,
+        _ref$customStyle = _ref.customStyle,
+        customStyle = _ref$customStyle === void 0 ? {} : _ref$customStyle,
+        _ref$raw = _ref.raw,
+        raw = _ref$raw === void 0 ? null : _ref$raw;
       this.id = id;
       this.calendarId = calendarId;
       this.title = title;
@@ -13599,13 +13731,11 @@ var EventModel = /*#__PURE__*/function () {
       this.borderColor = borderColor;
       this.customStyle = customStyle;
       this.raw = raw;
-
       if (this.isAllday) {
         this.setAlldayPeriod(start, end);
       } else {
         this.setTimePeriod(start, end);
       }
-
       if (category === 'milestone' || category === 'task') {
         this.start = new date_TZDate(this.end);
       }
@@ -13616,19 +13746,16 @@ var EventModel = /*#__PURE__*/function () {
       // If it is an all-day, only the date information of the string is used.
       var startedAt;
       var endedAt;
-
       if (isString_default()(start)) {
         startedAt = parse(start.substring(0, 10));
       } else {
         startedAt = new date_TZDate(start || Date.now());
       }
-
       if (isString_default()(end)) {
         endedAt = parse(end.substring(0, 10));
       } else {
         endedAt = new date_TZDate(end || this.start);
       }
-
       this.start = startedAt;
       this.start.setHours(0, 0, 0);
       this.end = endedAt || new date_TZDate(this.start);
@@ -13639,111 +13766,98 @@ var EventModel = /*#__PURE__*/function () {
     value: function setTimePeriod(start, end) {
       this.start = new date_TZDate(start || Date.now());
       this.end = new date_TZDate(end || this.start);
-
       if (!end) {
         this.end.setMinutes(this.end.getMinutes() + 30);
-      } // if over 24 hours
+      }
 
-
+      // if over 24 hours
       this.hasMultiDates = this.end.getTime() - this.start.getTime() > MS_PER_DAY;
     }
+
     /**
      * @returns {TZDate} render start date.
      */
-
   }, {
     key: "getStarts",
     value: function getStarts() {
       return this.start;
     }
+
     /**
      * @returns {TZDate} render end date.
      */
-
   }, {
     key: "getEnds",
     value: function getEnds() {
       return this.end;
     }
+
     /**
      * @returns {number} instance unique id.
      */
-
   }, {
     key: "cid",
     value: function cid() {
       return stamp(this);
     }
+
     /**
      * Check two  are equals (means title, isAllday, start, end are same)
      * @param {EventModel}  event model instance to compare.
      * @returns {boolean} Return false when not same.
      */
     // eslint-disable-next-line complexity
-
   }, {
     key: "equals",
     value: function equals(event) {
       if (this.id !== event.id) {
         return false;
       }
-
       if (this.title !== event.title) {
         return false;
       }
-
       if (this.body !== event.body) {
         return false;
       }
-
       if (this.isAllday !== event.isAllday) {
         return false;
       }
-
       if (compare(this.getStarts(), event.getStarts()) !== 0) {
         return false;
       }
-
       if (compare(this.getEnds(), event.getEnds()) !== 0) {
         return false;
       }
-
       if (this.color !== event.color) {
         return false;
       }
-
       if (this.backgroundColor !== event.backgroundColor) {
         return false;
       }
-
       if (this.dragBackgroundColor !== event.dragBackgroundColor) {
         return false;
       }
-
       if (this.borderColor !== event.borderColor) {
         return false;
       }
-
       return true;
     }
+
     /**
      * return duration between start and end.
      * @returns {number} duration milliseconds (UTC)
      */
-
   }, {
     key: "duration",
     value: function duration() {
       var start = Number(this.getStarts());
       var end = Number(this.getEnds());
       var duration;
-
       if (this.isAllday) {
         duration = Number(toEndOfDay(end)) - Number(toStartOfDay(start));
       } else {
         duration = end - start;
       }
-
       return duration;
     }
   }, {
@@ -13751,6 +13865,7 @@ var EventModel = /*#__PURE__*/function () {
     value: function valueOf() {
       return this;
     }
+
     /**
      * Returns true if the given EventModel coincides with the same time as the
      * calling EventModel.
@@ -13758,7 +13873,6 @@ var EventModel = /*#__PURE__*/function () {
      * @param {boolean = true} usingTravelTime When calculating collision, whether to calculate with travel time.
      * @returns {boolean} If the other event occurs within the same time as the first object.
      */
-
   }, {
     key: "collidesWith",
     value: function collidesWith(event) {
@@ -13774,7 +13888,6 @@ var EventModel = /*#__PURE__*/function () {
         targetGoingDuration: event.goingDuration,
         targetComingDuration: event.comingDuration,
         usingTravelTime: usingTravelTime // Daygrid does not use travelTime, TimeGrid uses travelTime.
-
       });
     }
   }, {
@@ -13821,39 +13934,31 @@ var EventModel = /*#__PURE__*/function () {
       };
     }
   }]);
-
   return EventModel;
 }(); // export function isBackgroundEvent({ model }: EventUIModel) {
 //   return model.category === 'background';
 // }
-
-
 eventModel_defineProperty(EventModel, "schema", {
   required: ['title'],
   dateRange: ['start', 'end']
 });
 
-
 function isTimeEvent(_ref2) {
   var model = _ref2.model;
   var category = model.category,
-      isAllday = model.isAllday,
-      hasMultiDates = model.hasMultiDates;
+    isAllday = model.isAllday,
+    hasMultiDates = model.hasMultiDates;
   return category === 'time' && !isAllday && !hasMultiDates;
 }
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.array.sort.js
 var es_array_sort = __webpack_require__(3430);
 ;// CONCATENATED MODULE: ./src/utils/collection.ts
+function collection_typeof(obj) { "@babel/helpers - typeof"; return collection_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, collection_typeof(obj); }
 function collection_slicedToArray(arr, i) { return collection_arrayWithHoles(arr) || collection_iterableToArrayLimit(arr, i) || collection_unsupportedIterableToArray(arr, i) || collection_nonIterableRest(); }
-
 function collection_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function collection_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return collection_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return collection_arrayLikeToArray(o, minLen); }
-
-function collection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function collection_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function collection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function collection_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function collection_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
@@ -13874,15 +13979,13 @@ function collection_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
+
 function collection_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function collection_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function collection_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, collection_toPropertyKey(descriptor.key), descriptor); } }
 function collection_createClass(Constructor, protoProps, staticProps) { if (protoProps) collection_defineProperties(Constructor.prototype, protoProps); if (staticProps) collection_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
-function collection_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
+function collection_defineProperty(obj, key, value) { key = collection_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function collection_toPropertyKey(arg) { var key = collection_toPrimitive(arg, "string"); return collection_typeof(key) === "symbol" ? key : String(key); }
+function collection_toPrimitive(input, hint) { if (collection_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (collection_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 /**
  * Generic collection base on ES6 Map.
@@ -13895,20 +13998,17 @@ function collection_defineProperty(obj, key, value) { if (key in obj) { Object.d
 var Collection = /*#__PURE__*/function () {
   function Collection(getItemIDFn) {
     collection_classCallCheck(this, Collection);
-
     collection_defineProperty(this, "internalMap", new Map());
-
     if (isFunction(getItemIDFn)) {
       this.getItemID = getItemIDFn;
     }
   }
+
   /**
    * Combine supplied function filters and condition.
    * @param {...Filter} filterFns - function filters
    * @returns {function} combined filter
    */
-
-
   collection_createClass(Collection, [{
     key: "getItemID",
     value:
@@ -13919,7 +14019,6 @@ var Collection = /*#__PURE__*/function () {
      */
     function getItemID(item) {
       var _item$_id;
-
       return (_item$_id = item === null || item === void 0 ? void 0 : item._id) !== null && _item$_id !== void 0 ? _item$_id : '';
     }
   }, {
@@ -13928,62 +14027,53 @@ var Collection = /*#__PURE__*/function () {
       var iterator = this.internalMap.values();
       return iterator.next().value;
     }
+
     /**
      * add models.
      * @param {Object[]} items - models to add this collection.
      */
-
   }, {
     key: "add",
     value: function add() {
       var _this = this;
-
       for (var _len = arguments.length, items = new Array(_len), _key = 0; _key < _len; _key++) {
         items[_key] = arguments[_key];
       }
-
       items.forEach(function (item) {
         var id = _this.getItemID(item);
-
         _this.internalMap.set(id, item);
       });
       return this;
     }
+
     /**
      * remove models.
      * @param {Array.<(Object|string|number)>} items model instances or unique ids to delete.
      */
-
   }, {
     key: "remove",
     value: function remove() {
       var _this2 = this;
-
       var removeResult = [];
-
       for (var _len2 = arguments.length, items = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
         items[_key2] = arguments[_key2];
       }
-
       items.forEach(function (item) {
         var id = isString_default()(item) || isNumber_default()(item) ? item : _this2.getItemID(item);
-
         if (!_this2.internalMap.has(id)) {
           return;
         }
-
         removeResult.push(_this2.internalMap.get(id));
-
         _this2.internalMap['delete'](id);
       });
       return removeResult.length === 1 ? removeResult[0] : removeResult;
     }
+
     /**
      * check collection has specific model.
      * @param {(object|string|number)} id model instance or id to check
      * @returns {boolean} is has model?
      */
-
   }, {
     key: "has",
     value: function has(item) {
@@ -13994,27 +14084,25 @@ var Collection = /*#__PURE__*/function () {
     key: "get",
     value: function get(item) {
       var _this$internalMap$get;
-
       var id = isString_default()(item) || isNumber_default()(item) ? item : this.getItemID(item);
       return (_this$internalMap$get = this.internalMap.get(id)) !== null && _this$internalMap$get !== void 0 ? _this$internalMap$get : null;
     }
+
     /**
      * invoke callback when model exist in collection.
      * @param {(string|number)} id model unique id.
      * @param {function} callback the callback.
      */
-
   }, {
     key: "doWhenHas",
     value: function doWhenHas(id, callback) {
       var item = this.internalMap.get(id);
-
       if (type_isNil(item)) {
         return;
       }
-
       callback(item);
     }
+
     /**
      * Search model. and return new collection.
      * @param {function} filterFn filter function.
@@ -14036,16 +14124,13 @@ var Collection = /*#__PURE__*/function () {
      *
      * collection.filter(Collection.or(filter1, filter2));
      */
-
   }, {
     key: "filter",
     value: function filter(filterFn) {
       var result = new Collection();
-
       if (this.hasOwnProperty('getItemID')) {
         result.getItemID = this.getItemID;
       }
-
       this.internalMap.forEach(function (item) {
         if (filterFn(item) === true) {
           result.add(item);
@@ -14053,6 +14138,7 @@ var Collection = /*#__PURE__*/function () {
       });
       return result;
     }
+
     /**
      * Group element by specific key values.
      *
@@ -14072,101 +14158,90 @@ var Collection = /*#__PURE__*/function () {
      *     return 'fail';
      * });
      */
-
   }, {
     key: "groupBy",
     value: function groupBy(groupByFn) {
       var _this3 = this;
-
       var result = {};
       this.internalMap.forEach(function (item) {
         var _key3, _result$_key;
-
         var key = isFunction(groupByFn) ? groupByFn(item) : item[groupByFn];
-
         if (isFunction(key)) {
           key = key.call(item);
         }
-
         (_result$_key = result[_key3 = key]) !== null && _result$_key !== void 0 ? _result$_key : result[_key3] = new Collection(_this3.getItemID);
         result[key].add(item);
       });
       return result;
     }
+
     /**
      * Return the first item in collection that satisfies the provided function.
      * @param {function} [findFn] - function filter
      * @returns {object|null} item.
      */
-
   }, {
     key: "find",
     value: function find(findFn) {
       var result = null;
       var items = this.internalMap.values();
       var next = items.next();
-
       while (next.done === false) {
         if (findFn(next.value)) {
           result = next.value;
           break;
         }
-
         next = items.next();
       }
-
       return result;
     }
+
     /**
      * sort a basis of supplied compare function.
      * @param {function} compareFn compareFunction
      * @returns {array} sorted array.
      */
-
   }, {
     key: "sort",
     value: function sort(compareFn) {
       return this.toArray().sort(compareFn);
     }
+
     /**
      * iterate each model element.
      *
      * when iteratee return false then break the loop.
      * @param {function} iteratee iteratee(item, index, items)
      */
-
   }, {
     key: "each",
     value: function each(iteratee) {
       var entries = this.internalMap.entries();
       var next = entries.next();
-
       while (next.done === false) {
         var _next$value = collection_slicedToArray(next.value, 2),
-            _key4 = _next$value[0],
-            value = _next$value[1];
-
+          _key4 = _next$value[0],
+          value = _next$value[1];
         if (iteratee(value, _key4) === false) {
           break;
         }
-
         next = entries.next();
       }
     }
+
     /**
      * remove all models in collection.
      */
-
   }, {
     key: "clear",
     value: function clear() {
       this.internalMap.clear();
     }
+
     /**
      * return new array with collection items.
      * @returns {array} new array.
      */
-
   }, {
     key: "toArray",
     value: function toArray() {
@@ -14183,7 +14258,6 @@ var Collection = /*#__PURE__*/function () {
       for (var _len3 = arguments.length, filterFns = new Array(_len3), _key5 = 0; _key5 < _len3; _key5++) {
         filterFns[_key5] = arguments[_key5];
       }
-
       var length = filterFns.length;
       return function (item) {
         for (var i = 0; i < length; i += 1) {
@@ -14191,65 +14265,52 @@ var Collection = /*#__PURE__*/function () {
             return false;
           }
         }
-
         return true;
       };
     }
+
     /**
      * Combine multiple function filters with OR clause.
      * @param {...function} filterFns - function filters
      * @returns {function} combined filter
      */
-
   }, {
     key: "or",
     value: function or() {
       for (var _len4 = arguments.length, filterFns = new Array(_len4), _key6 = 0; _key6 < _len4; _key6++) {
         filterFns[_key6] = arguments[_key6];
       }
-
       var length = filterFns.length;
-
       if (!length) {
         return function () {
           return false;
         };
       }
-
       return function (item) {
         var result = filterFns[0].call(null, item);
-
         for (var i = 1; i < length; i += 1) {
           result = result || filterFns[i].call(null, item);
         }
-
         return result;
       };
     }
   }]);
-
   return Collection;
 }();
 
-
 ;// CONCATENATED MODULE: ./src/controller/base.ts
+function base_typeof(obj) { "@babel/helpers - typeof"; return base_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, base_typeof(obj); }
 function base_toConsumableArray(arr) { return base_arrayWithoutHoles(arr) || base_iterableToArray(arr) || base_unsupportedIterableToArray(arr) || base_nonIterableSpread(); }
-
 function base_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function base_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return base_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return base_arrayLikeToArray(o, minLen); }
-
 function base_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function base_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return base_arrayLikeToArray(arr); }
-
-function base_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function base_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { base_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function base_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function base_defineProperty(obj, key, value) { key = base_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function base_toPropertyKey(arg) { var key = base_toPrimitive(arg, "string"); return base_typeof(key) === "symbol" ? key : String(key); }
+function base_toPrimitive(input, hint) { if (base_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (base_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
@@ -14287,11 +14348,9 @@ function createEventCollection() {
   var collection = new Collection(function (event) {
     return event.cid();
   });
-
   if (arguments.length) {
     collection.add.apply(collection, arguments);
   }
-
   return collection;
 }
 /**
@@ -14300,29 +14359,27 @@ function createEventCollection() {
  * @param {TZDate} end - end date of range
  * @returns {array} contain dates.
  */
-
 function getDateRange(start, end) {
   return makeDateRange(toStartOfDay(start), toEndOfDay(end), MS_PER_DAY);
 }
 function isAllday(event) {
   return event.isAllday || event.category === 'time' && Number(event.end) - Number(event.start) > MS_PER_DAY;
 }
+
 /**
  * function for group each event models.
  * @type {function}
  * @param {EventUIModel} uiModel - ui model instance
  * @returns {string} group key
  */
-
 function filterByCategory(uiModel) {
   var model = uiModel.model;
-
   if (isAllday(model)) {
     return 'allday';
   }
-
   return model.category;
 }
+
 /****************
  * Events CRUD
  ****************/
@@ -14332,7 +14389,6 @@ function filterByCategory(uiModel) {
  * @param {IDS_OF_DAY} idsOfDay - ids of day
  * @param {EventModel} event - instance of event model.
  */
-
 function addToMatrix(idsOfDay, event) {
   var containDates = getDateRange(event.getStarts(), event.getEnds());
   containDates.forEach(function (date) {
@@ -14341,17 +14397,16 @@ function addToMatrix(idsOfDay, event) {
     matrix.push(event.cid());
   });
 }
+
 /**
  * Remove event's id from matrix.
  * @param {IDS_OF_DAY} idsOfDay - ids of day
  * @param {EventModel} event - instance of event model
  */
-
 function removeFromMatrix(idsOfDay, event) {
   var modelID = event.cid();
   Object.values(idsOfDay).forEach(function (ids) {
     var index = ids.indexOf(modelID);
-
     if (~index) {
       ids.splice(index, 1);
     }
@@ -14372,6 +14427,7 @@ function base_createEvents(calendarData) {
     return createEvent(calendarData, eventData);
   });
 }
+
 /**
  * Update an event.
  * @param {CalendarData} calendarData - data of calendar
@@ -14380,29 +14436,26 @@ function base_createEvents(calendarData) {
  * @param {EventObject} eventData - event data
  * @returns {boolean} success or failure
  */
-
 function base_updateEvent(calendarData, eventId, calendarId, eventData) {
   var idsOfDay = calendarData.idsOfDay;
   var event = calendarData.events.find(function (item) {
     return isSameEvent(item, eventId, calendarId);
   });
-
   if (!event) {
     return false;
   }
-
   event.init(_objectSpread(_objectSpread({}, event), eventData));
   removeFromMatrix(idsOfDay, event);
   addToMatrix(idsOfDay, event);
   return true;
 }
+
 /**
  * Delete event instance from controller.
  * @param {CalendarData} calendarData - data of calendar
  * @param {EventModel} event - event model instance to delete
  * @returns {EventModel} deleted model instance.
  */
-
 function base_deleteEvent(calendarData, event) {
   removeFromMatrix(calendarData.idsOfDay, event);
   calendarData.events.remove(event);
@@ -14412,15 +14465,16 @@ function base_clearEvents(calendarData) {
   calendarData.idsOfDay = {};
   calendarData.events.clear();
 }
+
 /**
  * Set calendar list
  * @param {CalendarData} calendarData - data of calendar
  * @param {Array.<Calendar>} calendars - calendar list
  */
-
 function setCalendars(calendarData, calendars) {
   calendarData.calendars = calendars;
 }
+
 /**
  * Return events in supplied date range.
  *
@@ -14429,12 +14483,11 @@ function setCalendars(calendarData, calendars) {
  * @param {{start: TZDate, end: TZDate}} condition - condition of find range
  * @returns {object.<string, Collection>} event collection grouped by dates.
  */
-
 function findByDateRange(calendarData, condition) {
   var start = condition.start,
-      end = condition.end;
+    end = condition.end;
   var events = calendarData.events,
-      idsOfDay = calendarData.idsOfDay;
+    idsOfDay = calendarData.idsOfDay;
   var range = getDateRange(start, end);
   var result = {};
   var ids;
@@ -14444,10 +14497,8 @@ function findByDateRange(calendarData, condition) {
     ymd = toFormat(date, 'YYYYMMDD');
     ids = idsOfDay[ymd];
     uiModels = result[ymd] = [];
-
     if (ids && ids.length) {
       var _uiModels;
-
       (_uiModels = uiModels).push.apply(_uiModels, base_toConsumableArray(ids.map(function (id) {
         return events.get(id);
       })));
@@ -14456,23 +14507,20 @@ function findByDateRange(calendarData, condition) {
   return result;
 }
 ;// CONCATENATED MODULE: ./src/slices/calendar.ts
+function calendar_typeof(obj) { "@babel/helpers - typeof"; return calendar_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, calendar_typeof(obj); }
 function calendar_toConsumableArray(arr) { return calendar_arrayWithoutHoles(arr) || calendar_iterableToArray(arr) || calendar_unsupportedIterableToArray(arr) || calendar_nonIterableSpread(); }
-
 function calendar_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function calendar_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return calendar_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return calendar_arrayLikeToArray(o, minLen); }
-
 function calendar_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function calendar_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return calendar_arrayLikeToArray(arr); }
-
-function calendar_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function calendar_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function calendar_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function calendar_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? calendar_ownKeys(Object(source), !0).forEach(function (key) { calendar_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : calendar_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function calendar_defineProperty(obj, key, value) { key = calendar_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function calendar_toPropertyKey(arg) { var key = calendar_toPrimitive(arg, "string"); return calendar_typeof(key) === "symbol" ? key : String(key); }
+function calendar_toPrimitive(input, hint) { if (calendar_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (calendar_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function calendar_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -14517,7 +14565,7 @@ function createCalendarDispatchers(set) {
     },
     updateEvent: function updateEvent(_ref) {
       var event = _ref.event,
-          eventData = _ref.eventData;
+        eventData = _ref.eventData;
       return set((0,immer_esm/* default */.ZP)(function (state) {
         base_updateEvent(state.calendar, event.id, event.calendarId, eventData);
       }));
@@ -14543,19 +14591,16 @@ function createCalendarDispatchers(set) {
           if (calendar.id === calendarId) {
             return calendar_objectSpread(calendar_objectSpread({}, calendar), colorOptions);
           }
-
           return calendar;
         });
         var events = state.calendar.events.toArray().map(function (event) {
           if (event.calendarId === calendarId) {
             var _colorOptions$color, _colorOptions$backgro, _colorOptions$borderC, _colorOptions$dragBac;
-
             event.color = (_colorOptions$color = colorOptions.color) !== null && _colorOptions$color !== void 0 ? _colorOptions$color : event.color;
             event.backgroundColor = (_colorOptions$backgro = colorOptions.backgroundColor) !== null && _colorOptions$backgro !== void 0 ? _colorOptions$backgro : event.backgroundColor;
             event.borderColor = (_colorOptions$borderC = colorOptions.borderColor) !== null && _colorOptions$borderC !== void 0 ? _colorOptions$borderC : event.borderColor;
             event.dragBackgroundColor = (_colorOptions$dragBac = colorOptions.dragBackgroundColor) !== null && _colorOptions$dragBac !== void 0 ? _colorOptions$dragBac : event.dragBackgroundColor;
           }
-
           return event;
         });
         var collection = createEventCollection.apply(void 0, calendar_toConsumableArray(events));
@@ -14570,7 +14615,6 @@ function createCalendarDispatchers(set) {
           if (calendarIds.includes(event.calendarId)) {
             event.isVisible = isVisible;
           }
-
           return event;
         })));
       }));
@@ -14586,22 +14630,28 @@ function createCalendarDispatchers(set) {
 
 
 
+
+
+
+
+
+
+
+
+function dnd_typeof(obj) { "@babel/helpers - typeof"; return dnd_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, dnd_typeof(obj); }
 function dnd_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function dnd_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? dnd_ownKeys(Object(source), !0).forEach(function (key) { dnd_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : dnd_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function dnd_defineProperty(obj, key, value) { key = dnd_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function dnd_toPropertyKey(arg) { var key = dnd_toPrimitive(arg, "string"); return dnd_typeof(key) === "symbol" ? key : String(key); }
+function dnd_toPrimitive(input, hint) { if (dnd_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (dnd_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function dnd_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
-var DraggingState;
-
-(function (DraggingState) {
+var DraggingState = /*#__PURE__*/function (DraggingState) {
   DraggingState[DraggingState["IDLE"] = 0] = "IDLE";
   DraggingState[DraggingState["INIT"] = 1] = "INIT";
   DraggingState[DraggingState["DRAGGING"] = 2] = "DRAGGING";
   DraggingState[DraggingState["CANCELED"] = 3] = "CANCELED";
-})(DraggingState || (DraggingState = {}));
-
+  return DraggingState;
+}({});
 function createDndSlice() {
   return {
     dnd: {
@@ -14645,7 +14695,6 @@ function createDndDispatchers(set) {
     setDraggingEventUIModel: function setDraggingEventUIModel(eventUIModel) {
       set((0,immer_esm/* default */.ZP)(function (state) {
         var _eventUIModel$clone;
-
         state.dnd.draggingEventUIModel = (_eventUIModel$clone = eventUIModel === null || eventUIModel === void 0 ? void 0 : eventUIModel.clone()) !== null && _eventUIModel$clone !== void 0 ? _eventUIModel$clone : null;
       }));
     }
@@ -14666,19 +14715,12 @@ function createDndDispatchers(set) {
 
 
 
-
 function gridSelection_toConsumableArray(arr) { return gridSelection_arrayWithoutHoles(arr) || gridSelection_iterableToArray(arr) || gridSelection_unsupportedIterableToArray(arr) || gridSelection_nonIterableSpread(); }
-
 function gridSelection_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function gridSelection_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return gridSelection_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return gridSelection_arrayLikeToArray(o, minLen); }
-
 function gridSelection_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function gridSelection_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return gridSelection_arrayLikeToArray(arr); }
-
-function gridSelection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function gridSelection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
 function createGridSelectionSlice() {
   return {
@@ -14724,16 +14766,16 @@ var DEFAULT_DUPLICATE_EVENT_CID = -1;
 
 
 
+// @TODO: Change name to layout & merge slice into layout
+
 function getRestPanelHeight(dayGridRowsState, lastPanelType, initHeight) {
   return Object.keys(dayGridRowsState).reduce(function (acc, rowName) {
     if (rowName === lastPanelType) {
       return acc;
     }
-
     return acc - dayGridRowsState[rowName].height - DEFAULT_RESIZER_LENGTH;
   }, initHeight);
 }
-
 function createWeekViewLayoutSlice() {
   return {
     layout: 500,
@@ -14749,7 +14791,6 @@ function createWeekViewLayoutDispatchers(set) {
     setLastPanelType: function setLastPanelType(type) {
       set((0,immer_esm/* default */.ZP)(function (state) {
         state.weekViewLayout.lastPanelType = type;
-
         if (type) {
           state.weekViewLayout.dayGridRows[type].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, type, state.layout);
         }
@@ -14759,7 +14800,6 @@ function createWeekViewLayoutDispatchers(set) {
       return set((0,immer_esm/* default */.ZP)(function (state) {
         var lastPanelType = state.weekViewLayout.lastPanelType;
         state.layout = height;
-
         if (lastPanelType) {
           state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, lastPanelType, height);
         }
@@ -14767,13 +14807,12 @@ function createWeekViewLayoutDispatchers(set) {
     },
     updateDayGridRowHeight: function updateDayGridRowHeight(_ref) {
       var rowName = _ref.rowName,
-          height = _ref.height;
+        height = _ref.height;
       return set((0,immer_esm/* default */.ZP)(function (state) {
         var lastPanelType = state.weekViewLayout.lastPanelType;
         state.weekViewLayout.dayGridRows[rowName] = {
           height: height
         };
-
         if (lastPanelType) {
           state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, lastPanelType, state.layout);
         }
@@ -14781,16 +14820,14 @@ function createWeekViewLayoutDispatchers(set) {
     },
     updateDayGridRowHeightByDiff: function updateDayGridRowHeightByDiff(_ref2) {
       var rowName = _ref2.rowName,
-          diff = _ref2.diff;
+        diff = _ref2.diff;
       return set((0,immer_esm/* default */.ZP)(function (state) {
         var _state$weekViewLayout, _state$weekViewLayout2, _state$weekViewLayout3;
-
         var lastPanelType = state.weekViewLayout.lastPanelType;
         var height = (_state$weekViewLayout = (_state$weekViewLayout2 = state.weekViewLayout.dayGridRows) === null || _state$weekViewLayout2 === void 0 ? void 0 : (_state$weekViewLayout3 = _state$weekViewLayout2[rowName]) === null || _state$weekViewLayout3 === void 0 ? void 0 : _state$weekViewLayout3.height) !== null && _state$weekViewLayout !== void 0 ? _state$weekViewLayout : DEFAULT_PANEL_HEIGHT;
         state.weekViewLayout.dayGridRows[rowName] = {
           height: height + diff
         };
-
         if (lastPanelType) {
           state.weekViewLayout.dayGridRows[lastPanelType].height = getRestPanelHeight(state.weekViewLayout.dayGridRows, lastPanelType, state.layout);
         }
@@ -14830,11 +14867,19 @@ function getDayNames(days, weekDayNamesOption) {
   });
 }
 ;// CONCATENATED MODULE: ./src/slices/options.ts
+function options_typeof(obj) { "@babel/helpers - typeof"; return options_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, options_typeof(obj); }
 function options_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function options_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? options_ownKeys(Object(source), !0).forEach(function (key) { options_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : options_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function options_defineProperty(obj, key, value) { key = options_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function options_toPropertyKey(arg) { var key = options_toPrimitive(arg, "string"); return options_typeof(key) === "symbol" ? key : String(key); }
+function options_toPrimitive(input, hint) { if (options_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (options_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function options_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+
+
 
 
 
@@ -14856,7 +14901,6 @@ function initializeCollapseDuplicateEvents(options) {
   if (!options) {
     return false;
   }
-
   var initialCollapseDuplicateEvents = {
     getDuplicateEvents: function getDuplicateEvents(targetEvent, events) {
       return events.filter(function (event) {
@@ -14869,17 +14913,13 @@ function initializeCollapseDuplicateEvents(options) {
       return last(events);
     }
   };
-
   if (isBoolean_default()(options)) {
     return initialCollapseDuplicateEvents;
   }
-
   return options_objectSpread(options_objectSpread({}, initialCollapseDuplicateEvents), options);
 }
-
 function initializeWeekOptions() {
   var weekOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
   var week = options_objectSpread({
     startDayOfWeek: Day.SUN,
     dayNames: [],
@@ -14894,21 +14934,17 @@ function initializeWeekOptions() {
     taskView: true,
     collapseDuplicateEvents: false
   }, weekOptions);
-
   week.collapseDuplicateEvents = initializeCollapseDuplicateEvents(week.collapseDuplicateEvents);
   return week;
 }
-
 function initializeTimezoneOptions() {
   var timezoneOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return options_objectSpread({
     zones: []
   }, timezoneOptions);
 }
-
 function initializeMonthOptions() {
   var monthOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
   var month = options_objectSpread({
     dayNames: [],
     visibleWeeksCount: 0,
@@ -14918,14 +14954,11 @@ function initializeMonthOptions() {
     isAlways6Weeks: true,
     visibleEventCount: 6
   }, monthOptions);
-
   if (month.dayNames.length === 0) {
     month.dayNames = DEFAULT_DAY_NAMES.slice();
   }
-
   return month;
 }
-
 function initializeGridSelectionOptions(options) {
   if (isBoolean_default()(options)) {
     return {
@@ -14933,24 +14966,21 @@ function initializeGridSelectionOptions(options) {
       enableClick: options
     };
   }
-
   return options_objectSpread({
     enableDblClick: true,
     enableClick: true
   }, options);
 }
-
 var initialEventFilter = function initialEventFilter(event) {
   return !!event.isVisible;
-}; // TODO: some of options has default values. so it should be `Required` type.
+};
+
+// TODO: some of options has default values. so it should be `Required` type.
 // But it needs a complex type such as `DeepRequired`.
 // maybe leveraging library like `ts-essential` might be helpful.
-
-
 // eslint-disable-next-line complexity
 function createOptionsSlice() {
   var _options$defaultView, _options$useFormPopup, _options$useDetailPop, _options$isReadOnly, _options$usageStatist, _options$eventFilter;
-
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return {
     options: {
@@ -14974,35 +15004,42 @@ function createOptionsDispatchers(set) {
       var newOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       return set((0,immer_esm/* default */.ZP)(function (state) {
         var _newOptions$week;
-
         if (newOptions.gridSelection) {
           newOptions.gridSelection = initializeGridSelectionOptions(newOptions.gridSelection);
         }
-
         if ((_newOptions$week = newOptions.week) !== null && _newOptions$week !== void 0 && _newOptions$week.collapseDuplicateEvents) {
           newOptions.week.collapseDuplicateEvents = initializeCollapseDuplicateEvents(newOptions.week.collapseDuplicateEvents);
         }
-
         mergeObject(state.options, newOptions);
       }));
     }
   };
 }
 ;// CONCATENATED MODULE: ./src/slices/popup.ts
-function popup_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
-var PopupType;
 
-(function (PopupType) {
+
+
+
+
+
+
+
+
+function popup_typeof(obj) { "@babel/helpers - typeof"; return popup_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, popup_typeof(obj); }
+function popup_defineProperty(obj, key, value) { key = popup_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function popup_toPropertyKey(arg) { var key = popup_toPrimitive(arg, "string"); return popup_typeof(key) === "symbol" ? key : String(key); }
+function popup_toPrimitive(input, hint) { if (popup_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (popup_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
+var PopupType = /*#__PURE__*/function (PopupType) {
   PopupType["SeeMore"] = "seeMore";
   PopupType["Form"] = "form";
   PopupType["Detail"] = "detail";
-})(PopupType || (PopupType = {}));
-
+  return PopupType;
+}({});
 function createPopupSlice() {
   var _popup;
-
   return {
     popup: (_popup = {}, popup_defineProperty(_popup, PopupType.SeeMore, null), popup_defineProperty(_popup, PopupType.Form, null), popup_defineProperty(_popup, PopupType.Detail, null), _popup)
   };
@@ -15027,7 +15064,6 @@ function createPopupDispatchers(set) {
       return set((0,immer_esm/* default */.ZP)(function (state) {
         state.popup[PopupType.Detail] = param;
         state.popup[PopupType.Form] = null;
-
         if (!isOpenedInSeeMorePopup) {
           state.popup[PopupType.SeeMore] = null;
         }
@@ -15058,7 +15094,8 @@ function createPopupDispatchers(set) {
   };
 }
 ;// CONCATENATED MODULE: ./src/utils/noop.ts
-var noop = function noop() {// do nothing
+var noop = function noop() {
+  // do nothing
 };
 ;// CONCATENATED MODULE: ./src/utils/dom.ts
 
@@ -15071,61 +15108,50 @@ var noop = function noop() {// do nothing
 
 
 var CSS_AUTO_REGEX = /^auto$|^$|%/;
-
 function getStyle(el, style) {
   var value = el.style[style];
-
   if ((!value || value === 'auto') && document.defaultView) {
     var css = document.defaultView.getComputedStyle(el, null);
     value = css ? css[style] : null;
   }
-
   return value === 'auto' ? null : value;
-} // eslint-disable-next-line complexity
+}
 
-
+// eslint-disable-next-line complexity
 function getPosition(el) {
   if ((CSS_AUTO_REGEX.test(el.style.left || '') || CSS_AUTO_REGEX.test(el.style.top || '')) && 'getBoundingClientRect' in el) {
     // When the element's left or top is 'auto'
     var _el$getBoundingClient = el.getBoundingClientRect(),
-        left = _el$getBoundingClient.left,
-        top = _el$getBoundingClient.top;
-
+      left = _el$getBoundingClient.left,
+      top = _el$getBoundingClient.top;
     return {
       x: left,
       y: top
     };
   }
-
   return {
     x: parseFloat(el.style.left || String(0)),
     y: parseFloat(el.style.top || String(0))
   };
 }
-
 function invalidateSizeValue(value) {
   if (isString_default()(value)) {
     return CSS_AUTO_REGEX.test(value);
   }
-
   return value === null;
 }
-
 function getSize(el) {
   var w = getStyle(el, 'width');
   var h = getStyle(el, 'height');
-
   if ((invalidateSizeValue(w) || invalidateSizeValue(h)) && el.getBoundingClientRect) {
     var _el$getBoundingClient2 = el.getBoundingClientRect(),
-        width = _el$getBoundingClient2.width,
-        height = _el$getBoundingClient2.height;
-
+      width = _el$getBoundingClient2.width,
+      height = _el$getBoundingClient2.height;
     return {
       width: width || el.offsetWidth,
       height: height || el.offsetHeight
     };
   }
-
   return {
     width: parseFloat(w !== null && w !== void 0 ? w : '0'),
     height: parseFloat(h !== null && h !== void 0 ? h : '0')
@@ -15135,35 +15161,29 @@ function isOverlapped(el1, el2) {
   var r1 = el1.getBoundingClientRect();
   var r2 = el2.getBoundingClientRect();
   return !(r1.top > r2.bottom || r1.right < r2.left || r1.bottom < r2.top || r1.left > r2.right);
-} // for ssr
-// eslint-disable-next-line @typescript-eslint/no-empty-function
+}
 
+// for ssr
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 var ElementClass = typeof Element === 'undefined' ? noop : Element;
 var elProto = ElementClass.prototype;
-
 var matchSelector = elProto.matches || elProto.webkitMatchesSelector || elProto.msMatchesSelector || function (selector) {
   return Array.from(document.querySelectorAll(selector)).includes(this);
 };
-
 function matches(element, selector) {
   return matchSelector.call(element, selector);
 }
-
 function closest(element, selector) {
   if (matches(element, selector)) {
     return element;
   }
-
   var parent = element.parentNode;
-
   while (parent && parent !== document) {
     if (matches(parent, selector)) {
       return parent;
     }
-
     parent = parent.parentNode;
   }
-
   return null;
 }
 function stripTags(str) {
@@ -15179,22 +15199,20 @@ function stripTags(str) {
 
 
 
-
-
 var SIXTY_MINUTES = 60;
 var templates = {
   milestone: function milestone(model) {
     var classNames = cls('icon', 'ic-milestone');
-    return h(p, null, h("span", {
+    return y(preact_module_, null, y("span", {
       className: classNames
-    }), h("span", {
+    }), y("span", {
       style: {
         background: model.backgroundColor
       }
     }, stripTags(model.title)));
   },
   milestoneTitle: function milestoneTitle() {
-    return h("span", {
+    return y("span", {
       className: cls('left-content')
     }, "Milestone");
   },
@@ -15202,12 +15220,12 @@ var templates = {
     return "#".concat(model.title);
   },
   taskTitle: function taskTitle() {
-    return h("span", {
+    return y("span", {
       className: cls('left-content')
     }, "Task");
   },
   alldayTitle: function alldayTitle() {
-    return h("span", {
+    return y("span", {
       className: cls('left-content')
     }, "All Day");
   },
@@ -15216,12 +15234,10 @@ var templates = {
   },
   time: function time(model) {
     var start = model.start,
-        title = model.title;
-
+      title = model.title;
     if (start) {
-      return h("span", null, h("strong", null, datetime_toFormat(start, 'HH:mm')), "\xA0", h("span", null, stripTags(title)));
+      return y("span", null, y("strong", null, datetime_toFormat(start, 'HH:mm')), "\xA0", y("span", null, stripTags(title)));
     }
-
     return stripTags(title);
   },
   goingDuration: function goingDuration(model) {
@@ -15238,13 +15254,13 @@ var templates = {
   },
   monthMoreTitleDate: function monthMoreTitleDate(moreTitle) {
     var date = moreTitle.date,
-        day = moreTitle.day;
+      day = moreTitle.day;
     var classNameDay = cls('more-title-date');
     var classNameDayLabel = cls('more-title-day');
     var dayName = capitalize(getDayName(day));
-    return h(p, null, h("span", {
+    return y(preact_module_, null, y("span", {
       className: classNameDay
-    }, date), h("span", {
+    }, date), y("span", {
       className: classNameDayLabel
     }, dayName));
   },
@@ -15256,13 +15272,13 @@ var templates = {
     var classNames = cls('weekday-grid-date', {
       'weekday-grid-date-decorator': model.isToday
     });
-    return h("span", {
+    return y("span", {
       className: classNames
     }, date);
   },
   monthGridHeaderExceed: function monthGridHeaderExceed(hiddenEvents) {
     var className = cls('weekday-grid-more-events');
-    return h("span", {
+    return y("span", {
       className: className
     }, hiddenEvents, " more");
   },
@@ -15278,9 +15294,9 @@ var templates = {
   weekDayName: function weekDayName(model) {
     var classDate = cls('day-name__date');
     var className = cls('day-name__name');
-    return h(p, null, h("span", {
+    return y(preact_module_, null, y("span", {
       className: classDate
-    }, model.date), "\xA0\xA0", h("span", {
+    }, model.date), "\xA0\xA0", y("span", {
       className: className
     }, model.dayName));
   },
@@ -15289,21 +15305,19 @@ var templates = {
   },
   collapseBtnTitle: function collapseBtnTitle() {
     var className = cls('collapse-btn-icon');
-    return h("span", {
+    return y("span", {
       className: className
     });
   },
   timezoneDisplayLabel: function timezoneDisplayLabel(_ref) {
     var displayLabel = _ref.displayLabel,
-        timezoneOffset = _ref.timezoneOffset;
-
+      timezoneOffset = _ref.timezoneOffset;
     if (type_isNil(displayLabel) && isPresent(timezoneOffset)) {
       var sign = timezoneOffset < 0 ? '-' : '+';
       var hours = Math.abs(timezoneOffset / SIXTY_MINUTES);
       var minutes = Math.abs(timezoneOffset % SIXTY_MINUTES);
       return "GMT".concat(sign).concat(leadingZero(hours, 2), ":").concat(leadingZero(minutes, 2));
     }
-
     return displayLabel;
   },
   timegridDisplayPrimaryTime: function timegridDisplayPrimaryTime(props) {
@@ -15316,8 +15330,8 @@ var templates = {
   },
   timegridNowIndicatorLabel: function timegridNowIndicatorLabel(timezone) {
     var time = timezone.time,
-        _timezone$format = timezone.format,
-        format = _timezone$format === void 0 ? 'HH:mm' : _timezone$format;
+      _timezone$format = timezone.format,
+      format = _timezone$format === void 0 ? 'HH:mm' : _timezone$format;
     return datetime_toFormat(time, format);
   },
   popupIsAllday: function popupIsAllday() {
@@ -15359,18 +15373,16 @@ var templates = {
   },
   popupDetailDate: function popupDetailDate(_ref3) {
     var isAllday = _ref3.isAllday,
-        start = _ref3.start,
-        end = _ref3.end;
-    var dayFormat = 'YYYY.MM.DD';
+      start = _ref3.start,
+      end = _ref3.end;
+    var dayFormat = 'DD-MM-YYYY';
     var timeFormat = 'hh:mm tt';
     var detailFormat = "".concat(dayFormat, " ").concat(timeFormat);
     var startDate = datetime_toFormat(start, isAllday ? dayFormat : timeFormat);
     var endDateFormat = isSameDate(start, end) ? timeFormat : detailFormat;
-
     if (isAllday) {
       return "".concat(startDate).concat(isSameDate(start, end) ? '' : " - ".concat(datetime_toFormat(end, dayFormat)));
     }
-
     return "".concat(datetime_toFormat(start, detailFormat), " - ").concat(datetime_toFormat(end, endDateFormat));
   },
   popupDetailLocation: function popupDetailLocation(_ref4) {
@@ -15379,7 +15391,7 @@ var templates = {
   },
   popupDetailAttendees: function popupDetailAttendees(_ref5) {
     var _ref5$attendees = _ref5.attendees,
-        attendees = _ref5$attendees === void 0 ? [] : _ref5$attendees;
+      attendees = _ref5$attendees === void 0 ? [] : _ref5$attendees;
     return attendees.join(', ');
   },
   popupDetailState: function popupDetailState(_ref6) {
@@ -15404,12 +15416,20 @@ var templates = {
 
 
 
+
+
+
+
+
+
+
+
+function template_typeof(obj) { "@babel/helpers - typeof"; return template_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, template_typeof(obj); }
 function template_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function template_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? template_ownKeys(Object(source), !0).forEach(function (key) { template_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : template_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function template_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function template_defineProperty(obj, key, value) { key = template_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function template_toPropertyKey(arg) { var key = template_toPrimitive(arg, "string"); return template_typeof(key) === "symbol" ? key : String(key); }
+function template_toPrimitive(input, hint) { if (template_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (template_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 function createTemplateSlice() {
@@ -15460,18 +15480,11 @@ function createViewDispatchers(set) {
 var es_object_is = __webpack_require__(9170);
 ;// CONCATENATED MODULE: ./src/store/index.ts
 function store_slicedToArray(arr, i) { return store_arrayWithHoles(arr) || store_iterableToArrayLimit(arr, i) || store_unsupportedIterableToArray(arr, i) || store_nonIterableRest(); }
-
 function store_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function store_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return store_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return store_arrayLikeToArray(o, minLen); }
-
-function store_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function store_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function store_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function store_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function store_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -15494,75 +15507,67 @@ function store_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
  *
  * See more: https://github.com/pmndrs/zustand
  */
-var isSSR = isUndefined_default()(window) || !window.navigator;
-var useIsomorphicLayoutEffect = isSSR ? hooks_module_ : hooks_module_h;
-function createStoreContext() {
-  var StoreContext = B(null);
 
+var isSSR = isUndefined_default()(window) || !window.navigator;
+var useIsomorphicLayoutEffect = isSSR ? hooks_module_p : hooks_module_y;
+function createStoreContext() {
+  var StoreContext = F(null);
   function StoreProvider(_ref) {
     var children = _ref.children,
-        store = _ref.store;
-    return h(StoreContext.Provider, {
+      store = _ref.store;
+    return y(StoreContext.Provider, {
       value: store,
       children: children
     });
   }
-
   var useStore = function useStore(selector) {
     var equalityFn = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Object.is;
     var storeCtx = hooks_module_q(StoreContext);
-
     if (type_isNil(storeCtx)) {
       throw new Error('StoreProvider is not found');
-    } // a little trick to invoke re-render to notify hook consumers(usually components)
+    }
 
-
-    var _ref2 = hooks_module_d(function (notifyCount) {
-      return notifyCount + 1;
-    }, 0),
-        _ref3 = store_slicedToArray(_ref2, 2),
-        notify = _ref3[1];
-
+    // a little trick to invoke re-render to notify hook consumers(usually components)
+    var _ref2 = hooks_module_s(function (notifyCount) {
+        return notifyCount + 1;
+      }, 0),
+      _ref3 = store_slicedToArray(_ref2, 2),
+      notify = _ref3[1];
     var state = storeCtx.getState();
-    var stateRef = hooks_module_s(state);
-    var selectorRef = hooks_module_s(selector);
-    var equalityFnRef = hooks_module_s(equalityFn);
-    var hasErrorRef = hooks_module_s(false); // `null` can be a valid state slice.
-
-    var currentSliceRef = hooks_module_s();
-
+    var stateRef = _(state);
+    var selectorRef = _(selector);
+    var equalityFnRef = _(equalityFn);
+    var hasErrorRef = _(false);
+    // `null` can be a valid state slice.
+    var currentSliceRef = _();
     if (isUndefined_default()(currentSliceRef.current)) {
       currentSliceRef.current = selector(state);
     }
-
     var newStateSlice;
     var hasNewStateSlice = false;
     var shouldGetNewSlice = stateRef.current !== state || selectorRef.current !== selector || equalityFnRef.current !== equalityFn || hasErrorRef.current;
-
     if (shouldGetNewSlice) {
       newStateSlice = selector(state);
       hasNewStateSlice = !equalityFn(currentSliceRef.current, newStateSlice);
     }
-
     useIsomorphicLayoutEffect(function () {
       if (hasNewStateSlice) {
         currentSliceRef.current = newStateSlice;
       }
-
       stateRef.current = state;
       selectorRef.current = selector;
       equalityFnRef.current = equalityFn;
       hasErrorRef.current = false;
-    }); // NOTE: There is edge case that state is changed before subscription
+    });
 
-    var stateBeforeSubscriptionRef = hooks_module_s(state);
+    // NOTE: There is edge case that state is changed before subscription
+    var stateBeforeSubscriptionRef = _(state);
     useIsomorphicLayoutEffect(function () {
       var listener = function listener() {
         try {
           var nextState = storeCtx.getState();
           var nextStateSlice = selectorRef.current(nextState);
           var shouldUpdateState = !equalityFnRef.current(currentSliceRef.current, nextStateSlice);
-
           if (shouldUpdateState) {
             stateRef.current = nextState;
             currentSliceRef.current = newStateSlice;
@@ -15576,35 +15581,28 @@ function createStoreContext() {
           notify();
         }
       };
-
       var unsubscribe = storeCtx.subscribe(listener);
-
       if (storeCtx.getState() !== stateBeforeSubscriptionRef.current) {
         listener();
       }
-
       return unsubscribe;
     }, []);
     return hasNewStateSlice ? newStateSlice : currentSliceRef.current;
   };
+
   /**
    * For handling often occurring state changes (Transient updates)
    * See more: https://github.com/pmndrs/zustand/blob/master/readme.md#transient-updates-for-often-occuring-state-changes
    */
-
-
   var useInternalStore = function useInternalStore() {
     var storeCtx = hooks_module_q(StoreContext);
-
     if (type_isNil(storeCtx)) {
       throw new Error('StoreProvider is not found');
     }
-
-    return F(function () {
+    return hooks_module_F(function () {
       return storeCtx;
     }, [storeCtx]);
   };
-
   return {
     StoreProvider: StoreProvider,
     useStore: useStore,
@@ -15614,11 +15612,17 @@ function createStoreContext() {
 // EXTERNAL MODULE: ../../node_modules/core-js/modules/es.set.js
 var es_set = __webpack_require__(3244);
 ;// CONCATENATED MODULE: ./src/store/internal.ts
+function internal_typeof(obj) { "@babel/helpers - typeof"; return internal_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, internal_typeof(obj); }
 function internal_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function internal_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? internal_ownKeys(Object(source), !0).forEach(function (key) { internal_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : internal_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function internal_defineProperty(obj, key, value) { key = internal_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function internal_toPropertyKey(arg) { var key = internal_toPrimitive(arg, "string"); return internal_typeof(key) === "symbol" ? key : String(key); }
+function internal_toPrimitive(input, hint) { if (internal_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (internal_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function internal_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
 
 
 
@@ -15635,10 +15639,8 @@ function internal_defineProperty(obj, key, value) { if (key in obj) { Object.def
 function createStore(storeCreator) {
   var state;
   var listeners = new Set();
-
   var setState = function setState(partialStateCreator) {
     var nextState = partialStateCreator(state);
-
     if (nextState !== state) {
       var previousState = state;
       state = internal_objectSpread(internal_objectSpread({}, state), nextState);
@@ -15647,22 +15649,16 @@ function createStore(storeCreator) {
       });
     }
   };
-
   var getState = function getState() {
     return state;
   };
-
   var subscribe = function subscribe(listener, selector, equalityFn) {
     var _listener = listener;
-
     if (selector) {
       var currentSlice = selector(state);
-
       var _equalityFn = equalityFn !== null && equalityFn !== void 0 ? equalityFn : Object.is;
-
       _listener = function _listener() {
         var nextSlice = selector(state);
-
         if (!_equalityFn(currentSlice, nextSlice)) {
           var previousSlice = currentSlice;
           currentSlice = nextSlice;
@@ -15670,18 +15666,16 @@ function createStore(storeCreator) {
         }
       };
     }
+    listeners.add(_listener);
 
-    listeners.add(_listener); // eslint-disable-next-line dot-notation
-
+    // eslint-disable-next-line dot-notation
     return function () {
       return listeners.delete(_listener);
     };
   };
-
   var clearListeners = function clearListeners() {
     return listeners.clear();
   };
-
   var internal = {
     setState: setState,
     getState: getState,
@@ -15700,13 +15694,20 @@ function createStore(storeCreator) {
 
 
 
+
+
+
+
+
+
+
+
+function calendarStore_typeof(obj) { "@babel/helpers - typeof"; return calendarStore_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, calendarStore_typeof(obj); }
 function calendarStore_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function calendarStore_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? calendarStore_ownKeys(Object(source), !0).forEach(function (key) { calendarStore_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : calendarStore_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function calendarStore_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
+function calendarStore_defineProperty(obj, key, value) { key = calendarStore_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function calendarStore_toPropertyKey(arg) { var key = calendarStore_toPrimitive(arg, "string"); return calendarStore_typeof(key) === "symbol" ? key : String(key); }
+function calendarStore_toPrimitive(input, hint) { if (calendarStore_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (calendarStore_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
@@ -15734,24 +15735,20 @@ var storeCreator = function storeCreator(options) {
     });
   };
 };
-
 var initCalendarStore = function initCalendarStore() {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return createStore(storeCreator(options));
 };
-
 var _createStoreContext = createStoreContext(),
-    StoreProvider = _createStoreContext.StoreProvider,
-    useStore = _createStoreContext.useStore,
-    useInternalStore = _createStoreContext.useInternalStore;
-
+  StoreProvider = _createStoreContext.StoreProvider,
+  useStore = _createStoreContext.useStore,
+  useInternalStore = _createStoreContext.useInternalStore;
 
 function useDispatch(group) {
   return useStore(hooks_module_T(function (state) {
     if (!group) {
       return state.dispatch;
     }
-
     return state.dispatch[group];
   }, [group]));
 }
@@ -15772,20 +15769,20 @@ var dndSelector = topLevelStateSelector('dnd');
 var browser = __webpack_require__(4304);
 var browser_default = /*#__PURE__*/__webpack_require__.n(browser);
 ;// CONCATENATED MODULE: ./src/utils/sanitizer.ts
- // For temporarily saving original target value
 
+
+// For temporarily saving original target value
 var TEMP_TARGET_ATTRIBUTE = 'data-target-temp';
+
 /**
  * Add DOMPurify hook to handling exceptional rules for certain HTML attributes.
  * Should be set when the calendar instance is created.
  */
-
 function addAttributeHooks() {
   browser_default().addHook('beforeSanitizeAttributes', function (node) {
     // Preserve default target attribute value
     if (node.tagName === 'A') {
       var targetValue = node.getAttribute('target');
-
       if (targetValue) {
         node.setAttribute(TEMP_TARGET_ATTRIBUTE, targetValue);
       } else {
@@ -15793,29 +15790,30 @@ function addAttributeHooks() {
       }
     }
   });
+
   browser_default().addHook('afterSanitizeAttributes', function (node) {
     if (node.tagName === 'A' && node.hasAttribute(TEMP_TARGET_ATTRIBUTE)) {
       node.setAttribute('target', node.getAttribute(TEMP_TARGET_ATTRIBUTE));
-      node.removeAttribute(TEMP_TARGET_ATTRIBUTE); // Additionally set `rel="noopener"` to prevent another security issue.
-
+      node.removeAttribute(TEMP_TARGET_ATTRIBUTE);
+      // Additionally set `rel="noopener"` to prevent another security issue.
       if (node.getAttribute('target') === '_blank') {
         node.setAttribute('rel', 'noopener');
       }
     }
   });
 }
+
 /**
  * Remove all attribute sanitizing hooks.
  * Use it in `Calendar#destroy`.
  */
-
 function removeAttributeHooks() {
   browser_default().removeAllHooks();
 }
+
 /**
  * Prevent XSS attack by sanitizing input string values via DOMPurify
  */
-
 function sanitize(str) {
   return browser_default().sanitize(str);
 }
@@ -15829,25 +15827,22 @@ function sanitize(str) {
 
 function Template(_ref) {
   var _htmlOrVnode$props$cl;
-
   var template = _ref.template,
-      param = _ref.param,
-      _ref$as = _ref.as,
-      tagName = _ref$as === void 0 ? 'div' : _ref$as;
+    param = _ref.param,
+    _ref$as = _ref.as,
+    tagName = _ref$as === void 0 ? 'div' : _ref$as;
   var templates = useStore(templateSelector);
   var templateFunc = templates[template];
-
   if (type_isNil(templateFunc)) {
     return null;
   }
-
   var htmlOrVnode = templateFunc(param);
-  return isString_default()(htmlOrVnode) ? h(tagName, {
+  return isString_default()(htmlOrVnode) ? y(tagName, {
     className: cls("template-".concat(template)),
     dangerouslySetInnerHTML: {
       __html: sanitize(htmlOrVnode)
     }
-  }) : q(htmlOrVnode, {
+  }) : E(htmlOrVnode, {
     className: "".concat((_htmlOrVnode$props$cl = htmlOrVnode.props.className) !== null && _htmlOrVnode$props$cl !== void 0 ? _htmlOrVnode$props$cl : '', " ").concat(cls("template-".concat(template)))
   });
 }
@@ -15855,31 +15850,26 @@ function Template(_ref) {
 
 
 
-var EventBusContext = B(null);
+var EventBusContext = F(null);
 var EventBusProvider = EventBusContext.Provider;
 var useEventBus = function useEventBus() {
   var eventBus = hooks_module_q(EventBusContext);
-
   if (!eventBus) {
     throw new Error('useEventBus must be used within a EventBusProvider');
   }
-
   return eventBus;
 };
 ;// CONCATENATED MODULE: ./src/selectors/timezone.ts
 var primaryTimezoneSelector = function primaryTimezoneSelector(state) {
   var _state$options$timezo, _state$options, _state$options$timezo2, _state$options$timezo3, _state$options$timezo4;
-
   return (_state$options$timezo = (_state$options = state.options) === null || _state$options === void 0 ? void 0 : (_state$options$timezo2 = _state$options.timezone) === null || _state$options$timezo2 === void 0 ? void 0 : (_state$options$timezo3 = _state$options$timezo2.zones) === null || _state$options$timezo3 === void 0 ? void 0 : (_state$options$timezo4 = _state$options$timezo3[0]) === null || _state$options$timezo4 === void 0 ? void 0 : _state$options$timezo4.timezoneName) !== null && _state$options$timezo !== void 0 ? _state$options$timezo : 'Local';
 };
 var customOffsetCalculatorSelector = function customOffsetCalculatorSelector(state) {
   var _state$options2, _state$options2$timez;
-
   return (_state$options2 = state.options) === null || _state$options2 === void 0 ? void 0 : (_state$options2$timez = _state$options2.timezone) === null || _state$options2$timez === void 0 ? void 0 : _state$options2$timez.customOffsetCalculator;
 };
 var timezonesSelector = function timezonesSelector(state) {
   var _state$options$timezo5;
-
   return (_state$options$timezo5 = state.options.timezone.zones) !== null && _state$options$timezo5 !== void 0 ? _state$options$timezo5 : [];
 };
 ;// CONCATENATED MODULE: ./src/hooks/timezone/useTZConverter.ts
@@ -15910,6 +15900,7 @@ function usePrimaryTimezone() {
   return [primaryTimezoneName, getNow];
 }
 ;// CONCATENATED MODULE: ./src/components/dayGridCommon/dayName.tsx
+function dayName_typeof(obj) { "@babel/helpers - typeof"; return dayName_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, dayName_typeof(obj); }
 
 
 
@@ -15925,21 +15916,17 @@ function usePrimaryTimezone() {
 
 
 
-function dayName_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+
+function dayName_defineProperty(obj, key, value) { key = dayName_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function dayName_toPropertyKey(arg) { var key = dayName_toPrimitive(arg, "string"); return dayName_typeof(key) === "symbol" ? key : String(key); }
+function dayName_toPrimitive(input, hint) { if (dayName_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (dayName_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function dayName_slicedToArray(arr, i) { return dayName_arrayWithHoles(arr) || dayName_iterableToArrayLimit(arr, i) || dayName_unsupportedIterableToArray(arr, i) || dayName_nonIterableRest(); }
-
 function dayName_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function dayName_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return dayName_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return dayName_arrayLikeToArray(o, minLen); }
-
-function dayName_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function dayName_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function dayName_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function dayName_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function dayName_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -15950,66 +15937,51 @@ function dayName_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 function isWeekDayName(type, dayName) {
   return type === 'week';
 }
-
 function getWeekDayNameColor(_ref) {
   var dayName = _ref.dayName,
-      theme = _ref.theme,
-      today = _ref.today;
+    theme = _ref.theme,
+    today = _ref.today;
   var day = dayName.day,
-      dateInstance = dayName.dateInstance;
+    dateInstance = dayName.dateInstance;
   var isToday = isSameDate(today, dateInstance);
   var isPastDay = !isToday && dateInstance < today;
-
   if (isSunday(day)) {
     return theme.common.holiday.color;
   }
-
   if (isPastDay) {
     var _theme$week;
-
     return (_theme$week = theme.week) === null || _theme$week === void 0 ? void 0 : _theme$week.pastDay.color;
   }
-
   if (isSaturday(day)) {
     return theme.common.saturday.color;
   }
-
   if (isToday) {
     var _theme$week2;
-
     return (_theme$week2 = theme.week) === null || _theme$week2 === void 0 ? void 0 : _theme$week2.today.color;
   }
-
   return theme.common.dayName.color;
 }
-
 function getMonthDayNameColor(_ref2) {
   var dayName = _ref2.dayName,
-      theme = _ref2.theme;
+    theme = _ref2.theme;
   var day = dayName.day;
-
   if (isSunday(day)) {
     return theme.common.holiday.color;
   }
-
   if (isSaturday(day)) {
     return theme.common.saturday.color;
   }
-
   return theme.common.dayName.color;
 }
-
 function DayName(_ref3) {
   var dayName = _ref3.dayName,
-      style = _ref3.style,
-      type = _ref3.type,
-      theme = _ref3.theme;
+    style = _ref3.style,
+    type = _ref3.type,
+    theme = _ref3.theme;
   var eventBus = useEventBus();
-
   var _usePrimaryTimezone = usePrimaryTimezone(),
-      _usePrimaryTimezone2 = dayName_slicedToArray(_usePrimaryTimezone, 2),
-      getNow = _usePrimaryTimezone2[1];
-
+    _usePrimaryTimezone2 = dayName_slicedToArray(_usePrimaryTimezone, 2),
+    getNow = _usePrimaryTimezone2[1];
   var today = getNow();
   var day = dayName.day;
   var color = type === 'week' ? getWeekDayNameColor({
@@ -16021,7 +15993,6 @@ function DayName(_ref3) {
     theme: theme
   });
   var templateType = "".concat(type, "DayName");
-
   var handleClick = function handleClick() {
     if (isWeekDayName(type, dayName)) {
       eventBus.fire('clickDayName', {
@@ -16029,24 +16000,22 @@ function DayName(_ref3) {
       });
     }
   };
-
-  return h("div", {
+  return y("div", {
     className: cls('day-name-item', type),
     style: style
-  }, h("span", {
+  }, y("span", {
     className: cls(dayName_defineProperty({}, "holiday-".concat(getDayName(day)), isWeekend(day))),
     style: {
       color: color
     },
     onClick: handleClick,
     "data-testid": "dayName-".concat(type, "-").concat(getDayName(day))
-  }, h(Template, {
+  }, y(Template, {
     template: templateType,
     param: dayName
   })));
 }
 ;// CONCATENATED MODULE: ./src/selectors/theme.ts
-
 
 /**
  * Selectors for the theme state.
@@ -16253,13 +16222,20 @@ function createWeekTheme() {
 
 
 
+
+
+
+
+
+
+
+
+function themeStore_typeof(obj) { "@babel/helpers - typeof"; return themeStore_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, themeStore_typeof(obj); }
 function themeStore_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function themeStore_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? themeStore_ownKeys(Object(source), !0).forEach(function (key) { themeStore_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : themeStore_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function themeStore_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
+function themeStore_defineProperty(obj, key, value) { key = themeStore_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function themeStore_toPropertyKey(arg) { var key = themeStore_toPrimitive(arg, "string"); return themeStore_typeof(key) === "symbol" ? key : String(key); }
+function themeStore_toPrimitive(input, hint) { if (themeStore_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (themeStore_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
@@ -16276,17 +16252,14 @@ var themeStoreCreator = function themeStoreCreator() {
     });
   };
 };
-
 var initThemeStore = function initThemeStore() {
   var themeOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return createStore(themeStoreCreator(themeOptions));
 };
-
 var themeStore_createStoreContext = createStoreContext(),
-    ThemeProvider = themeStore_createStoreContext.StoreProvider,
-    useInternalThemeStore = themeStore_createStoreContext.useInternalStore,
-    useTheme = themeStore_createStoreContext.useStore;
-
+  ThemeProvider = themeStore_createStoreContext.StoreProvider,
+  useInternalThemeStore = themeStore_createStoreContext.useInternalStore,
+  useTheme = themeStore_createStoreContext.useStore;
 
 function useThemeDispatch() {
   return useTheme(useCallback(function (state) {
@@ -16305,8 +16278,8 @@ function useMonthTheme() {
 function useAllTheme() {
   return useTheme(useCallback(function (_ref) {
     var common = _ref.common,
-        week = _ref.week,
-        month = _ref.month;
+      week = _ref.week,
+      month = _ref.month;
     return {
       common: common,
       week: week,
@@ -16319,12 +16292,8 @@ function useAllTheme() {
 
 var _excluded = ["backgroundColor", "borderLeft"];
 
-
 function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
-
 function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
-
-
 
 
 
@@ -16345,7 +16314,6 @@ function weekDayNameSelector(theme) {
     }
   };
 }
-
 function monthDayNameSelector(theme) {
   return {
     common: {
@@ -16359,31 +16327,27 @@ function monthDayNameSelector(theme) {
     }
   };
 }
-
 function GridHeader(_ref) {
   var _theme$type$dayName, _theme$type;
-
   var dayNames = _ref.dayNames,
-      _ref$marginLeft = _ref.marginLeft,
-      marginLeft = _ref$marginLeft === void 0 ? DEFAULT_DAY_NAME_MARGIN_LEFT : _ref$marginLeft,
-      rowStyleInfo = _ref.rowStyleInfo,
-      _ref$type = _ref.type,
-      type = _ref$type === void 0 ? 'month' : _ref$type;
+    _ref$marginLeft = _ref.marginLeft,
+    marginLeft = _ref$marginLeft === void 0 ? DEFAULT_DAY_NAME_MARGIN_LEFT : _ref$marginLeft,
+    rowStyleInfo = _ref.rowStyleInfo,
+    _ref$type = _ref.type,
+    type = _ref$type === void 0 ? 'month' : _ref$type;
   var theme = useTheme(type === 'month' ? monthDayNameSelector : weekDayNameSelector);
-
   var _ref2 = (_theme$type$dayName = (_theme$type = theme[type]) === null || _theme$type === void 0 ? void 0 : _theme$type.dayName) !== null && _theme$type$dayName !== void 0 ? _theme$type$dayName : {},
-      _ref2$backgroundColor = _ref2.backgroundColor,
-      backgroundColor = _ref2$backgroundColor === void 0 ? 'white' : _ref2$backgroundColor,
-      _ref2$borderLeft = _ref2.borderLeft,
-      borderLeft = _ref2$borderLeft === void 0 ? null : _ref2$borderLeft,
-      rest = _objectWithoutProperties(_ref2, _excluded);
-
+    _ref2$backgroundColor = _ref2.backgroundColor,
+    backgroundColor = _ref2$backgroundColor === void 0 ? 'white' : _ref2$backgroundColor,
+    _ref2$borderLeft = _ref2.borderLeft,
+    borderLeft = _ref2$borderLeft === void 0 ? null : _ref2$borderLeft,
+    rest = _objectWithoutProperties(_ref2, _excluded);
   var _ref3 = rest,
-      _ref3$borderTop = _ref3.borderTop,
-      borderTop = _ref3$borderTop === void 0 ? null : _ref3$borderTop,
-      _ref3$borderBottom = _ref3.borderBottom,
-      borderBottom = _ref3$borderBottom === void 0 ? null : _ref3$borderBottom;
-  return h("div", {
+    _ref3$borderTop = _ref3.borderTop,
+    borderTop = _ref3$borderTop === void 0 ? null : _ref3$borderTop,
+    _ref3$borderBottom = _ref3.borderBottom,
+    borderBottom = _ref3$borderBottom === void 0 ? null : _ref3$borderBottom;
+  return y("div", {
     "data-testid": "grid-header-".concat(type),
     className: cls('day-names', type),
     style: {
@@ -16391,13 +16355,13 @@ function GridHeader(_ref) {
       borderTop: borderTop,
       borderBottom: borderBottom
     }
-  }, h("div", {
+  }, y("div", {
     className: cls('day-name-container'),
     style: {
       marginLeft: marginLeft
     }
   }, dayNames.map(function (dayName, index) {
-    return h(DayName, {
+    return y(DayName, {
       type: type,
       key: "dayNames-".concat(dayName.day),
       dayName: dayName,
@@ -16420,14 +16384,12 @@ var es_array_unscopables_flat_map = __webpack_require__(3985);
 var es_string_pad_start = __webpack_require__(5734);
 ;// CONCATENATED MODULE: ./src/constants/grid.ts
 var DEFAULT_VISIBLE_WEEKS = 6;
-var CellBarType;
-
-(function (CellBarType) {
+var CellBarType = /*#__PURE__*/function (CellBarType) {
   CellBarType["header"] = "header";
   CellBarType["footer"] = "footer";
-})(CellBarType || (CellBarType = {}));
+  return CellBarType;
+}({});
 ;// CONCATENATED MODULE: ./src/controller/core.ts
-
 
 
 
@@ -16448,19 +16410,17 @@ function getCollisionGroup(events) {
   var usingTravelTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
   var collisionGroups = [];
   var previousEventList;
-
   if (!events.length) {
     return collisionGroups;
   }
-
   collisionGroups[0] = [events[0].cid()];
   events.slice(1).forEach(function (event, index) {
-    previousEventList = events.slice(0, index + 1).reverse(); // If overlapping previous events, find a Collision Group of overlapping events and add this events
+    previousEventList = events.slice(0, index + 1).reverse();
 
+    // If overlapping previous events, find a Collision Group of overlapping events and add this events
     var found = previousEventList.find(function (previous) {
       return event.collidesWith(previous, usingTravelTime);
     });
-
     if (!found) {
       // This event is a event that does not overlap with the previous event, so a new Collision Group is constructed.
       collisionGroups.push([event.cid()]);
@@ -16478,26 +16438,24 @@ function getCollisionGroup(events) {
   });
   return collisionGroups;
 }
+
 /**
  * Get row length by column index in 2d matrix.
  * @param {array[]} matrix Matrix
  * @param {number} col Column index.
  * @returns {number} Last row number in column or -1
  */
-
 function getLastRowInColumn(matrix, col) {
   var row = matrix.length;
-
   while (row > 0) {
     row -= 1;
-
     if (!isUndefined_default()(matrix[row][col])) {
       return row;
     }
   }
-
   return -1;
 }
+
 /**
  * Calculate matrix for appointment block element placing.
  * @param {Collection} collection model collection.
@@ -16505,7 +16463,6 @@ function getLastRowInColumn(matrix, col) {
  * @param {boolean} [usingTravelTime = true]
  * @returns {array} matrices
  */
-
 function getMatrices(collection, collisionGroups) {
   var usingTravelTime = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
   var result = [];
@@ -16517,24 +16474,19 @@ function getMatrices(collection, collisionGroups) {
       var found = false;
       var nextRow;
       var lastRowInColumn;
-
       while (!found) {
         lastRowInColumn = getLastRowInColumn(matrix, col);
-
         if (lastRowInColumn === -1) {
           matrix[0].push(event);
           found = true;
         } else if (!event.collidesWith(matrix[lastRowInColumn][col], usingTravelTime)) {
           nextRow = lastRowInColumn + 1;
-
           if (isUndefined_default()(matrix[nextRow])) {
             matrix[nextRow] = [];
           }
-
           matrix[nextRow][col] = event;
           found = true;
         }
-
         col += 1;
       }
     });
@@ -16542,25 +16494,27 @@ function getMatrices(collection, collisionGroups) {
   });
   return result;
 }
+
 /**
  * Filter that get event model in supplied date ranges.
  * @param {TZDate} start - start date
  * @param {TZDate} end - end date
  * @returns {function} event filter function
  */
-
 function getEventInDateRangeFilter(start, end) {
   return function (model) {
     var ownStarts = model.getStarts();
-    var ownEnds = model.getEnds(); // shorthand condition of
+    var ownEnds = model.getEnds();
+
+    // shorthand condition of
     //
     // (ownStarts >= start && ownEnds <= end) ||
     // (ownStarts < start && ownEnds >= start) ||
     // (ownEnds > end && ownStarts <= end)
-
     return !(ownEnds < start || ownStarts > end);
   };
 }
+
 /**
  * Position each ui model for placing into container
  * @param {TZDate} start - start date to render
@@ -16568,7 +16522,6 @@ function getEventInDateRangeFilter(start, end) {
  * @param {Matrix3d} matrices - matrices from controller
  * @param {function} [iteratee] - iteratee function invoke each ui models
  */
-
 function positionUIModels(start, end, matrices, iteratee) {
   var ymdListToRender = makeDateRange(start, end, MS_PER_DAY).map(function (date) {
     return datetime_toFormat(date, 'YYYYMMDD');
@@ -16579,7 +16532,6 @@ function positionUIModels(start, end, matrices, iteratee) {
         if (!uiModel) {
           return;
         }
-
         var ymd = datetime_toFormat(uiModel.getStarts(), 'YYYYMMDD');
         var dateLength = makeDateRange(toStartOfDay(uiModel.getStarts()), toEndOfDay(uiModel.getEnds()), MS_PER_DAY).length;
         uiModel.top = index;
@@ -16590,6 +16542,7 @@ function positionUIModels(start, end, matrices, iteratee) {
     });
   });
 }
+
 /**
  * Limit render range for ui models
  * @param {TZDate} start
@@ -16597,20 +16550,18 @@ function positionUIModels(start, end, matrices, iteratee) {
  * @param {EventUIModel} uiModel - ui model instance
  * @returns {EventUIModel} ui model that limited render range
  */
-
 function limit(start, end, uiModel) {
   if (uiModel.getStarts() < start) {
     uiModel.exceedLeft = true;
     uiModel.renderStarts = new date_TZDate(start);
   }
-
   if (uiModel.getEnds() > end) {
     uiModel.exceedRight = true;
     uiModel.renderEnds = new date_TZDate(end);
   }
-
   return uiModel;
 }
+
 /**
  * Limit start, end date each ui model for render properly
  * @param {TZDate} start - start date to render
@@ -16619,8 +16570,6 @@ function limit(start, end, uiModel) {
  * @returns {?EventUIModel} return ui model when third parameter is
  *  ui model
  */
-
-
 function limitRenderRange(start, end, uiModelColl) {
   if (uiModelColl instanceof Collection) {
     uiModelColl.each(function (uiModel) {
@@ -16629,15 +16578,14 @@ function limitRenderRange(start, end, uiModelColl) {
     });
     return null;
   }
-
   return limit(start, end, uiModelColl);
 }
+
 /**
  * Convert event model collection to ui model collection.
  * @param {Collection} eventCollection - collection of event model
  * @returns {Collection} collection of event ui model
  */
-
 function convertToUIModel(eventCollection) {
   var uiModelColl = new Collection(function (uiModel) {
     return uiModel.cid();
@@ -16649,18 +16597,11 @@ function convertToUIModel(eventCollection) {
 }
 ;// CONCATENATED MODULE: ./src/controller/month.ts
 function month_toConsumableArray(arr) { return month_arrayWithoutHoles(arr) || month_iterableToArray(arr) || month_unsupportedIterableToArray(arr) || month_nonIterableSpread(); }
-
 function month_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function month_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return month_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return month_arrayLikeToArray(o, minLen); }
-
 function month_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function month_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return month_arrayLikeToArray(arr); }
-
-function month_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-
+function month_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
 
 
@@ -16692,26 +16633,25 @@ function _isAllday(_ref) {
   var model = _ref.model;
   return model.isAllday || model.hasMultiDates;
 }
+
 /**
  * Filter function for find time event
  * @param {EventUIModel} uiModel - ui model
  * @returns {boolean} whether model is time event?
  */
-
-
 function _isNotAllday(uiModel) {
   return !_isAllday(uiModel);
 }
+
 /**
  * Weight top value +1 for month view render
  * @param {EventUIModel} uiModel - ui model
  */
-
-
 function _weightTopValue(uiModel) {
   uiModel.top = uiModel.top || 0;
   uiModel.top += 1;
 }
+
 /**
  * Adjust render range to render properly.
  *
@@ -16721,8 +16661,6 @@ function _weightTopValue(uiModel) {
  * @param {TZDate} end - render end date
  * @param {Collection} uiModelColl - collection of ui model.
  */
-
-
 function _adjustRenderRange(start, end, uiModelColl) {
   uiModelColl.each(function (uiModel) {
     if (uiModel.model.isAllday || uiModel.model.hasMultiDates) {
@@ -16730,6 +16668,7 @@ function _adjustRenderRange(start, end, uiModelColl) {
     }
   });
 }
+
 /**
  * Get max top index value for allday events in specific date (YMD)
  * @param idsOfDay
@@ -16737,8 +16676,6 @@ function _adjustRenderRange(start, end, uiModelColl) {
  * @param {Collection} uiModelAlldayColl - collection of allday events
  * @returns {number} max top index value in date
  */
-
-
 function _getAlldayMaxTopIndexAtYMD(idsOfDay, ymd, uiModelAlldayColl) {
   var topIndexesInDate = [];
   idsOfDay[ymd].forEach(function (cid) {
@@ -16746,20 +16683,17 @@ function _getAlldayMaxTopIndexAtYMD(idsOfDay, ymd, uiModelAlldayColl) {
       topIndexesInDate.push(uiModel.top);
     });
   });
-
   if (topIndexesInDate.length > 0) {
     return Math.max.apply(Math, topIndexesInDate);
   }
-
   return 0;
 }
+
 /**
  * Adjust time ui model's top index value
  * @param idsOfDay
  * @param {Collection} uiModelColl - collection of ui ui model
  */
-
-
 function _adjustTimeTopIndex(idsOfDay, uiModelColl) {
   var vAlldayColl = uiModelColl.filter(_isAllday);
   var sortedTimeEvents = uiModelColl.filter(_isNotAllday).sort(array.compare.event.asc);
@@ -16767,21 +16701,18 @@ function _adjustTimeTopIndex(idsOfDay, uiModelColl) {
   sortedTimeEvents.forEach(function (timeUIModel) {
     var eventYMD = datetime_toFormat(timeUIModel.getStarts(), 'YYYYMMDD');
     var alldayMaxTopInYMD = maxIndexInYMD[eventYMD];
-
     if (isUndefined_default()(alldayMaxTopInYMD)) {
       alldayMaxTopInYMD = maxIndexInYMD[eventYMD] = _getAlldayMaxTopIndexAtYMD(idsOfDay, eventYMD, vAlldayColl);
     }
-
     maxIndexInYMD[eventYMD] = timeUIModel.top = alldayMaxTopInYMD + 1;
   });
 }
+
 /**
  * Adjust time ui model's top index value
  * @param {IDS_OF_DAY} idsOfDay - ids of days
  * @param {Collection} uiModelColl - collection of ui ui model
  */
-
-
 function _stackTimeFromTop(idsOfDay, uiModelColl) {
   var uiModelAlldayColl = uiModelColl.filter(_isAllday);
   var sortedTimeEvents = uiModelColl.filter(_isNotAllday).sort(array.compare.event.asc);
@@ -16789,7 +16720,6 @@ function _stackTimeFromTop(idsOfDay, uiModelColl) {
   sortedTimeEvents.forEach(function (timeUIModel) {
     var eventYMD = datetime_toFormat(timeUIModel.getStarts(), 'YYYYMMDD');
     var topArrayInYMD = indiceInYMD[eventYMD];
-
     if (isUndefined_default()(topArrayInYMD)) {
       topArrayInYMD = indiceInYMD[eventYMD] = [];
       idsOfDay[eventYMD].forEach(function (cid) {
@@ -16798,107 +16728,87 @@ function _stackTimeFromTop(idsOfDay, uiModelColl) {
         });
       });
     }
-
     if (topArrayInYMD.indexOf(timeUIModel.top) >= 0) {
       var maxTopInYMD = Math.max.apply(Math, month_toConsumableArray(topArrayInYMD)) + 1;
-
       for (var i = 1; i <= maxTopInYMD; i += 1) {
         timeUIModel.top = i;
-
         if (topArrayInYMD.indexOf(timeUIModel.top) < 0) {
           break;
         }
       }
     }
-
     topArrayInYMD.push(timeUIModel.top);
   });
 }
+
 /**
  * Convert multi-date time event to all-day event
  * @param {Collection} uiModelColl - collection of ui models.
  * property.
  */
-
-
 function _addMultiDatesInfo(uiModelColl) {
   uiModelColl.each(function (uiModel) {
     var model = uiModel.model;
     var start = model.getStarts();
     var end = model.getEnds();
     model.hasMultiDates = !isSameDate(start, end);
-
     if (!model.isAllday && model.hasMultiDates) {
       uiModel.renderStarts = toStartOfDay(start);
       uiModel.renderEnds = toEndOfDay(end);
     }
   });
 }
+
 /**
  * Find event and get ui model for specific month
  * @returns {object} ui model data
  * @param calendarData
  * @param condition
  */
-
-
 function month_findByDateRange(calendarData, condition) {
   var start = condition.start,
-      end = condition.end,
-      _condition$andFilters = condition.andFilters,
-      andFilters = _condition$andFilters === void 0 ? [] : _condition$andFilters,
-      _condition$alldayFirs = condition.alldayFirstMode,
-      alldayFirstMode = _condition$alldayFirs === void 0 ? false : _condition$alldayFirs;
+    end = condition.end,
+    _condition$andFilters = condition.andFilters,
+    andFilters = _condition$andFilters === void 0 ? [] : _condition$andFilters,
+    _condition$alldayFirs = condition.alldayFirstMode,
+    alldayFirstMode = _condition$alldayFirs === void 0 ? false : _condition$alldayFirs;
   var events = calendarData.events,
-      idsOfDay = calendarData.idsOfDay;
+    idsOfDay = calendarData.idsOfDay;
   var filterFn = Collection.and.apply(Collection, month_toConsumableArray([getEventInDateRangeFilter(start, end)].concat(andFilters)));
   var coll = events.filter(filterFn);
   var uiModelColl = convertToUIModel(coll);
-
   _addMultiDatesInfo(uiModelColl);
-
   _adjustRenderRange(start, end, uiModelColl);
-
   var vList = uiModelColl.sort(array.compare.event.asc);
   var usingTravelTime = false;
   var collisionGroup = getCollisionGroup(vList, usingTravelTime);
   var matrices = getMatrices(uiModelColl, collisionGroup, usingTravelTime);
   positionUIModels(start, end, matrices, _weightTopValue);
-
   if (alldayFirstMode) {
     _adjustTimeTopIndex(idsOfDay, uiModelColl);
   } else {
     _stackTimeFromTop(idsOfDay, uiModelColl);
   }
-
   return matrices;
 }
 ;// CONCATENATED MODULE: ./src/controller/week.ts
+function week_typeof(obj) { "@babel/helpers - typeof"; return week_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, week_typeof(obj); }
 function week_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function week_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? week_ownKeys(Object(source), !0).forEach(function (key) { week_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : week_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function week_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function week_defineProperty(obj, key, value) { key = week_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function week_toPropertyKey(arg) { var key = week_toPrimitive(arg, "string"); return week_typeof(key) === "symbol" ? key : String(key); }
+function week_toPrimitive(input, hint) { if (week_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (week_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function week_toConsumableArray(arr) { return week_arrayWithoutHoles(arr) || week_iterableToArray(arr) || week_unsupportedIterableToArray(arr) || week_nonIterableSpread(); }
-
 function week_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function week_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function week_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return week_arrayLikeToArray(arr); }
-
 function week_slicedToArray(arr, i) { return week_arrayWithHoles(arr) || week_iterableToArrayLimit(arr, i) || week_unsupportedIterableToArray(arr, i) || week_nonIterableRest(); }
-
 function week_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function week_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return week_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return week_arrayLikeToArray(o, minLen); }
-
-function week_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function week_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function week_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function week_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function week_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 
 
 
@@ -16932,7 +16842,6 @@ function week_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 /**********
  * TIME GRID VIEW
  **********/
-
 /**
  * make a filter function that is not included range of start, end hour
  * @param {number} hStart - hour start
@@ -16954,6 +16863,7 @@ function _makeHourRangeFilter(hStart, hEnd) {
     return ownHourStartTime >= hourStart && ownHourStartTime < hourEnd || ownHourEndTime > hourStart && ownHourEndTime <= hourEnd || ownHourStartTime < hourStart && ownHourEndTime > hourStart || ownHourEndTime > hourEnd && ownHourStartTime < hourEnd;
   };
 }
+
 /**
  * make ui model function depending on start and end hour
  * if time view options has start or end hour condition
@@ -16962,18 +16872,17 @@ function _makeHourRangeFilter(hStart, hEnd) {
  * @param {number} hourEnd - end hour to be shown
  * @returns {function} function
  */
-
 function _makeGetUIModelFuncForTimeView(hourStart, hourEnd) {
   if (hourStart === 0 && hourEnd === 24) {
     return function (uiModelColl) {
       return uiModelColl.sort(array.compare.event.asc);
     };
   }
-
   return function (uiModelColl) {
     return uiModelColl.filter(_makeHourRangeFilter(hourStart, hourEnd)).sort(array.compare.event.asc);
   };
 }
+
 /**
  * split event model by ymd.
  * @param {IDS_OF_DAY} idsOfDay - ids of days
@@ -16982,7 +16891,6 @@ function _makeGetUIModelFuncForTimeView(hourStart, hourEnd) {
  * @param {Collection<EventUIModel>} uiModelColl - collection of ui models.
  * @returns {object.<string, Collection>} splitted event model collections.
  */
-
 function splitEventByDateRange(idsOfDay, start, end, uiModelColl) {
   var result = {};
   var range = getDateRange(start, end);
@@ -16992,7 +16900,6 @@ function splitEventByDateRange(idsOfDay, start, end, uiModelColl) {
     var collection = result[ymd] = new Collection(function (event) {
       return event.cid();
     });
-
     if (ids && ids.length) {
       ids.forEach(function (id) {
         uiModelColl.doWhenHas(id, function (event) {
@@ -17003,6 +16910,7 @@ function splitEventByDateRange(idsOfDay, start, end, uiModelColl) {
   }, {});
   return result;
 }
+
 /**
  * create ui model for time view part
  * @param {IDS_OF_DAY} idsOfDay - model controller
@@ -17014,32 +16922,28 @@ function splitEventByDateRange(idsOfDay, start, end, uiModelColl) {
  *  @param {number} condition.hourEnd - end hour to be shown
  * @returns {object} ui model for time part.
  */
-
 function getUIModelForTimeView(idsOfDay, condition) {
   var start = condition.start,
-      end = condition.end,
-      uiModelTimeColl = condition.uiModelTimeColl,
-      hourStart = condition.hourStart,
-      hourEnd = condition.hourEnd;
+    end = condition.end,
+    uiModelTimeColl = condition.uiModelTimeColl,
+    hourStart = condition.hourStart,
+    hourEnd = condition.hourEnd;
   var ymdSplitted = splitEventByDateRange(idsOfDay, start, end, uiModelTimeColl);
   var result = {};
-
   var _getUIModel = _makeGetUIModelFuncForTimeView(hourStart, hourEnd);
-
   var usingTravelTime = true;
   Object.entries(ymdSplitted).forEach(function (_ref) {
     var _ref2 = week_slicedToArray(_ref, 2),
-        ymd = _ref2[0],
-        uiModelColl = _ref2[1];
-
+      ymd = _ref2[0],
+      uiModelColl = _ref2[1];
     var uiModels = _getUIModel(uiModelColl);
-
     var collisionGroups = getCollisionGroup(uiModels, usingTravelTime);
     var matrices = getMatrices(uiModelColl, collisionGroups, usingTravelTime);
     result[ymd] = matrices;
   });
   return result;
 }
+
 /**********
  * ALLDAY VIEW
  **********/
@@ -17048,7 +16952,6 @@ function getUIModelForTimeView(idsOfDay, condition) {
  * Set hasMultiDates flag to true and set date ranges for rendering
  * @param {Collection} uiModelColl - collection of ui models.
  */
-
 function week_addMultiDatesInfo(uiModelColl) {
   uiModelColl.each(function (uiModel) {
     var model = uiModel.model;
@@ -17057,6 +16960,7 @@ function week_addMultiDatesInfo(uiModelColl) {
     uiModel.renderEnds = toEndOfDay(model.getEnds());
   });
 }
+
 /**
  * create ui model for allday view part
  * @param {TZDate} start start date.
@@ -17064,14 +16968,11 @@ function week_addMultiDatesInfo(uiModelColl) {
  * @param {Collection} uiModelColl - ui models of allday event.
  * @returns {DayGridEventMatrix} matrix of allday event ui models.
  */
-
 function getUIModelForAlldayView(start, end, uiModelColl) {
   if (!uiModelColl || !uiModelColl.size) {
     return [];
   }
-
   week_addMultiDatesInfo(uiModelColl);
-
   limitRenderRange(start, end, uiModelColl);
   var uiModels = uiModelColl.sort(array.compare.event.asc);
   var usingTravelTime = true;
@@ -17080,6 +16981,7 @@ function getUIModelForAlldayView(start, end, uiModelColl) {
   positionUIModels(start, end, matrices);
   return matrices;
 }
+
 /**********
  * READ
  **********/
@@ -17096,18 +16998,16 @@ function getUIModelForAlldayView(start, end, uiModelColl) {
  *  @param {Object} condition.options - week view options
  * @returns {object} events grouped by dates.
  */
-
 function week_findByDateRange(calendarData, condition) {
   var _options$hourStart, _options$hourEnd;
-
   var start = condition.start,
-      end = condition.end,
-      panels = condition.panels,
-      _condition$andFilters = condition.andFilters,
-      andFilters = _condition$andFilters === void 0 ? [] : _condition$andFilters,
-      options = condition.options;
+    end = condition.end,
+    panels = condition.panels,
+    _condition$andFilters = condition.andFilters,
+    andFilters = _condition$andFilters === void 0 ? [] : _condition$andFilters,
+    options = condition.options;
   var events = calendarData.events,
-      idsOfDay = calendarData.idsOfDay;
+    idsOfDay = calendarData.idsOfDay;
   var hourStart = (_options$hourStart = options === null || options === void 0 ? void 0 : options.hourStart) !== null && _options$hourStart !== void 0 ? _options$hourStart : 0;
   var hourEnd = (_options$hourEnd = options === null || options === void 0 ? void 0 : options.hourEnd) !== null && _options$hourEnd !== void 0 ? _options$hourEnd : 24;
   var filterFn = Collection.and.apply(Collection, week_toConsumableArray([getEventInDateRangeFilter(start, end)].concat(andFilters)));
@@ -17115,12 +17015,10 @@ function week_findByDateRange(calendarData, condition) {
   var group = uiModelColl.groupBy(filterByCategory);
   return panels.reduce(function (acc, cur) {
     var name = cur.name,
-        type = cur.type;
-
+      type = cur.type;
     if (type_isNil(group[name])) {
       return acc;
     }
-
     return week_objectSpread(week_objectSpread({}, acc), {}, week_defineProperty({}, name, type === 'daygrid' ? getUIModelForAlldayView(start, end, group[name]) : getUIModelForTimeView(idsOfDay, {
       start: start,
       end: end,
@@ -17150,29 +17048,22 @@ function week_findByDateRange(calendarData, condition) {
 
 
 
-
 function math_toConsumableArray(arr) { return math_arrayWithoutHoles(arr) || math_iterableToArray(arr) || math_unsupportedIterableToArray(arr) || math_nonIterableSpread(); }
-
 function math_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function math_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return math_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return math_arrayLikeToArray(o, minLen); }
-
 function math_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function math_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return math_arrayLikeToArray(arr); }
-
-function math_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function math_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function math_limit(value, minArr, maxArr) {
   var v = Math.max.apply(Math, [value].concat(math_toConsumableArray(minArr)));
   return Math.min.apply(Math, [v].concat(math_toConsumableArray(maxArr)));
 }
+
 /**
  * a : b = y : x;
  * ==
  * x = (b * y) / a;
  */
-
 function ratio(a, b, y) {
   return b * y / a;
 }
@@ -17180,31 +17071,24 @@ function isBetween(value, min, max) {
   return min <= value && value <= max;
 }
 ;// CONCATENATED MODULE: ./src/helpers/grid.ts
+function grid_typeof(obj) { "@babel/helpers - typeof"; return grid_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, grid_typeof(obj); }
 function grid_slicedToArray(arr, i) { return grid_arrayWithHoles(arr) || grid_iterableToArrayLimit(arr, i) || grid_unsupportedIterableToArray(arr, i) || grid_nonIterableRest(); }
-
 function grid_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function grid_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function grid_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function grid_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 function grid_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function grid_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? grid_ownKeys(Object(source), !0).forEach(function (key) { grid_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : grid_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function grid_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function grid_defineProperty(obj, key, value) { key = grid_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function grid_toPropertyKey(arg) { var key = grid_toPrimitive(arg, "string"); return grid_typeof(key) === "symbol" ? key : String(key); }
+function grid_toPrimitive(input, hint) { if (grid_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (grid_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function grid_toConsumableArray(arr) { return grid_arrayWithoutHoles(arr) || grid_iterableToArray(arr) || grid_unsupportedIterableToArray(arr) || grid_nonIterableSpread(); }
-
 function grid_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function grid_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return grid_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return grid_arrayLikeToArray(o, minLen); }
-
 function grid_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function grid_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return grid_arrayLikeToArray(arr); }
+function grid_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
-function grid_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 
 
 
@@ -17243,7 +17127,6 @@ function grid_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) 
 
 var EVENT_HEIGHT = 22;
 var TOTAL_WIDTH = 100;
-
 function forEachMatrix3d(matrices, iteratee) {
   matrices.forEach(function (matrix) {
     matrix.forEach(function (row) {
@@ -17253,7 +17136,6 @@ function forEachMatrix3d(matrices, iteratee) {
     });
   });
 }
-
 function isWithinHeight(containerHeight, eventHeight) {
   return function (_ref) {
     var top = _ref.top;
@@ -17269,13 +17151,11 @@ function isExceededHeight(containerHeight, eventHeight) {
 function getExceedCount(uiModel, containerHeight, eventHeight) {
   return uiModel.filter(isExceededHeight(containerHeight, eventHeight)).length;
 }
-
 var getWeekendCount = function getWeekendCount(row) {
   return row.filter(function (cell) {
     return isWeekend(cell.getDay());
   }).length;
 };
-
 function getGridWidthAndLeftPercentValues(row, narrowWeekend, totalWidth) {
   var weekendCount = getWeekendCount(row);
   var gridCellCount = row.length;
@@ -17283,11 +17163,9 @@ function getGridWidthAndLeftPercentValues(row, narrowWeekend, totalWidth) {
   var widthPerDay = totalWidth / (narrowWeekend && !isAllWeekend ? gridCellCount * 2 - weekendCount : gridCellCount);
   var widthList = row.map(function (cell) {
     var day = cell.getDay();
-
     if (!narrowWeekend || isAllWeekend) {
       return widthPerDay;
     }
-
     return isWeekend(day) ? widthPerDay : widthPerDay * 2;
   });
   var leftList = widthList.reduce(function (acc, _, index) {
@@ -17303,7 +17181,6 @@ function getWidth(widthList, start, end) {
     if (start <= index && index <= end) {
       return acc + width;
     }
-
     return acc;
   }, 0);
 }
@@ -17321,8 +17198,7 @@ function getGridDateIndex(date, row) {
 }
 var getLeftAndWidth = function getLeftAndWidth(startIndex, endIndex, row, narrowWeekend) {
   var _getGridWidthAndLeftP = getGridWidthAndLeftPercentValues(row, narrowWeekend, TOTAL_WIDTH),
-      widthList = _getGridWidthAndLeftP.widthList;
-
+    widthList = _getGridWidthAndLeftP.widthList;
   return {
     left: !startIndex ? 0 : getWidth(widthList, 0, startIndex - 1),
     width: getWidth(widthList, startIndex !== null && startIndex !== void 0 ? startIndex : 0, endIndex < 0 ? row.length - 1 : endIndex)
@@ -17330,15 +17206,13 @@ var getLeftAndWidth = function getLeftAndWidth(startIndex, endIndex, row, narrow
 };
 var getEventLeftAndWidth = function getEventLeftAndWidth(start, end, row, narrowWeekend) {
   var _getGridWidthAndLeftP2 = getGridWidthAndLeftPercentValues(row, narrowWeekend, TOTAL_WIDTH),
-      widthList = _getGridWidthAndLeftP2.widthList;
-
+    widthList = _getGridWidthAndLeftP2.widthList;
   var gridStartIndex = 0;
   var gridEndIndex = row.length - 1;
   row.forEach(function (cell, index) {
     if (cell <= start) {
       gridStartIndex = index;
     }
-
     if (cell <= end) {
       gridEndIndex = index;
     }
@@ -17348,21 +17222,17 @@ var getEventLeftAndWidth = function getEventLeftAndWidth(start, end, row, narrow
     left: !gridStartIndex ? 0 : getWidth(widthList, 0, gridStartIndex - 1)
   };
 };
-
 function getEventUIModelWithPosition(uiModel, row) {
   var narrowWeekend = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
   var modelStart = uiModel.getStarts();
   var modelEnd = uiModel.getEnds();
-
   var _getEventLeftAndWidth = getEventLeftAndWidth(modelStart, modelEnd, row, narrowWeekend),
-      width = _getEventLeftAndWidth.width,
-      left = _getEventLeftAndWidth.left;
-
+    width = _getEventLeftAndWidth.width,
+    left = _getEventLeftAndWidth.left;
   uiModel.width = width;
   uiModel.left = left;
   return uiModel;
 }
-
 function getRenderedEventUIModels(row, calendarData, narrowWeekend) {
   var idsOfDay = calendarData.idsOfDay;
   var eventUIModels = month_findByDateRange(calendarData, {
@@ -17388,53 +17258,48 @@ function getRenderedEventUIModels(row, calendarData, narrowWeekend) {
     gridDateEventModelMap: gridDateEventModelMap
   };
 }
-
 var getDayGridEventModels = function getDayGridEventModels(eventModels, row) {
   var narrowWeekend = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
   forEachMatrix3d(eventModels, function (uiModel) {
     var modelStart = uiModel.getStarts();
     var modelEnd = uiModel.getEnds();
-
     var _getEventLeftAndWidth2 = getEventLeftAndWidth(modelStart, modelEnd, row, narrowWeekend),
-        width = _getEventLeftAndWidth2.width,
-        left = _getEventLeftAndWidth2.left;
-
+      width = _getEventLeftAndWidth2.width,
+      left = _getEventLeftAndWidth2.left;
     uiModel.width = width;
     uiModel.left = left;
     uiModel.top += 1;
   });
   return flattenMatrix3d(eventModels);
 };
-
 var getModels = function getModels(models) {
   return models.filter(function (model) {
     return !!model;
   });
 };
-
 function flattenMatrix3d(matrices) {
   return matrices.flatMap(function (matrix) {
     return matrix.flatMap(function (models) {
       return getModels(models);
     });
   });
-} // TODO: Check it works well when the `narrowWeekend` option is true
+}
 
-
+// TODO: Check it works well when the `narrowWeekend` option is true
 var getTimeGridEventModels = function getTimeGridEventModels(eventMatrix) {
-  return (// NOTE: there are same ui models in different rows. so we need to get unique ui models.
+  return (
+    // NOTE: there are same ui models in different rows. so we need to get unique ui models.
     Array.from(new Set(Object.values(eventMatrix).reduce(function (result, matrix3d) {
       return result.concat.apply(result, grid_toConsumableArray(flattenMatrix3d(matrix3d)));
     }, [])))
   );
 };
-
 var getWeekViewEvents = function getWeekViewEvents(row, calendarData, _ref3) {
   var narrowWeekend = _ref3.narrowWeekend,
-      hourStart = _ref3.hourStart,
-      hourEnd = _ref3.hourEnd,
-      weekStartDate = _ref3.weekStartDate,
-      weekEndDate = _ref3.weekEndDate;
+    hourStart = _ref3.hourStart,
+    hourEnd = _ref3.hourEnd,
+    weekStartDate = _ref3.weekStartDate,
+    weekEndDate = _ref3.weekEndDate;
   var panels = [{
     name: 'milestone',
     type: 'daygrid',
@@ -17474,13 +17339,13 @@ var getWeekViewEvents = function getWeekViewEvents(row, calendarData, _ref3) {
 };
 function createDateMatrixOfMonth(renderTargetDate, _ref4) {
   var _ref4$workweek = _ref4.workweek,
-      workweek = _ref4$workweek === void 0 ? false : _ref4$workweek,
-      _ref4$visibleWeeksCou = _ref4.visibleWeeksCount,
-      visibleWeeksCount = _ref4$visibleWeeksCou === void 0 ? 0 : _ref4$visibleWeeksCou,
-      _ref4$startDayOfWeek = _ref4.startDayOfWeek,
-      startDayOfWeek = _ref4$startDayOfWeek === void 0 ? 0 : _ref4$startDayOfWeek,
-      _ref4$isAlways6Weeks = _ref4.isAlways6Weeks,
-      isAlways6Weeks = _ref4$isAlways6Weeks === void 0 ? true : _ref4$isAlways6Weeks;
+    workweek = _ref4$workweek === void 0 ? false : _ref4$workweek,
+    _ref4$visibleWeeksCou = _ref4.visibleWeeksCount,
+    visibleWeeksCount = _ref4$visibleWeeksCou === void 0 ? 0 : _ref4$visibleWeeksCou,
+    _ref4$startDayOfWeek = _ref4.startDayOfWeek,
+    startDayOfWeek = _ref4$startDayOfWeek === void 0 ? 0 : _ref4$startDayOfWeek,
+    _ref4$isAlways6Weeks = _ref4.isAlways6Weeks,
+    isAlways6Weeks = _ref4$isAlways6Weeks === void 0 ? true : _ref4$isAlways6Weeks;
   var targetDate = new date_TZDate(renderTargetDate);
   var shouldApplyVisibleWeeksCount = visibleWeeksCount > 0;
   var baseDate = shouldApplyVisibleWeeksCount ? targetDate : toStartOfMonth(targetDate);
@@ -17490,47 +17355,42 @@ function createDateMatrixOfMonth(renderTargetDate, _ref4) {
   var initialDifference = getDateDifference(firstDateOfMatrix, baseDate);
   var totalDatesOfMatrix = totalDatesCountOfMonth + Math.abs(initialDifference);
   var totalWeeksOfMatrix = DEFAULT_VISIBLE_WEEKS;
-
   if (shouldApplyVisibleWeeksCount) {
     totalWeeksOfMatrix = visibleWeeksCount;
   } else if (isAlways6Weeks === false) {
     totalWeeksOfMatrix = Math.ceil(totalDatesOfMatrix / WEEK_DAYS);
   }
-
   return range_default()(0, totalWeeksOfMatrix).map(function (weekIndex) {
     return range_default()(0, WEEK_DAYS).reduce(function (weekRow, dayOfWeek) {
       var steps = weekIndex * WEEK_DAYS + dayOfWeek;
       var currentDay = (steps + dayOfFirstDateOfMatrix) % WEEK_DAYS;
-
       if (!workweek || workweek && !isWeekend(currentDay)) {
         var date = addDate(firstDateOfMatrix, steps);
         weekRow.push(date);
       }
-
       return weekRow;
     }, []);
   });
 }
 function getWeekDates(renderDate, _ref5) {
   var _ref5$startDayOfWeek = _ref5.startDayOfWeek,
-      startDayOfWeek = _ref5$startDayOfWeek === void 0 ? Day.SUN : _ref5$startDayOfWeek,
-      workweek = _ref5.workweek;
+    startDayOfWeek = _ref5$startDayOfWeek === void 0 ? Day.SUN : _ref5$startDayOfWeek,
+    workweek = _ref5.workweek;
   var now = toStartOfDay(renderDate);
   var nowDay = now.getDay();
   var prevDateCount = nowDay - startDayOfWeek;
   var weekDayList = prevDateCount >= 0 ? range_default()(-prevDateCount, WEEK_DAYS - prevDateCount) : range_default()(-WEEK_DAYS - prevDateCount, -prevDateCount);
   return weekDayList.reduce(function (acc, day) {
     var date = addDate(now, day);
-
     if (workweek && isWeekend(date.getDay())) {
       return acc;
     }
-
     acc.push(date);
     return acc;
   }, []);
-} // @TODO: replace `getRowStyleInfo` to this function
+}
 
+// @TODO: replace `getRowStyleInfo` to this function
 function getColumnsData(datesOfWeek) {
   var narrowWeekend = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
   var datesCount = datesOfWeek.length;
@@ -17552,7 +17412,6 @@ function getColumnsData(datesOfWeek) {
 }
 function createTimeGridData(datesOfWeek, options) {
   var _options$narrowWeeken;
-
   var columns = getColumnsData(datesOfWeek, (_options$narrowWeeken = options.narrowWeekend) !== null && _options$narrowWeeken !== void 0 ? _options$narrowWeeken : false);
   var steps = (options.hourEnd - options.hourStart) * 2;
   var baseHeight = 100 / steps;
@@ -17573,37 +17432,32 @@ function createTimeGridData(datesOfWeek, options) {
     rows: rows
   };
 }
-
 function getRelativeMousePosition(_ref6, _ref7) {
   var clientX = _ref6.clientX,
-      clientY = _ref6.clientY;
+    clientY = _ref6.clientY;
   var left = _ref7.left,
-      top = _ref7.top,
-      clientLeft = _ref7.clientLeft,
-      clientTop = _ref7.clientTop;
+    top = _ref7.top,
+    clientLeft = _ref7.clientLeft,
+    clientTop = _ref7.clientTop;
   return [clientX - left - clientLeft, clientY - top - clientTop];
 }
-
 function getIndexFromPosition(arrayLength, maxRange, currentPosition) {
   var calculatedIndex = Math.floor(ratio(maxRange, arrayLength, currentPosition));
   return math_limit(calculatedIndex, [0], [arrayLength - 1]);
 }
-
 function createGridPositionFinder(_ref8) {
   var rowsCount = _ref8.rowsCount,
-      columnsCount = _ref8.columnsCount,
-      container = _ref8.container,
-      _ref8$narrowWeekend = _ref8.narrowWeekend,
-      narrowWeekend = _ref8$narrowWeekend === void 0 ? false : _ref8$narrowWeekend,
-      _ref8$startDayOfWeek = _ref8.startDayOfWeek,
-      startDayOfWeek = _ref8$startDayOfWeek === void 0 ? Day.SUN : _ref8$startDayOfWeek;
-
+    columnsCount = _ref8.columnsCount,
+    container = _ref8.container,
+    _ref8$narrowWeekend = _ref8.narrowWeekend,
+    narrowWeekend = _ref8$narrowWeekend === void 0 ? false : _ref8$narrowWeekend,
+    _ref8$startDayOfWeek = _ref8.startDayOfWeek,
+    startDayOfWeek = _ref8$startDayOfWeek === void 0 ? Day.SUN : _ref8$startDayOfWeek;
   if (type_isNil(container)) {
     return function () {
       return null;
     };
   }
-
   var dayRange = range_default()(startDayOfWeek, startDayOfWeek + columnsCount).map(function (day) {
     return day % WEEK_DAYS;
   });
@@ -17612,25 +17466,22 @@ function createGridPositionFinder(_ref8) {
   }).length : 0;
   return function gridPositionFinder(mousePosition) {
     var _container$getBoundin = container.getBoundingClientRect(),
-        containerLeft = _container$getBoundin.left,
-        containerTop = _container$getBoundin.top,
-        containerWidth = _container$getBoundin.width,
-        containerHeight = _container$getBoundin.height;
-
+      containerLeft = _container$getBoundin.left,
+      containerTop = _container$getBoundin.top,
+      containerWidth = _container$getBoundin.width,
+      containerHeight = _container$getBoundin.height;
     var _getRelativeMousePosi = getRelativeMousePosition(mousePosition, {
-      left: containerLeft,
-      top: containerTop,
-      clientLeft: container.clientLeft,
-      clientTop: container.clientTop
-    }),
-        _getRelativeMousePosi2 = grid_slicedToArray(_getRelativeMousePosi, 2),
-        left = _getRelativeMousePosi2[0],
-        top = _getRelativeMousePosi2[1];
-
+        left: containerLeft,
+        top: containerTop,
+        clientLeft: container.clientLeft,
+        clientTop: container.clientTop
+      }),
+      _getRelativeMousePosi2 = grid_slicedToArray(_getRelativeMousePosi, 2),
+      left = _getRelativeMousePosi2[0],
+      top = _getRelativeMousePosi2[1];
     if (left < 0 || top < 0 || left > containerWidth || top > containerHeight) {
       return null;
     }
-
     var unitWidth = narrowWeekend ? containerWidth / (columnsCount - narrowColumnCount + 1) : containerWidth / columnsCount;
     var columnWidthList = dayRange.map(function (dayOfWeek) {
       return narrowWeekend && isWeekend(dayOfWeek) ? unitWidth / 2 : unitWidth;
@@ -17657,28 +17508,22 @@ function createGridPositionFinder(_ref8) {
 
 
 
-
 function commonGridSelectionSelector(theme) {
   return theme.common.gridSelection;
 }
-
 function GridSelection(_ref) {
   var type = _ref.type,
-      gridSelectionData = _ref.gridSelectionData,
-      weekDates = _ref.weekDates,
-      narrowWeekend = _ref.narrowWeekend;
-
+    gridSelectionData = _ref.gridSelectionData,
+    weekDates = _ref.weekDates,
+    narrowWeekend = _ref.narrowWeekend;
   var _useTheme = useTheme(commonGridSelectionSelector),
-      backgroundColor = _useTheme.backgroundColor,
-      border = _useTheme.border;
-
+    backgroundColor = _useTheme.backgroundColor,
+    border = _useTheme.border;
   var startCellIndex = gridSelectionData.startCellIndex,
-      endCellIndex = gridSelectionData.endCellIndex;
-
+    endCellIndex = gridSelectionData.endCellIndex;
   var _getLeftAndWidth = getLeftAndWidth(Math.min(startCellIndex, endCellIndex), Math.max(startCellIndex, endCellIndex), weekDates, narrowWeekend),
-      left = _getLeftAndWidth.left,
-      width = _getLeftAndWidth.width;
-
+    left = _getLeftAndWidth.left,
+    width = _getLeftAndWidth.width;
   var style = {
     left: toPercent(left),
     width: toPercent(width),
@@ -17686,13 +17531,12 @@ function GridSelection(_ref) {
     backgroundColor: backgroundColor,
     border: border
   };
-  return width > 0 ? h("div", {
+  return width > 0 ? y("div", {
     className: cls(type, 'grid-selection'),
     style: style
   }) : null;
 }
 ;// CONCATENATED MODULE: ./src/helpers/gridSelection.ts
-
 
 
 
@@ -17704,21 +17548,17 @@ function createSortedGridSelection(initPos, currentPos, isReversed) {
     endRowIndex: isReversed ? initPos.rowIndex : currentPos.rowIndex
   };
 }
-
 function calculateTimeGridSelectionByCurrentIndex(timeGridSelection, columnIndex, maxRowIndex) {
   if (type_isNil(timeGridSelection)) {
     return null;
   }
-
   var startColumnIndex = timeGridSelection.startColumnIndex,
-      endColumnIndex = timeGridSelection.endColumnIndex,
-      endRowIndex = timeGridSelection.endRowIndex,
-      startRowIndex = timeGridSelection.startRowIndex;
-
+    endColumnIndex = timeGridSelection.endColumnIndex,
+    endRowIndex = timeGridSelection.endRowIndex,
+    startRowIndex = timeGridSelection.startRowIndex;
   if (!isBetween(columnIndex, startColumnIndex, endColumnIndex)) {
     return null;
   }
-
   var hasMultipleColumns = startColumnIndex !== endColumnIndex;
   var isStartingColumn = columnIndex === startColumnIndex;
   var resultGridSelection = {
@@ -17727,7 +17567,6 @@ function calculateTimeGridSelectionByCurrentIndex(timeGridSelection, columnIndex
     isSelectingMultipleColumns: hasMultipleColumns,
     isStartingColumn: isStartingColumn
   };
-
   if (startColumnIndex < columnIndex && columnIndex < endColumnIndex) {
     resultGridSelection.startRowIndex = 0;
     resultGridSelection.endRowIndex = maxRowIndex;
@@ -17738,10 +17577,8 @@ function calculateTimeGridSelectionByCurrentIndex(timeGridSelection, columnIndex
       resultGridSelection.startRowIndex = 0;
     }
   }
-
   return resultGridSelection;
 }
-
 var timeGridSelectionHelper = {
   sortSelection: function sortSelection(initPos, currentPos) {
     var isReversed = initPos.columnIndex > currentPos.columnIndex || initPos.columnIndex === currentPos.columnIndex && initPos.rowIndex > currentPos.rowIndex;
@@ -17755,38 +17592,30 @@ var timeGridSelectionHelper = {
   },
   calculateSelection: calculateTimeGridSelectionByCurrentIndex
 };
-
 function calculateDayGridMonthSelectionByCurrentIndex(gridSelection, currentIndex, weekLength) {
   if (!(isPresent(gridSelection) && isPresent(currentIndex) && isPresent(weekLength))) {
     return null;
   }
-
   var startRowIndex = gridSelection.startRowIndex,
-      startColumnIndex = gridSelection.startColumnIndex,
-      endRowIndex = gridSelection.endRowIndex,
-      endColumnIndex = gridSelection.endColumnIndex;
-
+    startColumnIndex = gridSelection.startColumnIndex,
+    endRowIndex = gridSelection.endRowIndex,
+    endColumnIndex = gridSelection.endColumnIndex;
   if (!isBetween(currentIndex, Math.min(startRowIndex, endRowIndex), Math.max(startRowIndex, endRowIndex))) {
     return null;
   }
-
   var startCellIndex = startColumnIndex;
   var endCellIndex = endColumnIndex;
-
   if (startRowIndex < currentIndex) {
     startCellIndex = 0;
   }
-
   if (endRowIndex > currentIndex) {
     endCellIndex = weekLength - 1;
   }
-
   return {
     startCellIndex: startCellIndex,
     endCellIndex: endCellIndex
   };
 }
-
 var dayGridMonthSelectionHelper = {
   sortSelection: function sortSelection(initPos, currentPos) {
     var isReversed = initPos.rowIndex > currentPos.rowIndex || initPos.rowIndex === currentPos.rowIndex && initPos.columnIndex > currentPos.columnIndex;
@@ -17798,14 +17627,12 @@ var dayGridMonthSelectionHelper = {
   },
   calculateSelection: calculateDayGridMonthSelectionByCurrentIndex
 };
-
 function calculateAlldayGridRowSelectionByCurrentIndex(gridSelection) {
   return isPresent(gridSelection) ? {
     startCellIndex: gridSelection.startColumnIndex,
     endCellIndex: gridSelection.endColumnIndex
   } : null;
 }
-
 var alldayGridRowSelectionHelper = {
   sortSelection: function sortSelection(initPos, currentPos) {
     var isReversed = initPos.columnIndex > currentPos.columnIndex;
@@ -17823,21 +17650,17 @@ var alldayGridRowSelectionHelper = {
 
 
 
-
 function dayGridWeekSelectionSelector(state) {
   return alldayGridRowSelectionHelper.calculateSelection(state.gridSelection.dayGridWeek);
 }
-
 function AlldayGridSelection(_ref) {
   var weekDates = _ref.weekDates,
-      narrowWeekend = _ref.narrowWeekend;
+    narrowWeekend = _ref.narrowWeekend;
   var calculatedGridSelection = useStore(dayGridWeekSelectionSelector);
-
   if (type_isNil(calculatedGridSelection)) {
     return null;
   }
-
-  return h(GridSelection, {
+  return y(GridSelection, {
     type: "allday",
     gridSelectionData: calculatedGridSelection,
     weekDates: weekDates,
@@ -17845,7 +17668,7 @@ function AlldayGridSelection(_ref) {
   });
 }
 ;// CONCATENATED MODULE: ../../node_modules/preact/compat/dist/compat.module.js
-function compat_module_S(n,t){for(var e in t)n[e]=t[e];return n}function compat_module_C(n,t){for(var e in n)if("__source"!==e&&!(e in t))return!0;for(var r in t)if("__source"!==r&&n[r]!==t[r])return!0;return!1}function E(n){this.props=n}function compat_module_g(n,t){function e(n){var e=this.props.ref,r=e==n.ref;return!r&&e&&(e.call?e(null):e.current=null),t?!t(this.props,n)||!r:compat_module_C(this.props,n)}function r(t){return this.shouldComponentUpdate=e,h(n,t)}return r.displayName="Memo("+(n.displayName||n.name)+")",r.prototype.isReactComponent=!0,r.__f=!0,r}(E.prototype=new d).isPureReactComponent=!0,E.prototype.shouldComponentUpdate=function(n,t){return compat_module_C(this.props,n)||compat_module_C(this.state,t)};var compat_module_w=preact_module_l.__b;preact_module_l.__b=function(n){n.type&&n.type.__f&&n.ref&&(n.props.ref=n.ref,n.ref=null),compat_module_w&&compat_module_w(n)};var compat_module_x="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.forward_ref")||3911;function R(n){function t(t){var e=compat_module_S({},t);return delete e.ref,n(e,t.ref||null)}return t.$$typeof=compat_module_x,t.render=t,t.prototype.isReactComponent=t.__f=!0,t.displayName="ForwardRef("+(n.displayName||n.name)+")",t}var compat_module_N=function(n,t){return null==n?null:x(x(n).map(t))},compat_module_k={map:compat_module_N,forEach:compat_module_N,count:function(n){return n?x(n).length:0},only:function(n){var t=x(n);if(1!==t.length)throw"Children.only";return t[0]},toArray:x},compat_module_A=preact_module_l.__e;preact_module_l.__e=function(n,t,e,r){if(n.then)for(var u,o=t;o=o.__;)if((u=o.__c)&&u.__c)return null==t.__e&&(t.__e=e.__e,t.__k=e.__k),u.__c(n,t);compat_module_A(n,t,e,r)};var compat_module_O=preact_module_l.unmount;function compat_module_T(){this.__u=0,this.t=null,this.__b=null}function compat_module_L(n){var t=n.__.__c;return t&&t.__a&&t.__a(n)}function U(n){var t,e,r;function u(u){if(t||(t=n()).then(function(n){e=n.default||n},function(n){r=n}),r)throw r;if(!e)throw t;return h(e,u)}return u.displayName="Lazy",u.__f=!0,u}function D(){this.u=null,this.o=null}preact_module_l.unmount=function(n){var t=n.__c;t&&t.__R&&t.__R(),t&&!0===n.__h&&(n.type=null),compat_module_O&&compat_module_O(n)},(compat_module_T.prototype=new d).__c=function(n,t){var e=t.__c,r=this;null==r.t&&(r.t=[]),r.t.push(e);var u=compat_module_L(r.__v),o=!1,i=function(){o||(o=!0,e.__R=null,u?u(l):l())};e.__R=i;var l=function(){if(!--r.__u){if(r.state.__a){var n=r.state.__a;r.__v.__k[0]=function n(t,e,r){return t&&(t.__v=null,t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)}),t.__c&&t.__c.__P===e&&(t.__e&&r.insertBefore(t.__e,t.__d),t.__c.__e=!0,t.__c.__P=r)),t}(n,n.__c.__P,n.__c.__O)}var t;for(r.setState({__a:r.__b=null});t=r.t.pop();)t.forceUpdate()}},f=!0===t.__h;r.__u++||f||r.setState({__a:r.__b=r.__v.__k[0]}),n.then(i,i)},compat_module_T.prototype.componentWillUnmount=function(){this.t=[]},compat_module_T.prototype.render=function(n,t){if(this.__b){if(this.__v.__k){var e=document.createElement("div"),r=this.__v.__k[0].__c;this.__v.__k[0]=function n(t,e,r){return t&&(t.__c&&t.__c.__H&&(t.__c.__H.__.forEach(function(n){"function"==typeof n.__c&&n.__c()}),t.__c.__H=null),null!=(t=compat_module_S({},t)).__c&&(t.__c.__P===r&&(t.__c.__P=e),t.__c=null),t.__k=t.__k&&t.__k.map(function(t){return n(t,e,r)})),t}(this.__b,e,r.__O=r.__P)}this.__b=null}var u=t.__a&&h(p,null,n.fallback);return u&&(u.__h=null),[h(p,null,t.__a?null:n.children),u]};var compat_module_F=function(n,t,e){if(++e[1]===e[0]&&n.o.delete(t),n.props.revealOrder&&("t"!==n.props.revealOrder[0]||!n.o.size))for(e=n.u;e;){for(;e.length>3;)e.pop()();if(e[1]<e[0])break;n.u=e=e[2]}};function compat_module_I(n){return this.getChildContext=function(){return n.context},n.children}function compat_module_M(n){var t=this,e=n.i;t.componentWillUnmount=function(){P(null,t.l),t.l=null,t.i=null},t.i&&t.i!==e&&t.componentWillUnmount(),n.__v?(t.l||(t.i=e,t.l={nodeType:1,parentNode:e,childNodes:[],appendChild:function(n){this.childNodes.push(n),t.i.appendChild(n)},insertBefore:function(n,e){this.childNodes.push(n),t.i.appendChild(n)},removeChild:function(n){this.childNodes.splice(this.childNodes.indexOf(n)>>>1,1),t.i.removeChild(n)}}),P(h(compat_module_I,{context:t.context},n.__v),t.l)):t.l&&t.componentWillUnmount()}function compat_module_V(n,t){var e=h(compat_module_M,{__v:n,i:t});return e.containerInfo=t,e}(D.prototype=new d).__a=function(n){var t=this,e=compat_module_L(t.__v),r=t.o.get(n);return r[0]++,function(u){var o=function(){t.props.revealOrder?(r.push(u),compat_module_F(t,n,r)):u()};e?e(o):o()}},D.prototype.render=function(n){this.u=null,this.o=new Map;var t=x(n.children);n.revealOrder&&"b"===n.revealOrder[0]&&t.reverse();for(var e=t.length;e--;)this.o.set(t[e],this.u=[1,0,this.u]);return n.children},D.prototype.componentDidUpdate=D.prototype.componentDidMount=function(){var n=this;this.o.forEach(function(t,e){compat_module_F(n,e,t)})};var W="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.element")||60103,compat_module_P=/^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|marker(?!H|W|U)|overline|paint|shape|stop|strikethrough|stroke|text(?!L)|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/,compat_module_$="undefined"!=typeof document,compat_module_j=function(n){return("undefined"!=typeof Symbol&&"symbol"==typeof Symbol()?/fil|che|rad/i:/fil|che|ra/i).test(n)};function compat_module_z(n,t,e){return null==t.__k&&(t.textContent=""),P(n,t),"function"==typeof e&&e(),n?n.__c:null}function compat_module_B(n,t,e){return S(n,t),"function"==typeof e&&e(),n?n.__c:null}d.prototype.isReactComponent={},["componentWillMount","componentWillReceiveProps","componentWillUpdate"].forEach(function(n){Object.defineProperty(d.prototype,n,{configurable:!0,get:function(){return this["UNSAFE_"+n]},set:function(t){Object.defineProperty(this,n,{configurable:!0,writable:!0,value:t})}})});var compat_module_H=preact_module_l.event;function Z(){}function Y(){return this.cancelBubble}function compat_module_q(){return this.defaultPrevented}preact_module_l.event=function(n){return compat_module_H&&(n=compat_module_H(n)),n.persist=Z,n.isPropagationStopped=Y,n.isDefaultPrevented=compat_module_q,n.nativeEvent=n};var G,J={configurable:!0,get:function(){return this.class}},K=preact_module_l.vnode;preact_module_l.vnode=function(n){var t=n.type,e=n.props,r=e;if("string"==typeof t){var u=-1===t.indexOf("-");for(var o in r={},e){var i=e[o];compat_module_$&&"children"===o&&"noscript"===t||"value"===o&&"defaultValue"in e&&null==i||("defaultValue"===o&&"value"in e&&null==e.value?o="value":"download"===o&&!0===i?i="":/ondoubleclick/i.test(o)?o="ondblclick":/^onchange(textarea|input)/i.test(o+t)&&!compat_module_j(e.type)?o="oninput":/^onfocus$/i.test(o)?o="onfocusin":/^onblur$/i.test(o)?o="onfocusout":/^on(Ani|Tra|Tou|BeforeInp|Compo)/.test(o)?o=o.toLowerCase():u&&compat_module_P.test(o)?o=o.replace(/[A-Z0-9]/,"-$&").toLowerCase():null===i&&(i=void 0),/^oninput$/i.test(o)&&(o=o.toLowerCase(),r[o]&&(o="oninputCapture")),r[o]=i)}"select"==t&&r.multiple&&Array.isArray(r.value)&&(r.value=x(e.children).forEach(function(n){n.props.selected=-1!=r.value.indexOf(n.props.value)})),"select"==t&&null!=r.defaultValue&&(r.value=x(e.children).forEach(function(n){n.props.selected=r.multiple?-1!=r.defaultValue.indexOf(n.props.value):r.defaultValue==n.props.value})),n.props=r,e.class!=e.className&&(J.enumerable="className"in e,null!=e.className&&(r.class=e.className),Object.defineProperty(r,"className",J))}n.$$typeof=W,K&&K(n)};var Q=preact_module_l.__r;preact_module_l.__r=function(n){Q&&Q(n),G=n.__c};var X={ReactCurrentDispatcher:{current:{readContext:function(n){return G.__n[n.__c].props.value}}}},nn="17.0.2";function tn(n){return h.bind(null,n)}function en(n){return!!n&&n.$$typeof===W}function rn(n){return en(n)?q.apply(null,arguments):n}function un(n){return!!n.__k&&(P(null,n),!0)}function on(n){return n&&(n.base||1===n.nodeType&&n)||null}var ln=function(n,t){return n(t)},fn=function(n,t){return n(t)},cn=p;function an(n){n()}function sn(n){return n}function hn(){return[!1,an]}var vn=hooks_module_h;function dn(t,r){var u=hooks_module_y(r),o=u[0],i=u[1];return hooks_module_(function(){return t(function(){i(r())})},[t,r]),o}/* harmony default export */ var compat_module = ({useState:hooks_module_y,useReducer:hooks_module_d,useEffect:hooks_module_,useLayoutEffect:hooks_module_h,useInsertionEffect:hooks_module_h,useTransition:hn,useDeferredValue:sn,useSyncExternalStore:dn,startTransition:an,useRef:hooks_module_s,useImperativeHandle:hooks_module_A,useMemo:F,useCallback:hooks_module_T,useContext:hooks_module_q,useDebugValue:hooks_module_x,version:"17.0.2",Children:compat_module_k,render:compat_module_z,hydrate:compat_module_B,unmountComponentAtNode:un,createPortal:compat_module_V,createElement:h,createContext:B,createFactory:tn,cloneElement:rn,createRef:y,Fragment:p,isValidElement:en,findDOMNode:on,Component:d,PureComponent:E,memo:compat_module_g,forwardRef:R,flushSync:fn,unstable_batchedUpdates:ln,StrictMode:p,Suspense:compat_module_T,SuspenseList:D,lazy:U,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:X});
+function compat_module_g(n,t){for(var e in t)n[e]=t[e];return n}function compat_module_C(n,t){for(var e in n)if("__source"!==e&&!(e in t))return!0;for(var r in t)if("__source"!==r&&n[r]!==t[r])return!0;return!1}function compat_module_E(n,t){return n===t&&(0!==n||1/n==1/t)||n!=n&&t!=t}function compat_module_w(n){this.props=n}function compat_module_x(n,e){function r(n){var t=this.props.ref,r=t==n.ref;return!r&&t&&(t.call?t(null):t.current=null),e?!e(this.props,n)||!r:compat_module_C(this.props,n)}function u(e){return this.shouldComponentUpdate=r,y(n,e)}return u.displayName="Memo("+(n.displayName||n.name)+")",u.prototype.isReactComponent=!0,u.__f=!0,u}(compat_module_w.prototype=new k).isPureReactComponent=!0,compat_module_w.prototype.shouldComponentUpdate=function(n,t){return compat_module_C(this.props,n)||compat_module_C(this.state,t)};var R=preact_module_l.__b;preact_module_l.__b=function(n){n.type&&n.type.__f&&n.ref&&(n.props.ref=n.ref,n.ref=null),R&&R(n)};var compat_module_N="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.forward_ref")||3911;function compat_module_k(n){function t(t){var e=compat_module_g({},t);return delete e.ref,n(e,t.ref||null)}return t.$$typeof=compat_module_N,t.render=t,t.prototype.isReactComponent=t.__f=!0,t.displayName="ForwardRef("+(n.displayName||n.name)+")",t}var compat_module_A=function(n,t){return null==n?null:P(P(n).map(t))},compat_module_O={map:compat_module_A,forEach:compat_module_A,count:function(n){return n?P(n).length:0},only:function(n){var t=P(n);if(1!==t.length)throw"Children.only";return t[0]},toArray:P},compat_module_T=preact_module_l.__e;preact_module_l.__e=function(n,t,e,r){if(n.then)for(var u,o=t;o=o.__;)if((u=o.__c)&&u.__c)return null==t.__e&&(t.__e=e.__e,t.__k=e.__k),u.__c(n,t);compat_module_T(n,t,e,r)};var compat_module_I=preact_module_l.unmount;function compat_module_L(n,t,e){return n&&(n.__c&&n.__c.__H&&(n.__c.__H.__.forEach(function(n){"function"==typeof n.__c&&n.__c()}),n.__c.__H=null),null!=(n=compat_module_g({},n)).__c&&(n.__c.__P===e&&(n.__c.__P=t),n.__c=null),n.__k=n.__k&&n.__k.map(function(n){return compat_module_L(n,t,e)})),n}function U(n,t,e){return n&&(n.__v=null,n.__k=n.__k&&n.__k.map(function(n){return U(n,t,e)}),n.__c&&n.__c.__P===t&&(n.__e&&e.insertBefore(n.__e,n.__d),n.__c.__e=!0,n.__c.__P=e)),n}function compat_module_D(){this.__u=0,this.t=null,this.__b=null}function compat_module_F(n){var t=n.__.__c;return t&&t.__a&&t.__a(n)}function compat_module_M(n){var e,r,u;function o(o){if(e||(e=n()).then(function(n){r=n.default||n},function(n){u=n}),u)throw u;if(!r)throw e;return y(r,o)}return o.displayName="Lazy",o.__f=!0,o}function compat_module_V(){this.u=null,this.o=null}preact_module_l.unmount=function(n){var t=n.__c;t&&t.__R&&t.__R(),t&&!0===n.__h&&(n.type=null),compat_module_I&&compat_module_I(n)},(compat_module_D.prototype=new k).__c=function(n,t){var e=t.__c,r=this;null==r.t&&(r.t=[]),r.t.push(e);var u=compat_module_F(r.__v),o=!1,i=function(){o||(o=!0,e.__R=null,u?u(l):l())};e.__R=i;var l=function(){if(!--r.__u){if(r.state.__a){var n=r.state.__a;r.__v.__k[0]=U(n,n.__c.__P,n.__c.__O)}var t;for(r.setState({__a:r.__b=null});t=r.t.pop();)t.forceUpdate()}},c=!0===t.__h;r.__u++||c||r.setState({__a:r.__b=r.__v.__k[0]}),n.then(i,i)},compat_module_D.prototype.componentWillUnmount=function(){this.t=[]},compat_module_D.prototype.render=function(n,e){if(this.__b){if(this.__v.__k){var r=document.createElement("div"),o=this.__v.__k[0].__c;this.__v.__k[0]=compat_module_L(this.__b,r,o.__O=o.__P)}this.__b=null}var i=e.__a&&y(preact_module_,null,n.fallback);return i&&(i.__h=null),[y(preact_module_,null,e.__a?null:n.children),i]};var W=function(n,t,e){if(++e[1]===e[0]&&n.o.delete(t),n.props.revealOrder&&("t"!==n.props.revealOrder[0]||!n.o.size))for(e=n.u;e;){for(;e.length>3;)e.pop()();if(e[1]<e[0])break;n.u=e=e[2]}};function compat_module_P(n){return this.getChildContext=function(){return n.context},n.children}function compat_module_j(n){var e=this,r=n.i;e.componentWillUnmount=function(){B(null,e.l),e.l=null,e.i=null},e.i&&e.i!==r&&e.componentWillUnmount(),n.__v?(e.l||(e.i=r,e.l={nodeType:1,parentNode:r,childNodes:[],appendChild:function(n){this.childNodes.push(n),e.i.appendChild(n)},insertBefore:function(n,t){this.childNodes.push(n),e.i.appendChild(n)},removeChild:function(n){this.childNodes.splice(this.childNodes.indexOf(n)>>>1,1),e.i.removeChild(n)}}),B(y(compat_module_P,{context:e.context},n.__v),e.l)):e.l&&e.componentWillUnmount()}function compat_module_z(n,e){var r=y(compat_module_j,{__v:n,i:e});return r.containerInfo=e,r}(compat_module_V.prototype=new k).__a=function(n){var t=this,e=compat_module_F(t.__v),r=t.o.get(n);return r[0]++,function(u){var o=function(){t.props.revealOrder?(r.push(u),W(t,n,r)):u()};e?e(o):o()}},compat_module_V.prototype.render=function(n){this.u=null,this.o=new Map;var t=P(n.children);n.revealOrder&&"b"===n.revealOrder[0]&&t.reverse();for(var e=t.length;e--;)this.o.set(t[e],this.u=[1,0,this.u]);return n.children},compat_module_V.prototype.componentDidUpdate=compat_module_V.prototype.componentDidMount=function(){var n=this;this.o.forEach(function(t,e){W(n,e,t)})};var compat_module_B="undefined"!=typeof Symbol&&Symbol.for&&Symbol.for("react.element")||60103,compat_module_H=/^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|image|letter|lighting|marker(?!H|W|U)|overline|paint|pointer|shape|stop|strikethrough|stroke|text(?!L)|transform|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/,Z=/^on(Ani|Tra|Tou|BeforeInp|Compo)/,Y=/[A-Z0-9]/g,compat_module_$="undefined"!=typeof document,compat_module_q=function(n){return("undefined"!=typeof Symbol&&"symbol"==typeof Symbol()?/fil|che|rad/:/fil|che|ra/).test(n)};function G(n,t,e){return null==t.__k&&(t.textContent=""),B(n,t),"function"==typeof e&&e(),n?n.__c:null}function J(n,t,e){return D(n,t),"function"==typeof e&&e(),n?n.__c:null}k.prototype.isReactComponent={},["componentWillMount","componentWillReceiveProps","componentWillUpdate"].forEach(function(t){Object.defineProperty(k.prototype,t,{configurable:!0,get:function(){return this["UNSAFE_"+t]},set:function(n){Object.defineProperty(this,t,{configurable:!0,writable:!0,value:n})}})});var K=preact_module_l.event;function Q(){}function X(){return this.cancelBubble}function nn(){return this.defaultPrevented}preact_module_l.event=function(n){return K&&(n=K(n)),n.persist=Q,n.isPropagationStopped=X,n.isDefaultPrevented=nn,n.nativeEvent=n};var tn,en={enumerable:!1,configurable:!0,get:function(){return this.class}},rn=preact_module_l.vnode;preact_module_l.vnode=function(n){"string"==typeof n.type&&function(n){var t=n.props,e=n.type,u={};for(var o in t){var i=t[o];if(!("value"===o&&"defaultValue"in t&&null==i||compat_module_$&&"children"===o&&"noscript"===e||"class"===o||"className"===o)){var l=o.toLowerCase();"defaultValue"===o&&"value"in t&&null==t.value?o="value":"download"===o&&!0===i?i="":"ondoubleclick"===l?o="ondblclick":"onchange"!==l||"input"!==e&&"textarea"!==e||compat_module_q(t.type)?"onfocus"===l?o="onfocusin":"onblur"===l?o="onfocusout":Z.test(o)?o=l:-1===e.indexOf("-")&&compat_module_H.test(o)?o=o.replace(Y,"-$&").toLowerCase():null===i&&(i=void 0):l=o="oninput","oninput"===l&&u[o=l]&&(o="oninputCapture"),u[o]=i}}"select"==e&&u.multiple&&Array.isArray(u.value)&&(u.value=P(t.children).forEach(function(n){n.props.selected=-1!=u.value.indexOf(n.props.value)})),"select"==e&&null!=u.defaultValue&&(u.value=P(t.children).forEach(function(n){n.props.selected=u.multiple?-1!=u.defaultValue.indexOf(n.props.value):u.defaultValue==n.props.value})),t.class&&!t.className?(u.class=t.class,Object.defineProperty(u,"className",en)):(t.className&&!t.class||t.class&&t.className)&&(u.class=u.className=t.className),n.props=u}(n),n.$$typeof=compat_module_B,rn&&rn(n)};var un=preact_module_l.__r;preact_module_l.__r=function(n){un&&un(n),tn=n.__c};var on=preact_module_l.diffed;preact_module_l.diffed=function(n){on&&on(n);var t=n.props,e=n.__e;null!=e&&"textarea"===n.type&&"value"in t&&t.value!==e.value&&(e.value=null==t.value?"":t.value),tn=null};var ln={ReactCurrentDispatcher:{current:{readContext:function(n){return tn.__n[n.__c].props.value}}}},cn="17.0.2";function fn(n){return y.bind(null,n)}function an(n){return!!n&&n.$$typeof===compat_module_B}function sn(n){return an(n)?E.apply(null,arguments):n}function hn(n){return!!n.__k&&(B(null,n),!0)}function vn(n){return n&&(n.base||1===n.nodeType&&n)||null}var dn=function(n,t){return n(t)},pn=function(n,t){return n(t)},mn=preact_module_;function yn(n){n()}function _n(n){return n}function bn(){return[!1,yn]}var Sn=hooks_module_y;function gn(n,t){var e=t(),r=hooks_module_h({h:{__:e,v:t}}),u=r[0].h,o=r[1];return hooks_module_y(function(){u.__=e,u.v=t,compat_module_E(u.__,t())||o({h:u})},[n,e,t]),hooks_module_p(function(){return compat_module_E(u.__,u.v())||o({h:u}),n(function(){compat_module_E(u.__,u.v())||o({h:u})})},[n]),e}var Cn={useState:hooks_module_h,useId:V,useReducer:hooks_module_s,useEffect:hooks_module_p,useLayoutEffect:hooks_module_y,useInsertionEffect:Sn,useTransition:bn,useDeferredValue:_n,useSyncExternalStore:gn,startTransition:yn,useRef:_,useImperativeHandle:hooks_module_A,useMemo:hooks_module_F,useCallback:hooks_module_T,useContext:hooks_module_q,useDebugValue:hooks_module_x,version:"17.0.2",Children:compat_module_O,render:G,hydrate:J,unmountComponentAtNode:hn,createPortal:compat_module_z,createElement:y,createContext:F,createFactory:fn,cloneElement:sn,createRef:d,Fragment:preact_module_,isValidElement:an,findDOMNode:vn,Component:k,PureComponent:compat_module_w,memo:compat_module_x,forwardRef:compat_module_k,flushSync:pn,unstable_batchedUpdates:dn,StrictMode:mn,Suspense:compat_module_D,SuspenseList:compat_module_V,lazy:compat_module_M,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:ln};
 //# sourceMappingURL=compat.module.js.map
 
 ;// CONCATENATED MODULE: ./src/components/dayGridWeek/gridCell.tsx
@@ -17854,74 +17677,67 @@ function compat_module_S(n,t){for(var e in t)n[e]=t[e];return n}function compat_
 
 
 
-
 function ExceedCount(_ref) {
   var index = _ref.index,
-      exceedCount = _ref.exceedCount,
-      isClicked = _ref.isClicked,
-      onClickExceedCount = _ref.onClickExceedCount;
-
+    exceedCount = _ref.exceedCount,
+    isClicked = _ref.isClicked,
+    onClickExceedCount = _ref.onClickExceedCount;
   var clickExceedCount = function clickExceedCount() {
     return onClickExceedCount(index);
   };
-
   var style = {
     display: isClicked ? 'none' : ''
   };
-  return exceedCount && !isClicked ? h("span", {
+  return exceedCount && !isClicked ? y("span", {
     className: cls('weekday-exceed-in-week'),
     onClick: clickExceedCount,
     style: style
-  }, h(Template, {
+  }, y(Template, {
     template: "weekGridFooterExceed",
     param: exceedCount
   })) : null;
 }
-
 function CollapseButton(_ref2) {
   var isClicked = _ref2.isClicked,
-      isClickedIndex = _ref2.isClickedIndex,
-      onClickCollapseButton = _ref2.onClickCollapseButton;
-  return isClicked && isClickedIndex ? h("span", {
+    isClickedIndex = _ref2.isClickedIndex,
+    onClickCollapseButton = _ref2.onClickCollapseButton;
+  return isClicked && isClickedIndex ? y("span", {
     className: cls('weekday-exceed-in-week'),
     onClick: onClickCollapseButton
-  }, h(Template, {
+  }, y(Template, {
     template: "collapseBtnTitle"
   })) : null;
 }
-
 function GridCell(_ref3) {
   var width = _ref3.width,
-      left = _ref3.left,
-      index = _ref3.index,
-      exceedCount = _ref3.exceedCount,
-      isClicked = _ref3.isClicked,
-      onClickExceedCount = _ref3.onClickExceedCount,
-      isClickedIndex = _ref3.isClickedIndex,
-      onClickCollapseButton = _ref3.onClickCollapseButton,
-      isLastCell = _ref3.isLastCell;
-
+    left = _ref3.left,
+    index = _ref3.index,
+    exceedCount = _ref3.exceedCount,
+    isClicked = _ref3.isClicked,
+    onClickExceedCount = _ref3.onClickExceedCount,
+    isClickedIndex = _ref3.isClickedIndex,
+    onClickCollapseButton = _ref3.onClickCollapseButton,
+    isLastCell = _ref3.isLastCell;
   var _useTheme = useTheme(hooks_module_T(function (theme) {
-    return theme.week.dayGrid;
-  }, [])),
-      borderRight = _useTheme.borderRight,
-      backgroundColor = _useTheme.backgroundColor;
-
+      return theme.week.dayGrid;
+    }, [])),
+    borderRight = _useTheme.borderRight,
+    backgroundColor = _useTheme.backgroundColor;
   var style = {
     width: width,
     left: left,
     borderRight: isLastCell ? 'none' : borderRight,
     backgroundColor: backgroundColor
   };
-  return h("div", {
+  return y("div", {
     className: cls('panel-grid'),
     style: style
-  }, h(ExceedCount, {
+  }, y(ExceedCount, {
     index: index,
     exceedCount: exceedCount,
     isClicked: isClicked,
     onClickExceedCount: onClickExceedCount
-  }), h(CollapseButton, {
+  }), y(CollapseButton, {
     isClickedIndex: isClickedIndex,
     isClicked: isClicked,
     onClickCollapseButton: onClickCollapseButton
@@ -17936,31 +17752,29 @@ function GridCell(_ref3) {
 
 
 
-var GridCells = compat_module_g(function GridCells(_ref) {
+var GridCells = compat_module_x(function GridCells(_ref) {
   var uiModels = _ref.uiModels,
-      weekDates = _ref.weekDates,
-      narrowWeekend = _ref.narrowWeekend,
-      height = _ref.height,
-      clickedIndex = _ref.clickedIndex,
-      isClickedCount = _ref.isClickedCount,
-      onClickExceedCount = _ref.onClickExceedCount,
-      onClickCollapseButton = _ref.onClickCollapseButton;
+    weekDates = _ref.weekDates,
+    narrowWeekend = _ref.narrowWeekend,
+    height = _ref.height,
+    clickedIndex = _ref.clickedIndex,
+    isClickedCount = _ref.isClickedCount,
+    onClickExceedCount = _ref.onClickExceedCount,
+    onClickCollapseButton = _ref.onClickCollapseButton;
   // @TODO: get margin value dynamically
   var eventTopMargin = 2;
-
   var _getGridWidthAndLeftP = getGridWidthAndLeftPercentValues(weekDates, narrowWeekend, TOTAL_WIDTH),
-      widthList = _getGridWidthAndLeftP.widthList,
-      leftList = _getGridWidthAndLeftP.leftList;
-
+    widthList = _getGridWidthAndLeftP.widthList,
+    leftList = _getGridWidthAndLeftP.leftList;
   var lastCellIndex = weekDates.length - 1;
-  return h(p, null, weekDates.map(function (cell, index) {
+  return y(preact_module_, null, weekDates.map(function (cell, index) {
     var width = toPercent(widthList[index]);
     var left = toPercent(leftList[index]);
     var uiModelsInCell = uiModels.filter(isInGrid(cell));
     var exceedCount = getExceedCount(uiModelsInCell, height, EVENT_HEIGHT + eventTopMargin);
     var isClickedIndex = index === clickedIndex;
     var isLastCell = index === lastCellIndex;
-    return h(GridCell, {
+    return y(GridCell, {
       key: "panel-grid-".concat(cell.getDate()),
       width: width,
       left: left,
@@ -17984,11 +17798,11 @@ var es_array_unscopables_flat = __webpack_require__(7694);
 
 function HorizontalEventResizeIcon(_ref) {
   var onMouseDown = _ref.onMouseDown;
-  return h("span", {
+  return y("span", {
     className: "".concat(cls('weekday-resize-handle'), " ").concat(cls('handle-y')),
     onMouseDown: onMouseDown,
     "data-testid": "horizontal-event-resize-icon"
-  }, h("i", {
+  }, y("i", {
     className: "".concat(cls('icon'), " ").concat(cls('ic-handle-y'))
   }));
 }
@@ -17997,15 +17811,13 @@ function HorizontalEventResizeIcon(_ref) {
 
 
 
-var LayoutContainerContext = B(null);
+var LayoutContainerContext = F(null);
 var LayoutContainerProvider = LayoutContainerContext.Provider;
 var useLayoutContainer = function useLayoutContainer() {
   var ref = hooks_module_q(LayoutContainerContext);
-
   if (isUndefined_default()(ref)) {
     throw new Error('LayoutContainerProvider is not found');
   }
-
   return ref;
 };
 ;// CONCATENATED MODULE: ./src/helpers/drag.ts
@@ -18041,9 +17853,8 @@ function useCalendarById(calendarId) {
 
 function useCalendarColor(model) {
   var _model$calendarId;
-
   var calendar = useCalendarById((_model$calendarId = model === null || model === void 0 ? void 0 : model.calendarId) !== null && _model$calendarId !== void 0 ? _model$calendarId : null);
-  return F(function () {
+  return hooks_module_F(function () {
     return {
       color: calendar === null || calendar === void 0 ? void 0 : calendar.color,
       borderColor: calendar === null || calendar === void 0 ? void 0 : calendar.borderColor,
@@ -18053,14 +17864,25 @@ function useCalendarColor(model) {
   }, [calendar]);
 }
 ;// CONCATENATED MODULE: ./src/constants/keyboard.ts
-function keyboard_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var KEY;
 
-(function (KEY) {
+
+
+
+
+
+
+
+
+
+function keyboard_typeof(obj) { "@babel/helpers - typeof"; return keyboard_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, keyboard_typeof(obj); }
+function keyboard_defineProperty(obj, key, value) { key = keyboard_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function keyboard_toPropertyKey(arg) { var key = keyboard_toPrimitive(arg, "string"); return keyboard_typeof(key) === "symbol" ? key : String(key); }
+function keyboard_toPrimitive(input, hint) { if (keyboard_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (keyboard_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+var KEY = /*#__PURE__*/function (KEY) {
   KEY["ESCAPE"] = "Escape";
-})(KEY || (KEY = {}));
-
+  return KEY;
+}({});
 var KEYCODE = keyboard_defineProperty({}, KEY.ESCAPE, 27);
 ;// CONCATENATED MODULE: ./src/constants/mouse.ts
 var MINIMUM_DRAG_MOUSE_DISTANCE = 3;
@@ -18071,13 +17893,13 @@ var MINIMUM_DRAG_MOUSE_DISTANCE = 3;
 // Reference: https://github.com/pmndrs/zustand#transient-updates-for-often-occuring-state-changes
 function useTransientUpdate(selector, subscriber) {
   var store = useInternalStore();
-  var selectorRef = hooks_module_s(selector);
-  var subscriberRef = hooks_module_s(subscriber);
-  hooks_module_(function () {
+  var selectorRef = _(selector);
+  var subscriberRef = _(subscriber);
+  hooks_module_p(function () {
     selectorRef.current = selector;
     subscriberRef.current = subscriber;
   }, [selector, subscriber]);
-  hooks_module_(function () {
+  hooks_module_p(function () {
     return store.subscribe(function (slice) {
       return subscriberRef.current(slice);
     }, function (state) {
@@ -18104,20 +17926,12 @@ function isKeyPressed(e, key) {
 
 
 
-
 function useDrag_slicedToArray(arr, i) { return useDrag_arrayWithHoles(arr) || useDrag_iterableToArrayLimit(arr, i) || useDrag_unsupportedIterableToArray(arr, i) || useDrag_nonIterableRest(); }
-
 function useDrag_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useDrag_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useDrag_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useDrag_arrayLikeToArray(o, minLen); }
-
-function useDrag_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useDrag_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useDrag_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useDrag_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useDrag_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -18131,51 +17945,44 @@ function useDrag_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 function isLeftClick(buttonNum) {
   return buttonNum === 0;
 }
-
 function isMouseMoved(initX, initY, x, y) {
   return Math.abs(initX - x) >= MINIMUM_DRAG_MOUSE_DISTANCE || Math.abs(initY - y) >= MINIMUM_DRAG_MOUSE_DISTANCE;
 }
-
 function useDrag(draggingItemType) {
   var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-      onInit = _ref.onInit,
-      onDragStart = _ref.onDragStart,
-      onDrag = _ref.onDrag,
-      onMouseUp = _ref.onMouseUp,
-      onPressESCKey = _ref.onPressESCKey;
-
+    onInit = _ref.onInit,
+    onDragStart = _ref.onDragStart,
+    onDrag = _ref.onDrag,
+    onMouseUp = _ref.onMouseUp,
+    onPressESCKey = _ref.onPressESCKey;
   var _useDispatch = useDispatch('dnd'),
-      initDrag = _useDispatch.initDrag,
-      setDragging = _useDispatch.setDragging,
-      cancelDrag = _useDispatch.cancelDrag,
-      reset = _useDispatch.reset;
-
+    initDrag = _useDispatch.initDrag,
+    setDragging = _useDispatch.setDragging,
+    cancelDrag = _useDispatch.cancelDrag,
+    reset = _useDispatch.reset;
   var store = useInternalStore();
-  var dndSliceRef = hooks_module_s(store.getState().dnd);
+  var dndSliceRef = _(store.getState().dnd);
   useTransientUpdate(dndSelector, function (dndState) {
     dndSliceRef.current = dndState;
   });
-
-  var _useState = hooks_module_y(false),
-      _useState2 = useDrag_slicedToArray(_useState, 2),
-      isStarted = _useState2[0],
-      setStarted = _useState2[1];
-
-  var handleMouseMoveRef = hooks_module_s(null);
-  var handleMouseUpRef = hooks_module_s(null);
-  var handleKeyDownRef = hooks_module_s(null);
+  var _useState = hooks_module_h(false),
+    _useState2 = useDrag_slicedToArray(_useState, 2),
+    isStarted = _useState2[0],
+    setStarted = _useState2[1];
+  var handleMouseMoveRef = _(null);
+  var handleMouseUpRef = _(null);
+  var handleKeyDownRef = _(null);
   var handleMouseDown = hooks_module_T(function (e) {
     if (!isLeftClick(e.button)) {
       return;
     }
-
     if (e.currentTarget) {
       e.currentTarget.ondragstart = function () {
         return false;
       };
-    } // prevent text selection on dragging
+    }
 
-
+    // prevent text selection on dragging
     e.preventDefault();
     setStarted(true);
     initDrag({
@@ -18187,21 +17994,18 @@ function useDrag(draggingItemType) {
   }, [onInit, draggingItemType, initDrag]);
   var handleMouseMove = hooks_module_T(function (e) {
     var _dndSliceRef$current = dndSliceRef.current,
-        initX = _dndSliceRef$current.initX,
-        initY = _dndSliceRef$current.initY,
-        draggingState = _dndSliceRef$current.draggingState,
-        currentDraggingItemType = _dndSliceRef$current.draggingItemType;
-
+      initX = _dndSliceRef$current.initX,
+      initY = _dndSliceRef$current.initY,
+      draggingState = _dndSliceRef$current.draggingState,
+      currentDraggingItemType = _dndSliceRef$current.draggingItemType;
     if (currentDraggingItemType !== draggingItemType) {
       setStarted(false);
       reset();
       return;
     }
-
     if (isPresent(initX) && isPresent(initY) && !isMouseMoved(initX, initY, e.clientX, e.clientY)) {
       return;
     }
-
     if (draggingState <= DraggingState.INIT) {
       setDragging({
         x: e.clientX,
@@ -18210,7 +18014,6 @@ function useDrag(draggingItemType) {
       onDragStart === null || onDragStart === void 0 ? void 0 : onDragStart(e, dndSliceRef.current);
       return;
     }
-
     setDragging({
       x: e.clientX,
       y: e.clientY
@@ -18219,7 +18022,6 @@ function useDrag(draggingItemType) {
   }, [draggingItemType, onDrag, onDragStart, setDragging, reset]);
   var handleMouseUp = hooks_module_T(function (e) {
     e.stopPropagation();
-
     if (isStarted) {
       onMouseUp === null || onMouseUp === void 0 ? void 0 : onMouseUp(e, dndSliceRef.current);
       setStarted(false);
@@ -18233,30 +18035,24 @@ function useDrag(draggingItemType) {
       onPressESCKey === null || onPressESCKey === void 0 ? void 0 : onPressESCKey(e, dndSliceRef.current);
     }
   }, [onPressESCKey, cancelDrag]);
-  hooks_module_(function () {
+  hooks_module_p(function () {
     handleMouseMoveRef.current = handleMouseMove;
     handleMouseUpRef.current = handleMouseUp;
     handleKeyDownRef.current = handleKeyDown;
   }, [handleKeyDown, handleMouseMove, handleMouseUp]);
-  hooks_module_(function () {
+  hooks_module_p(function () {
     var wrappedHandleMouseMove = function wrappedHandleMouseMove(e) {
       var _handleMouseMoveRef$c;
-
       return (_handleMouseMoveRef$c = handleMouseMoveRef.current) === null || _handleMouseMoveRef$c === void 0 ? void 0 : _handleMouseMoveRef$c.call(handleMouseMoveRef, e);
     };
-
     var wrappedHandleMouseUp = function wrappedHandleMouseUp(e) {
       var _handleMouseUpRef$cur;
-
       return (_handleMouseUpRef$cur = handleMouseUpRef.current) === null || _handleMouseUpRef$cur === void 0 ? void 0 : _handleMouseUpRef$cur.call(handleMouseUpRef, e);
     };
-
     var wrappedHandleKeyDown = function wrappedHandleKeyDown(e) {
       var _handleKeyDownRef$cur;
-
       return (_handleKeyDownRef$cur = handleKeyDownRef.current) === null || _handleKeyDownRef$cur === void 0 ? void 0 : _handleKeyDownRef$cur.call(handleKeyDownRef, e);
     };
-
     if (isStarted) {
       document.addEventListener('mousemove', wrappedHandleMouseMove);
       document.addEventListener('mouseup', wrappedHandleMouseUp);
@@ -18267,7 +18063,6 @@ function useDrag(draggingItemType) {
         document.removeEventListener('keydown', wrappedHandleKeyDown);
       };
     }
-
     return noop;
   }, [isStarted, reset]);
   return handleMouseDown;
@@ -18283,23 +18078,19 @@ function passConditionalProp(condition, prop) {
   return condition ? prop : undefined;
 }
 ;// CONCATENATED MODULE: ./src/components/events/horizontalEvent.tsx
+function horizontalEvent_typeof(obj) { "@babel/helpers - typeof"; return horizontalEvent_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, horizontalEvent_typeof(obj); }
 function horizontalEvent_slicedToArray(arr, i) { return horizontalEvent_arrayWithHoles(arr) || horizontalEvent_iterableToArrayLimit(arr, i) || horizontalEvent_unsupportedIterableToArray(arr, i) || horizontalEvent_nonIterableRest(); }
-
 function horizontalEvent_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function horizontalEvent_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return horizontalEvent_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return horizontalEvent_arrayLikeToArray(o, minLen); }
-
-function horizontalEvent_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function horizontalEvent_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function horizontalEvent_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function horizontalEvent_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function horizontalEvent_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 function horizontalEvent_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function horizontalEvent_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? horizontalEvent_ownKeys(Object(source), !0).forEach(function (key) { horizontalEvent_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : horizontalEvent_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function horizontalEvent_defineProperty(obj, key, value) { key = horizontalEvent_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function horizontalEvent_toPropertyKey(arg) { var key = horizontalEvent_toPrimitive(arg, "string"); return horizontalEvent_typeof(key) === "symbol" ? key : String(key); }
+function horizontalEvent_toPrimitive(input, hint) { if (horizontalEvent_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (horizontalEvent_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function horizontalEvent_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
 
@@ -18347,28 +18138,24 @@ function getMargins(flat) {
     horizontal: 8
   };
 }
-
 function getBorderRadius(exceedLeft, exceedRight) {
   var leftBorderRadius = exceedLeft ? 0 : '2px';
   var rightBorderRadius = exceedRight ? 0 : '2px';
   return "".concat(leftBorderRadius, " ").concat(rightBorderRadius, " ").concat(rightBorderRadius, " ").concat(leftBorderRadius);
 }
-
 function getEventItemStyle(_ref) {
   var uiModel = _ref.uiModel,
-      flat = _ref.flat,
-      eventHeight = _ref.eventHeight,
-      isDraggingTarget = _ref.isDraggingTarget,
-      calendarColor = _ref.calendarColor;
+    flat = _ref.flat,
+    eventHeight = _ref.eventHeight,
+    isDraggingTarget = _ref.isDraggingTarget,
+    calendarColor = _ref.calendarColor;
   var exceedLeft = uiModel.exceedLeft,
-      exceedRight = uiModel.exceedRight;
-
+    exceedRight = uiModel.exceedRight;
   var _getEventColors = getEventColors(uiModel, calendarColor),
-      color = _getEventColors.color,
-      backgroundColor = _getEventColors.backgroundColor,
-      dragBackgroundColor = _getEventColors.dragBackgroundColor,
-      borderColor = _getEventColors.borderColor;
-
+    color = _getEventColors.color,
+    backgroundColor = _getEventColors.backgroundColor,
+    dragBackgroundColor = _getEventColors.dragBackgroundColor,
+    borderColor = _getEventColors.borderColor;
   var defaultItemStyle = {
     color: color,
     backgroundColor: isDraggingTarget ? dragBackgroundColor : backgroundColor,
@@ -18387,18 +18174,17 @@ function getEventItemStyle(_ref) {
     marginRight: exceedRight ? 0 : margins.horizontal
   }, defaultItemStyle);
 }
-
 function getContainerStyle(_ref2) {
   var flat = _ref2.flat,
-      uiModel = _ref2.uiModel,
-      resizingWidth = _ref2.resizingWidth,
-      movingLeft = _ref2.movingLeft,
-      eventHeight = _ref2.eventHeight,
-      headerHeight = _ref2.headerHeight;
+    uiModel = _ref2.uiModel,
+    resizingWidth = _ref2.resizingWidth,
+    movingLeft = _ref2.movingLeft,
+    eventHeight = _ref2.eventHeight,
+    headerHeight = _ref2.headerHeight;
   var top = uiModel.top,
-      left = uiModel.left,
-      width = uiModel.width,
-      model = uiModel.model;
+    left = uiModel.left,
+    width = uiModel.width,
+    model = uiModel.model;
   var margins = getMargins(flat);
   var baseStyle = flat ? {} : {
     width: resizingWidth || toPercent(width),
@@ -18408,89 +18194,77 @@ function getContainerStyle(_ref2) {
   };
   return Object.assign(baseStyle, model.customStyle);
 }
-
 function getTestId(_ref3) {
   var model = _ref3.model;
   var calendarId = model.calendarId ? "".concat(model.calendarId, "-") : '';
   var id = model.id ? "".concat(model.id, "-") : '';
   return "".concat(calendarId).concat(id).concat(model.title);
 }
-
 var classNames = {
   eventBody: cls('weekday-event'),
   eventTitle: cls('weekday-event-title'),
   eventDot: cls('weekday-event-dot'),
   moveEvent: cls('dragging--move-event'),
   resizeEvent: cls('dragging--resize-horizontal-event')
-}; // eslint-disable-next-line complexity
+};
 
+// eslint-disable-next-line complexity
 function HorizontalEvent(_ref4) {
   var _ref4$flat = _ref4.flat,
-      flat = _ref4$flat === void 0 ? false : _ref4$flat,
-      uiModel = _ref4.uiModel,
-      eventHeight = _ref4.eventHeight,
-      headerHeight = _ref4.headerHeight,
-      _ref4$resizingWidth = _ref4.resizingWidth,
-      resizingWidth = _ref4$resizingWidth === void 0 ? null : _ref4$resizingWidth,
-      _ref4$movingLeft = _ref4.movingLeft,
-      movingLeft = _ref4$movingLeft === void 0 ? null : _ref4$movingLeft;
-
+    flat = _ref4$flat === void 0 ? false : _ref4$flat,
+    uiModel = _ref4.uiModel,
+    eventHeight = _ref4.eventHeight,
+    headerHeight = _ref4.headerHeight,
+    _ref4$resizingWidth = _ref4.resizingWidth,
+    resizingWidth = _ref4$resizingWidth === void 0 ? null : _ref4$resizingWidth,
+    _ref4$movingLeft = _ref4.movingLeft,
+    movingLeft = _ref4$movingLeft === void 0 ? null : _ref4$movingLeft;
   var _useStore = useStore(viewSelector),
-      currentView = _useStore.currentView;
-
+    currentView = _useStore.currentView;
   var _useStore2 = useStore(optionsSelector),
-      useDetailPopup = _useStore2.useDetailPopup,
-      isReadOnlyCalendar = _useStore2.isReadOnly;
-
+    useDetailPopup = _useStore2.useDetailPopup,
+    isReadOnlyCalendar = _useStore2.isReadOnly;
   var _useDispatch = useDispatch('dnd'),
-      setDraggingEventUIModel = _useDispatch.setDraggingEventUIModel;
-
+    setDraggingEventUIModel = _useDispatch.setDraggingEventUIModel;
   var _useDispatch2 = useDispatch('popup'),
-      showDetailPopup = _useDispatch2.showDetailPopup;
-
+    showDetailPopup = _useDispatch2.showDetailPopup;
   var layoutContainer = useLayoutContainer();
   var eventBus = useEventBus();
   var calendarColor = useCalendarColor(uiModel.model);
-
-  var _useState = hooks_module_y(false),
-      _useState2 = horizontalEvent_slicedToArray(_useState, 2),
-      isDraggingTarget = _useState2[0],
-      setIsDraggingTarget = _useState2[1];
-
-  var eventContainerRef = hooks_module_s(null);
+  var _useState = hooks_module_h(false),
+    _useState2 = horizontalEvent_slicedToArray(_useState, 2),
+    isDraggingTarget = _useState2[0],
+    setIsDraggingTarget = _useState2[1];
+  var eventContainerRef = _(null);
   var _uiModel$model = uiModel.model,
-      isReadOnly = _uiModel$model.isReadOnly,
-      id = _uiModel$model.id,
-      calendarId = _uiModel$model.calendarId;
+    isReadOnly = _uiModel$model.isReadOnly,
+    id = _uiModel$model.id,
+    calendarId = _uiModel$model.calendarId;
   var isDraggingGuideEvent = isPresent(resizingWidth) || isPresent(movingLeft);
   var isDraggableEvent = !isReadOnlyCalendar && !isReadOnly && !isDraggingGuideEvent;
-
   var startDragEvent = function startDragEvent(className) {
     setDraggingEventUIModel(uiModel);
     layoutContainer === null || layoutContainer === void 0 ? void 0 : layoutContainer.classList.add(className);
   };
-
   var endDragEvent = function endDragEvent(className) {
     setIsDraggingTarget(false);
     layoutContainer === null || layoutContainer === void 0 ? void 0 : layoutContainer.classList.remove(className);
   };
-
   useTransientUpdate(dndSelector, function (_ref5) {
     var draggingEventUIModel = _ref5.draggingEventUIModel,
-        draggingState = _ref5.draggingState;
-
+      draggingState = _ref5.draggingState;
     if (draggingState === DraggingState.DRAGGING && (draggingEventUIModel === null || draggingEventUIModel === void 0 ? void 0 : draggingEventUIModel.cid()) === uiModel.cid() && !isDraggingGuideEvent) {
       setIsDraggingTarget(true);
     } else {
       setIsDraggingTarget(false);
     }
   });
-  hooks_module_(function () {
+  hooks_module_p(function () {
     if (!isDraggingGuideEvent) {
       eventBus.fire('afterRenderEvent', uiModel.model.toEventObject());
-    } // This effect is only for the first render.
+    }
+    // This effect is only for the first render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-
   }, []);
   var onResizeStart = useDrag(DRAGGING_TYPE_CREATORS.resizeEvent('dayGrid', "".concat(uiModel.cid())), {
     onDragStart: function onDragStart() {
@@ -18513,15 +18287,14 @@ function HorizontalEvent(_ref4) {
       var draggingState = _ref6.draggingState;
       endDragEvent(classNames.moveEvent);
       var isClick = draggingState <= DraggingState.INIT;
-
       if (isClick && useDetailPopup && eventContainerRef.current) {
         // console.log(uiModel);
+
         showDetailPopup({
           event: uiModel.model,
           eventRect: eventContainerRef.current.getBoundingClientRect()
         }, flat);
       }
-
       if (isClick) {
         eventBus.fire('clickEvent', {
           event: uiModel.model.toEventObject(),
@@ -18533,20 +18306,16 @@ function HorizontalEvent(_ref4) {
       return endDragEvent(classNames.moveEvent);
     }
   });
-
   var handleResizeStart = function handleResizeStart(e) {
     e.stopPropagation();
-
     if (isDraggableEvent) {
       onResizeStart(e);
     }
   };
-
   var handleMoveStart = function handleMoveStart(e) {
     e.stopPropagation();
     onMoveStart(e);
   };
-
   var isDotEvent = !isDraggingTarget && currentView === 'month' && uiModel.model.category === 'time' && isSameDate(uiModel.model.start, uiModel.model.end);
   var shouldHideResizeHandler = !isDraggableEvent || flat || isDraggingTarget || uiModel.exceedRight;
   var containerStyle = getContainerStyle({
@@ -18564,7 +18333,7 @@ function HorizontalEvent(_ref4) {
     isDraggingTarget: isDraggingTarget,
     calendarColor: calendarColor
   });
-  return h("div", {
+  return y("div", {
     className: cls('weekday-event-block', {
       'weekday-exceed-left': uiModel.exceedLeft,
       'weekday-exceed-right': uiModel.exceedRight
@@ -18574,28 +18343,29 @@ function HorizontalEvent(_ref4) {
     "data-calendar-id": calendarId,
     "data-event-id": id,
     ref: eventContainerRef
-  }, h("div", {
+  }, y("div", {
     className: classNames.eventBody,
     style: horizontalEvent_objectSpread(horizontalEvent_objectSpread({}, eventItemStyle), {}, {
       background: isDotEvent ? null : eventItemStyle.backgroundColor,
       borderLeft: isDotEvent ? null : eventItemStyle.borderLeft
     }),
     onMouseDown: handleMoveStart
-  }, isDotEvent ? h("span", {
+  }, isDotEvent ? y("span", {
     className: classNames.eventDot,
     style: {
       background: eventItemStyle.backgroundColor
     }
-  }) : null, h("span", {
+  }) : null, y("span", {
     className: classNames.eventTitle
-  }, h(Template, {
+  }, y(Template, {
     template: uiModel.model.category,
     param: uiModel.model
-  })), !shouldHideResizeHandler ? h(HorizontalEventResizeIcon, {
+  })), !shouldHideResizeHandler ? y(HorizontalEventResizeIcon, {
     onMouseDown: handleResizeStart
   }) : null));
 }
 ;// CONCATENATED MODULE: ./src/hooks/common/useWhen.ts
+
 
 /**
  * Check the condition and call the callback if the condition is true.
@@ -18629,17 +18399,15 @@ function HorizontalEvent(_ref4) {
  *   });
  * }, [currentGridPos, initGridPosition]);
  */
-
 function useWhen(callback, condition) {
-  var callbackRef = hooks_module_s(callback);
-  hooks_module_(function () {
+  var callbackRef = _(callback);
+  hooks_module_p(function () {
     callbackRef.current = callback;
   }, [callback]);
-  hooks_module_(function () {
+  hooks_module_p(function () {
     var invoke = function invoke() {
       return callbackRef.current();
     };
-
     if (condition) {
       invoke();
     }
@@ -18659,36 +18427,27 @@ function useWhen(callback, condition) {
 
 
 
-
 function useCurrentPointerPositionInGrid_slicedToArray(arr, i) { return useCurrentPointerPositionInGrid_arrayWithHoles(arr) || useCurrentPointerPositionInGrid_iterableToArrayLimit(arr, i) || useCurrentPointerPositionInGrid_unsupportedIterableToArray(arr, i) || useCurrentPointerPositionInGrid_nonIterableRest(); }
-
 function useCurrentPointerPositionInGrid_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useCurrentPointerPositionInGrid_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useCurrentPointerPositionInGrid_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useCurrentPointerPositionInGrid_arrayLikeToArray(o, minLen); }
-
-function useCurrentPointerPositionInGrid_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useCurrentPointerPositionInGrid_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useCurrentPointerPositionInGrid_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useCurrentPointerPositionInGrid_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useCurrentPointerPositionInGrid_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
 
-
 function useCurrentPointerPositionInGrid(gridPositionFinder) {
-  var _useState = hooks_module_y(null),
-      _useState2 = useCurrentPointerPositionInGrid_slicedToArray(_useState, 2),
-      currentGridPos = _useState2[0],
-      setCurrentGridPos = _useState2[1];
-
+  var _useState = hooks_module_h(null),
+    _useState2 = useCurrentPointerPositionInGrid_slicedToArray(_useState, 2),
+    currentGridPos = _useState2[0],
+    setCurrentGridPos = _useState2[1];
   useTransientUpdate(dndSelector, function (dndState) {
     if (isPresent(dndState.x) && isPresent(dndState.y)) {
       var gridPosition = gridPositionFinder({
         clientX: dndState.x,
         clientY: dndState.y
       });
-
       if (gridPosition) {
         setCurrentGridPos(gridPosition);
       }
@@ -18707,19 +18466,11 @@ var es_regexp_dot_all = __webpack_require__(4471);
 var es_regexp_sticky = __webpack_require__(1172);
 ;// CONCATENATED MODULE: ./src/hooks/event/useDraggingEvent.ts
 function useDraggingEvent_slicedToArray(arr, i) { return useDraggingEvent_arrayWithHoles(arr) || useDraggingEvent_iterableToArrayLimit(arr, i) || useDraggingEvent_unsupportedIterableToArray(arr, i) || useDraggingEvent_nonIterableRest(); }
-
 function useDraggingEvent_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useDraggingEvent_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useDraggingEvent_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useDraggingEvent_arrayLikeToArray(o, minLen); }
-
-function useDraggingEvent_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useDraggingEvent_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useDraggingEvent_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useDraggingEvent_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useDraggingEvent_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
-
 
 
 
@@ -18749,55 +18500,45 @@ var getTargetEventId = function getTargetEventId(itemType, area, behavior) {
   function isEventDraggingType(_itemType) {
     return new RegExp("^event/".concat(area, "/").concat(behavior, "/\\d+$")).test(_itemType);
   }
-
   if (type_isNil(itemType)) {
     return null;
   }
-
   return isEventDraggingType(itemType) ? last(itemType.split('/')) : null;
 };
-
 function useDraggingEvent(area, behavior) {
-  var _useState = hooks_module_y(false),
-      _useState2 = useDraggingEvent_slicedToArray(_useState, 2),
-      isDraggingEnd = _useState2[0],
-      setIsDraggingEnd = _useState2[1];
-
-  var _useState3 = hooks_module_y(false),
-      _useState4 = useDraggingEvent_slicedToArray(_useState3, 2),
-      isDraggingCanceled = _useState4[0],
-      setIsDraggingCanceled = _useState4[1];
-
-  var _useState5 = hooks_module_y(null),
-      _useState6 = useDraggingEvent_slicedToArray(_useState5, 2),
-      draggingEvent = _useState6[0],
-      setDraggingEvent = _useState6[1];
-
+  var _useState = hooks_module_h(false),
+    _useState2 = useDraggingEvent_slicedToArray(_useState, 2),
+    isDraggingEnd = _useState2[0],
+    setIsDraggingEnd = _useState2[1];
+  var _useState3 = hooks_module_h(false),
+    _useState4 = useDraggingEvent_slicedToArray(_useState3, 2),
+    isDraggingCanceled = _useState4[0],
+    setIsDraggingCanceled = _useState4[1];
+  var _useState5 = hooks_module_h(null),
+    _useState6 = useDraggingEvent_slicedToArray(_useState5, 2),
+    draggingEvent = _useState6[0],
+    setDraggingEvent = _useState6[1];
   useTransientUpdate(dndSelector, function (_ref) {
     var draggingItemType = _ref.draggingItemType,
-        draggingEventUIModel = _ref.draggingEventUIModel,
-        draggingState = _ref.draggingState;
+      draggingEventUIModel = _ref.draggingEventUIModel,
+      draggingState = _ref.draggingState;
     var targetEventId = getTargetEventId(draggingItemType, area, behavior);
     var hasMatchingTargetEvent = Number(targetEventId) === (draggingEventUIModel === null || draggingEventUIModel === void 0 ? void 0 : draggingEventUIModel.cid());
     var isIdle = draggingState === DraggingState.IDLE;
     var isCanceled = draggingState === DraggingState.CANCELED;
-
     if (type_isNil(draggingEvent) && hasMatchingTargetEvent) {
       setDraggingEvent(draggingEventUIModel);
     }
-
     if (isPresent(draggingEvent) && (isIdle || isCanceled)) {
       setIsDraggingEnd(true);
       setIsDraggingCanceled(isCanceled);
     }
   });
-
   var clearDraggingEvent = function clearDraggingEvent() {
     setDraggingEvent(null);
     setIsDraggingEnd(false);
     setIsDraggingCanceled(false);
   };
-
   return {
     isDraggingEnd: isDraggingEnd,
     isDraggingCanceled: isDraggingCanceled,
@@ -18820,19 +18561,12 @@ function useDraggingEvent(area, behavior) {
 
 
 
-
 function useAlldayGridRowEventMove_slicedToArray(arr, i) { return useAlldayGridRowEventMove_arrayWithHoles(arr) || useAlldayGridRowEventMove_iterableToArrayLimit(arr, i) || useAlldayGridRowEventMove_unsupportedIterableToArray(arr, i) || useAlldayGridRowEventMove_nonIterableRest(); }
-
 function useAlldayGridRowEventMove_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useAlldayGridRowEventMove_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useAlldayGridRowEventMove_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useAlldayGridRowEventMove_arrayLikeToArray(o, minLen); }
-
-function useAlldayGridRowEventMove_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useAlldayGridRowEventMove_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useAlldayGridRowEventMove_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useAlldayGridRowEventMove_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useAlldayGridRowEventMove_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -18842,47 +18576,40 @@ function useAlldayGridRowEventMove_arrayWithHoles(arr) { if (Array.isArray(arr))
 
 function useAlldayGridRowEventMove(_ref) {
   var rowStyleInfo = _ref.rowStyleInfo,
-      gridPositionFinder = _ref.gridPositionFinder;
+    gridPositionFinder = _ref.gridPositionFinder;
   var eventBus = useEventBus();
-
   var _useDraggingEvent = useDraggingEvent('dayGrid', 'move'),
-      isDraggingEnd = _useDraggingEvent.isDraggingEnd,
-      isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
-      movingEvent = _useDraggingEvent.draggingEvent,
-      clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
-
-  var startGridXRef = hooks_module_s(null);
-
+    isDraggingEnd = _useDraggingEvent.isDraggingEnd,
+    isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
+    movingEvent = _useDraggingEvent.draggingEvent,
+    clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
+  var startGridXRef = _(null);
   var _useCurrentPointerPos = useCurrentPointerPositionInGrid(gridPositionFinder),
-      _useCurrentPointerPos2 = useAlldayGridRowEventMove_slicedToArray(_useCurrentPointerPos, 2),
-      currentGridPos = _useCurrentPointerPos2[0],
-      clearCurrentGridPos = _useCurrentPointerPos2[1];
-
+    _useCurrentPointerPos2 = useAlldayGridRowEventMove_slicedToArray(_useCurrentPointerPos, 2),
+    currentGridPos = _useCurrentPointerPos2[0],
+    clearCurrentGridPos = _useCurrentPointerPos2[1];
   var _ref2 = currentGridPos !== null && currentGridPos !== void 0 ? currentGridPos : {},
-      columnIndex = _ref2.columnIndex;
-
-  var targetEventStartGridX = F(function () {
+    columnIndex = _ref2.columnIndex;
+  var targetEventStartGridX = hooks_module_F(function () {
     return type_isNil(movingEvent) ? null : rowStyleInfo.findIndex(function (_ref3) {
       var left = _ref3.left;
       return left === movingEvent.left;
     });
   }, [rowStyleInfo, movingEvent]);
-  var currentMovingLeft = F(function () {
+  var currentMovingLeft = hooks_module_F(function () {
     if (type_isNil(columnIndex) || type_isNil(startGridXRef.current) || type_isNil(targetEventStartGridX)) {
       return null;
     }
-
     var newColumnIndex = targetEventStartGridX + columnIndex - startGridXRef.current;
     return newColumnIndex < 0 ? -rowStyleInfo[-newColumnIndex].left : rowStyleInfo[newColumnIndex].left;
   }, [columnIndex, rowStyleInfo, targetEventStartGridX]);
-  hooks_module_(function () {
+  hooks_module_p(function () {
     if (type_isNil(startGridXRef.current) && isPresent(columnIndex)) {
       startGridXRef.current = columnIndex;
     }
   }, [columnIndex]);
   useWhen(function () {
     var shouldUpdate = !isDraggingCanceled && isPresent(movingEvent) && isPresent(columnIndex) && isPresent(currentMovingLeft) && columnIndex !== startGridXRef.current;
-
     if (shouldUpdate && isPresent(startGridXRef.current)) {
       var dateOffset = columnIndex - startGridXRef.current;
       var newStartDate = new date_TZDate(movingEvent.model.getStarts());
@@ -18897,12 +18624,11 @@ function useAlldayGridRowEventMove(_ref) {
         }
       });
     }
-
     clearDraggingEvent();
     clearCurrentGridPos();
     startGridXRef.current = null;
   }, isDraggingEnd);
-  return F(function () {
+  return hooks_module_F(function () {
     return {
       movingEvent: movingEvent,
       movingLeft: currentMovingLeft
@@ -18917,20 +18643,17 @@ function useAlldayGridRowEventMove(_ref) {
 
 function MovingEventShadow(_ref) {
   var rowStyleInfo = _ref.rowStyleInfo,
-      gridPositionFinder = _ref.gridPositionFinder;
-
+    gridPositionFinder = _ref.gridPositionFinder;
   var _useAlldayGridRowEven = useAlldayGridRowEventMove({
-    rowStyleInfo: rowStyleInfo,
-    gridPositionFinder: gridPositionFinder
-  }),
-      movingEvent = _useAlldayGridRowEven.movingEvent,
-      movingLeft = _useAlldayGridRowEven.movingLeft;
-
+      rowStyleInfo: rowStyleInfo,
+      gridPositionFinder: gridPositionFinder
+    }),
+    movingEvent = _useAlldayGridRowEven.movingEvent,
+    movingLeft = _useAlldayGridRowEven.movingLeft;
   if (type_isNil(movingEvent)) {
     return null;
   }
-
-  return h(HorizontalEvent, {
+  return y(HorizontalEvent, {
     uiModel: movingEvent,
     eventHeight: EVENT_HEIGHT,
     headerHeight: 0,
@@ -18951,20 +18674,12 @@ function MovingEventShadow(_ref) {
 
 
 
-
 function useAlldayGridRowEventResize_slicedToArray(arr, i) { return useAlldayGridRowEventResize_arrayWithHoles(arr) || useAlldayGridRowEventResize_iterableToArrayLimit(arr, i) || useAlldayGridRowEventResize_unsupportedIterableToArray(arr, i) || useAlldayGridRowEventResize_nonIterableRest(); }
-
 function useAlldayGridRowEventResize_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useAlldayGridRowEventResize_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useAlldayGridRowEventResize_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useAlldayGridRowEventResize_arrayLikeToArray(o, minLen); }
-
-function useAlldayGridRowEventResize_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useAlldayGridRowEventResize_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useAlldayGridRowEventResize_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useAlldayGridRowEventResize_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useAlldayGridRowEventResize_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -18980,47 +18695,39 @@ function getEventColIndex(uiModel, row) {
     end: end
   };
 }
-
 function useAlldayGridRowEventResize(_ref) {
   var weekDates = _ref.weekDates,
-      gridColWidthMap = _ref.gridColWidthMap,
-      gridPositionFinder = _ref.gridPositionFinder;
+    gridColWidthMap = _ref.gridColWidthMap,
+    gridPositionFinder = _ref.gridPositionFinder;
   var eventBus = useEventBus();
-
   var _useDraggingEvent = useDraggingEvent('dayGrid', 'resize'),
-      isDraggingEnd = _useDraggingEvent.isDraggingEnd,
-      isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
-      resizingEvent = _useDraggingEvent.draggingEvent,
-      clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
-
+    isDraggingEnd = _useDraggingEvent.isDraggingEnd,
+    isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
+    resizingEvent = _useDraggingEvent.draggingEvent,
+    clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
   var _useCurrentPointerPos = useCurrentPointerPositionInGrid(gridPositionFinder),
-      _useCurrentPointerPos2 = useAlldayGridRowEventResize_slicedToArray(_useCurrentPointerPos, 2),
-      currentGridPos = _useCurrentPointerPos2[0],
-      clearCurrentGridPos = _useCurrentPointerPos2[1];
-
+    _useCurrentPointerPos2 = useAlldayGridRowEventResize_slicedToArray(_useCurrentPointerPos, 2),
+    currentGridPos = _useCurrentPointerPos2[0],
+    clearCurrentGridPos = _useCurrentPointerPos2[1];
   var _ref2 = currentGridPos !== null && currentGridPos !== void 0 ? currentGridPos : {},
-      columnIndex = _ref2.columnIndex;
-
-  var targetEventGridIndices = F(function () {
+    columnIndex = _ref2.columnIndex;
+  var targetEventGridIndices = hooks_module_F(function () {
     if (resizingEvent) {
       return getEventColIndex(resizingEvent, weekDates);
     }
-
     return {
       start: -1,
       end: -1
     };
   }, [weekDates, resizingEvent]);
-  var resizingWidth = F(function () {
+  var resizingWidth = hooks_module_F(function () {
     if (targetEventGridIndices.start > -1 && isPresent(columnIndex)) {
       return gridColWidthMap[targetEventGridIndices.start][columnIndex];
     }
-
     return null;
   }, [columnIndex, gridColWidthMap, targetEventGridIndices.start]);
   useWhen(function () {
     var shouldUpdateEvent = !isDraggingCanceled && isPresent(resizingEvent) && isPresent(columnIndex) && targetEventGridIndices.start <= columnIndex && targetEventGridIndices.end !== columnIndex;
-
     if (shouldUpdateEvent) {
       var targetDate = weekDates[columnIndex];
       eventBus.fire('beforeUpdateEvent', {
@@ -19030,11 +18737,10 @@ function useAlldayGridRowEventResize(_ref) {
         }
       });
     }
-
     clearCurrentGridPos();
     clearDraggingEvent();
   }, isDraggingEnd);
-  return F(function () {
+  return hooks_module_F(function () {
     return {
       resizingEvent: resizingEvent,
       resizingWidth: resizingWidth
@@ -19049,22 +18755,19 @@ function useAlldayGridRowEventResize(_ref) {
 
 function ResizingEventShadow(_ref) {
   var weekDates = _ref.weekDates,
-      gridColWidthMap = _ref.gridColWidthMap,
-      gridPositionFinder = _ref.gridPositionFinder;
-
+    gridColWidthMap = _ref.gridColWidthMap,
+    gridPositionFinder = _ref.gridPositionFinder;
   var _useAlldayGridRowEven = useAlldayGridRowEventResize({
-    weekDates: weekDates,
-    gridColWidthMap: gridColWidthMap,
-    gridPositionFinder: gridPositionFinder
-  }),
-      resizingEvent = _useAlldayGridRowEven.resizingEvent,
-      resizingWidth = _useAlldayGridRowEven.resizingWidth;
-
+      weekDates: weekDates,
+      gridColWidthMap: gridColWidthMap,
+      gridPositionFinder: gridPositionFinder
+    }),
+    resizingEvent = _useAlldayGridRowEven.resizingEvent,
+    resizingWidth = _useAlldayGridRowEven.resizingWidth;
   if (type_isNil(resizingEvent)) {
     return null;
   }
-
-  return h(HorizontalEvent, {
+  return y(HorizontalEvent, {
     uiModel: resizingEvent,
     eventHeight: EVENT_HEIGHT,
     headerHeight: 0,
@@ -19085,26 +18788,18 @@ function ResizingEventShadow(_ref) {
 
 
 
-
 function useDOMNode_slicedToArray(arr, i) { return useDOMNode_arrayWithHoles(arr) || useDOMNode_iterableToArrayLimit(arr, i) || useDOMNode_unsupportedIterableToArray(arr, i) || useDOMNode_nonIterableRest(); }
-
 function useDOMNode_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useDOMNode_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useDOMNode_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useDOMNode_arrayLikeToArray(o, minLen); }
-
-function useDOMNode_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useDOMNode_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useDOMNode_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useDOMNode_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useDOMNode_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-
 function useDOMNode() {
-  var _useState = hooks_module_y(null),
-      _useState2 = useDOMNode_slicedToArray(_useState, 2),
-      node = _useState2[0],
-      setNode = _useState2[1];
-
+  var _useState = hooks_module_h(null),
+    _useState2 = useDOMNode_slicedToArray(_useState, 2),
+    node = _useState2[0],
+    setNode = _useState2[1];
   var setNodeRef = hooks_module_T(function (ref) {
     if (ref) {
       setNode(ref);
@@ -19126,37 +18821,27 @@ function useDOMNode() {
 
 
 
-
 function useGridRowHeightController_slicedToArray(arr, i) { return useGridRowHeightController_arrayWithHoles(arr) || useGridRowHeightController_iterableToArrayLimit(arr, i) || useGridRowHeightController_unsupportedIterableToArray(arr, i) || useGridRowHeightController_nonIterableRest(); }
-
 function useGridRowHeightController_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useGridRowHeightController_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useGridRowHeightController_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useGridRowHeightController_arrayLikeToArray(o, minLen); }
-
-function useGridRowHeightController_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useGridRowHeightController_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useGridRowHeightController_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useGridRowHeightController_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useGridRowHeightController_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
 
-
 function useGridRowHeightController(maxTop, category) {
-  var _useState = hooks_module_y(0),
-      _useState2 = useGridRowHeightController_slicedToArray(_useState, 2),
-      clickedIndex = _useState2[0],
-      setClickedIndex = _useState2[1];
-
-  var _useState3 = hooks_module_y(false),
-      _useState4 = useGridRowHeightController_slicedToArray(_useState3, 2),
-      isClickedCount = _useState4[0],
-      setClickedCount = _useState4[1];
-
+  var _useState = hooks_module_h(0),
+    _useState2 = useGridRowHeightController_slicedToArray(_useState, 2),
+    clickedIndex = _useState2[0],
+    setClickedIndex = _useState2[1];
+  var _useState3 = hooks_module_h(false),
+    _useState4 = useGridRowHeightController_slicedToArray(_useState3, 2),
+    isClickedCount = _useState4[0],
+    setClickedCount = _useState4[1];
   var _useDispatch = useDispatch('weekViewLayout'),
-      updateDayGridRowHeight = _useDispatch.updateDayGridRowHeight;
-
+    updateDayGridRowHeight = _useDispatch.updateDayGridRowHeight;
   var onClickExceedCount = hooks_module_T(function (index) {
     setClickedCount(true);
     setClickedIndex(index);
@@ -19180,30 +18865,26 @@ function useGridRowHeightController(maxTop, category) {
   };
 }
 ;// CONCATENATED MODULE: ./src/utils/requestTimeout.ts
- // Reference: https://medium.com/trabe/preventing-click-events-on-double-click-with-react-the-performant-way-1416ab03b835
 
+
+// Reference: https://medium.com/trabe/preventing-click-events-on-double-click-with-react-the-performant-way-1416ab03b835
 function requestTimeout(fn, delay, registerCancel) {
   var start;
-
   var loop = function loop(timestamp) {
     if (!start) {
       start = timestamp;
     }
-
     var elapsed = timestamp - start;
-
     if (elapsed >= delay) {
       fn();
       registerCancel(noop);
       return;
     }
-
     var raf = requestAnimationFrame(loop);
     registerCancel(function () {
       return cancelAnimationFrame(raf);
     });
   };
-
   var raf = requestAnimationFrame(loop);
   registerCancel(function () {
     return cancelAnimationFrame(raf);
@@ -19212,38 +18893,34 @@ function requestTimeout(fn, delay, registerCancel) {
 ;// CONCATENATED MODULE: ./src/hooks/common/useClickPrevention.ts
 
 
- // Reference: https://medium.com/trabe/preventing-click-events-on-double-click-with-react-the-performant-way-1416ab03b835
 
+
+// Reference: https://medium.com/trabe/preventing-click-events-on-double-click-with-react-the-performant-way-1416ab03b835
 function useClickPrevention(_ref) {
   var onClick = _ref.onClick,
-      onDblClick = _ref.onDblClick,
-      _ref$delay = _ref.delay,
-      delay = _ref$delay === void 0 ? 300 : _ref$delay;
-  var cancelCallback = hooks_module_s(noop);
-
+    onDblClick = _ref.onDblClick,
+    _ref$delay = _ref.delay,
+    delay = _ref$delay === void 0 ? 300 : _ref$delay;
+  var cancelCallback = _(noop);
   var registerCancel = function registerCancel(fn) {
     cancelCallback.current = fn;
   };
-
   var cancelScheduledWork = function cancelScheduledWork() {
     cancelCallback.current();
-  }; // Cancels the current scheduled work before the "unmount"
+  };
 
-
-  hooks_module_(function () {
+  // Cancels the current scheduled work before the "unmount"
+  hooks_module_p(function () {
     return cancelScheduledWork;
   }, []);
-
   var handleClick = function handleClick(e) {
     cancelScheduledWork();
     requestTimeout(onClick.bind(null, e), delay, registerCancel);
   };
-
   var handleDblClick = function handleDblClick(e) {
     cancelScheduledWork();
     onDblClick(e);
   };
-
   return [handleClick, handleDblClick];
 }
 ;// CONCATENATED MODULE: ./src/hooks/gridSelection/useGridSelection.ts
@@ -19262,27 +18939,16 @@ function useClickPrevention(_ref) {
 
 
 
-
 function useGridSelection_toConsumableArray(arr) { return useGridSelection_arrayWithoutHoles(arr) || useGridSelection_iterableToArray(arr) || useGridSelection_unsupportedIterableToArray(arr) || useGridSelection_nonIterableSpread(); }
-
 function useGridSelection_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useGridSelection_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function useGridSelection_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return useGridSelection_arrayLikeToArray(arr); }
-
 function useGridSelection_slicedToArray(arr, i) { return useGridSelection_arrayWithHoles(arr) || useGridSelection_iterableToArrayLimit(arr, i) || useGridSelection_unsupportedIterableToArray(arr, i) || useGridSelection_nonIterableRest(); }
-
 function useGridSelection_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useGridSelection_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useGridSelection_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useGridSelection_arrayLikeToArray(o, minLen); }
-
-function useGridSelection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useGridSelection_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useGridSelection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useGridSelection_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useGridSelection_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -19300,50 +18966,40 @@ var GRID_SELECTION_TYPE_MAP = {
   dayGridWeek: 'allday',
   timeGrid: 'time'
 };
-
 function sortDates(a, b) {
   var isIncreased = a < b;
   return isIncreased ? [a, b] : [b, a];
 }
-
 function useGridSelection(_ref) {
   var type = _ref.type,
-      selectionSorter = _ref.selectionSorter,
-      dateGetter = _ref.dateGetter,
-      dateCollection = _ref.dateCollection,
-      gridPositionFinder = _ref.gridPositionFinder;
-
+    selectionSorter = _ref.selectionSorter,
+    dateGetter = _ref.dateGetter,
+    dateCollection = _ref.dateCollection,
+    gridPositionFinder = _ref.gridPositionFinder;
   var _useStore = useStore(optionsSelector),
-      useFormPopup = _useStore.useFormPopup,
-      gridSelectionOptions = _useStore.gridSelection;
-
+    useFormPopup = _useStore.useFormPopup,
+    gridSelectionOptions = _useStore.gridSelection;
   var enableDblClick = gridSelectionOptions.enableDblClick,
-      enableClick = gridSelectionOptions.enableClick;
-
+    enableClick = gridSelectionOptions.enableClick;
   var _useDispatch = useDispatch('gridSelection'),
-      setGridSelection = _useDispatch.setGridSelection,
-      addGridSelection = _useDispatch.addGridSelection,
-      clearAll = _useDispatch.clearAll;
-
+    setGridSelection = _useDispatch.setGridSelection,
+    addGridSelection = _useDispatch.addGridSelection,
+    clearAll = _useDispatch.clearAll;
   var _useDispatch2 = useDispatch('popup'),
-      hideAllPopup = _useDispatch2.hideAllPopup,
-      showFormPopup = _useDispatch2.showFormPopup;
-
+    hideAllPopup = _useDispatch2.hideAllPopup,
+    showFormPopup = _useDispatch2.showFormPopup;
   var eventBus = useEventBus();
   var layoutContainer = useLayoutContainer();
-
-  var _useState = hooks_module_y(null),
-      _useState2 = useGridSelection_slicedToArray(_useState, 2),
-      initMousePosition = _useState2[0],
-      setInitMousePosition = _useState2[1];
-
-  var _useState3 = hooks_module_y(null),
-      _useState4 = useGridSelection_slicedToArray(_useState3, 2),
-      initGridPosition = _useState4[0],
-      setInitGridPosition = _useState4[1];
-
-  var isSelectingGridRef = hooks_module_s(false);
-  var gridSelectionRef = hooks_module_s(null);
+  var _useState = hooks_module_h(null),
+    _useState2 = useGridSelection_slicedToArray(_useState, 2),
+    initMousePosition = _useState2[0],
+    setInitMousePosition = _useState2[1];
+  var _useState3 = hooks_module_h(null),
+    _useState4 = useGridSelection_slicedToArray(_useState3, 2),
+    initGridPosition = _useState4[0],
+    setInitGridPosition = _useState4[1];
+  var isSelectingGridRef = _(false);
+  var gridSelectionRef = _(null);
   useTransientUpdate(hooks_module_T(function (state) {
     return state.gridSelection[type];
   }, [type]), function (gridSelection) {
@@ -19351,71 +19007,58 @@ function useGridSelection(_ref) {
   });
   useTransientUpdate(dndSelector, function (_ref2) {
     var draggingState = _ref2.draggingState,
-        draggingItemType = _ref2.draggingItemType;
+      draggingItemType = _ref2.draggingItemType;
     isSelectingGridRef.current = draggingItemType === currentGridSelectionType && draggingState >= DraggingState.INIT;
   });
   var currentGridSelectionType = DRAGGING_TYPE_CREATORS.gridSelection(type);
-
   var setGridSelectionByPosition = function setGridSelectionByPosition(e) {
     var gridPosition = gridPositionFinder(e);
-
     if (isPresent(initGridPosition) && isPresent(gridPosition)) {
       setGridSelection(type, selectionSorter(initGridPosition, gridPosition));
     }
   };
-
   var _useClickPrevention = useClickPrevention({
-    onClick: function onClick(e) {
-      if (enableClick) {
-        onMouseUp(e, true);
-      }
-    },
-    onDblClick: function onDblClick(e) {
-      if (enableDblClick) {
-        onMouseUp(e, true);
-      }
-    },
-    delay: 250 // heuristic value
-
-  }),
-      _useClickPrevention2 = useGridSelection_slicedToArray(_useClickPrevention, 2),
-      handleClickWithDebounce = _useClickPrevention2[0],
-      handleDblClickPreventingClick = _useClickPrevention2[1];
-
+      onClick: function onClick(e) {
+        if (enableClick) {
+          onMouseUp(e, true);
+        }
+      },
+      onDblClick: function onDblClick(e) {
+        if (enableDblClick) {
+          onMouseUp(e, true);
+        }
+      },
+      delay: 250 // heuristic value
+    }),
+    _useClickPrevention2 = useGridSelection_slicedToArray(_useClickPrevention, 2),
+    handleClickWithDebounce = _useClickPrevention2[0],
+    handleDblClickPreventingClick = _useClickPrevention2[1];
   var onMouseUpWithClick = function onMouseUpWithClick(e) {
     var isClick = e.detail <= 1;
-
     if (!enableClick && (!enableDblClick || isClick)) {
       return;
     }
-
     if (enableClick) {
       if (isClick) {
         handleClickWithDebounce(e);
       } else {
         handleDblClickPreventingClick(e);
       }
-
       return;
     }
-
     onMouseUp(e, true);
   };
-
   var onMouseUp = function onMouseUp(e, isClickEvent) {
     // The grid selection is created on mouseup in case of the click event.
     if (isClickEvent) {
       setGridSelectionByPosition(e);
     }
-
     if (isPresent(gridSelectionRef.current)) {
       var _layoutContainer$quer;
-
       var _sortDates = sortDates.apply(void 0, useGridSelection_toConsumableArray(dateGetter(dateCollection, gridSelectionRef.current))),
-          _sortDates2 = useGridSelection_slicedToArray(_sortDates, 2),
-          startDate = _sortDates2[0],
-          endDate = _sortDates2[1];
-
+        _sortDates2 = useGridSelection_slicedToArray(_sortDates, 2),
+        startDate = _sortDates2[0],
+        endDate = _sortDates2[1];
       if (useFormPopup && isPresent(initMousePosition)) {
         var popupArrowPointPosition = {
           top: (e.clientY + initMousePosition.y) / 2,
@@ -19433,7 +19076,6 @@ function useGridSelection(_ref) {
           close: clearAll
         });
       }
-
       var gridSelectionSelector = ".".concat(cls(GRID_SELECTION_TYPE_MAP[type]), ".").concat(cls('grid-selection'));
       var gridSelectionElements = Array.from((_layoutContainer$quer = layoutContainer === null || layoutContainer === void 0 ? void 0 : layoutContainer.querySelectorAll(gridSelectionSelector)) !== null && _layoutContainer$quer !== void 0 ? _layoutContainer$quer : []);
       eventBus.fire('selectDateTime', {
@@ -19445,7 +19087,6 @@ function useGridSelection(_ref) {
       });
     }
   };
-
   var clearGridSelection = hooks_module_T(function () {
     setInitMousePosition(null);
     setInitGridPosition(null);
@@ -19460,13 +19101,10 @@ function useGridSelection(_ref) {
         });
         hideAllPopup();
       }
-
       var gridPosition = gridPositionFinder(e);
-
       if (isPresent(gridPosition)) {
         setInitGridPosition(gridPosition);
       }
-
       if (!useFormPopup) {
         addGridSelection(type, gridSelectionRef.current);
       }
@@ -19481,20 +19119,17 @@ function useGridSelection(_ref) {
       }
     },
     onMouseUp: function (_onMouseUp) {
-      function onMouseUp(_x, _x2) {
+      function onMouseUp(_x2, _x3) {
         return _onMouseUp.apply(this, arguments);
       }
-
       onMouseUp.toString = function () {
         return _onMouseUp.toString();
       };
-
       return onMouseUp;
     }(function (e, _ref3) {
       var draggingState = _ref3.draggingState;
       e.stopPropagation();
       var isClickEvent = draggingState <= DraggingState.INIT;
-
       if (isClickEvent) {
         onMouseUpWithClick(e);
       } else {
@@ -19503,7 +19138,7 @@ function useGridSelection(_ref) {
     }),
     onPressESCKey: clearGridSelection
   });
-  hooks_module_(function () {
+  hooks_module_p(function () {
     return clearGridSelection;
   }, [clearGridSelection]);
   return onMouseDown;
@@ -19525,27 +19160,16 @@ function useGridSelection(_ref) {
 
 
 
-
 function alldayGridRow_toConsumableArray(arr) { return alldayGridRow_arrayWithoutHoles(arr) || alldayGridRow_iterableToArray(arr) || alldayGridRow_unsupportedIterableToArray(arr) || alldayGridRow_nonIterableSpread(); }
-
 function alldayGridRow_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function alldayGridRow_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function alldayGridRow_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return alldayGridRow_arrayLikeToArray(arr); }
-
 function alldayGridRow_slicedToArray(arr, i) { return alldayGridRow_arrayWithHoles(arr) || alldayGridRow_iterableToArrayLimit(arr, i) || alldayGridRow_unsupportedIterableToArray(arr, i) || alldayGridRow_nonIterableRest(); }
-
 function alldayGridRow_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function alldayGridRow_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return alldayGridRow_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return alldayGridRow_arrayLikeToArray(o, minLen); }
-
-function alldayGridRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function alldayGridRow_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function alldayGridRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function alldayGridRow_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function alldayGridRow_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -19569,35 +19193,31 @@ function alldayGridRow_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr;
 var rowTitleTemplate = "alldayTitle";
 function AlldayGridRow(_ref) {
   var events = _ref.events,
-      weekDates = _ref.weekDates,
-      _ref$height = _ref.height,
-      height = _ref$height === void 0 ? DEFAULT_PANEL_HEIGHT : _ref$height,
-      _ref$options = _ref.options,
-      options = _ref$options === void 0 ? {} : _ref$options,
-      rowStyleInfo = _ref.rowStyleInfo,
-      gridColWidthMap = _ref.gridColWidthMap;
-
+    weekDates = _ref.weekDates,
+    _ref$height = _ref.height,
+    height = _ref$height === void 0 ? DEFAULT_PANEL_HEIGHT : _ref$height,
+    _ref$options = _ref.options,
+    options = _ref$options === void 0 ? {} : _ref$options,
+    rowStyleInfo = _ref.rowStyleInfo,
+    gridColWidthMap = _ref.gridColWidthMap;
   var _useStore = useStore(optionsSelector),
-      isReadOnly = _useStore.isReadOnly;
-
+    isReadOnly = _useStore.isReadOnly;
   var dayGridLeftTheme = useTheme(weekDayGridLeftSelector);
-
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = alldayGridRow_slicedToArray(_useDOMNode, 2),
-      panelContainer = _useDOMNode2[0],
-      setPanelContainerRef = _useDOMNode2[1];
-
+    _useDOMNode2 = alldayGridRow_slicedToArray(_useDOMNode, 2),
+    panelContainer = _useDOMNode2[0],
+    setPanelContainerRef = _useDOMNode2[1];
   var _options$narrowWeeken = options.narrowWeekend,
-      narrowWeekend = _options$narrowWeeken === void 0 ? false : _options$narrowWeeken,
-      _options$startDayOfWe = options.startDayOfWeek,
-      startDayOfWeek = _options$startDayOfWe === void 0 ? Day.SUN : _options$startDayOfWe;
-  var maxTop = F(function () {
+    narrowWeekend = _options$narrowWeeken === void 0 ? false : _options$narrowWeeken,
+    _options$startDayOfWe = options.startDayOfWeek,
+    startDayOfWeek = _options$startDayOfWe === void 0 ? Day.SUN : _options$startDayOfWe;
+  var maxTop = hooks_module_F(function () {
     return Math.max.apply(Math, [0].concat(alldayGridRow_toConsumableArray(events.map(function (_ref2) {
       var top = _ref2.top;
       return top;
     }))));
   }, [events]);
-  var gridPositionFinder = F(function () {
+  var gridPositionFinder = hooks_module_F(function () {
     return createGridPositionFinder({
       container: panelContainer,
       rowsCount: 1,
@@ -19606,16 +19226,14 @@ function AlldayGridRow(_ref) {
       startDayOfWeek: startDayOfWeek
     });
   }, [panelContainer, weekDates.length, narrowWeekend, startDayOfWeek]);
-
   var _useGridRowHeightCont = useGridRowHeightController(maxTop, 'allday'),
-      clickedIndex = _useGridRowHeightCont.clickedIndex,
-      isClickedCount = _useGridRowHeightCont.isClickedCount,
-      onClickExceedCount = _useGridRowHeightCont.onClickExceedCount,
-      onClickCollapseButton = _useGridRowHeightCont.onClickCollapseButton;
-
-  var horizontalEvents = F(function () {
+    clickedIndex = _useGridRowHeightCont.clickedIndex,
+    isClickedCount = _useGridRowHeightCont.isClickedCount,
+    onClickExceedCount = _useGridRowHeightCont.onClickExceedCount,
+    onClickCollapseButton = _useGridRowHeightCont.onClickCollapseButton;
+  var horizontalEvents = hooks_module_F(function () {
     return events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map(function (uiModel) {
-      return h(HorizontalEvent, {
+      return y(HorizontalEvent, {
         key: "allday-DayEvent-".concat(uiModel.cid()),
         uiModel: uiModel,
         eventHeight: EVENT_HEIGHT,
@@ -19630,30 +19248,26 @@ function AlldayGridRow(_ref) {
     selectionSorter: alldayGridRowSelectionHelper.sortSelection,
     dateGetter: alldayGridRowSelectionHelper.getDateFromCollection
   });
-
   var onMouseDown = function onMouseDown(e) {
     var target = e.target;
-
     if (isReadOnly || !target.classList.contains(cls('panel-grid'))) {
       return;
     }
-
     startGridSelection(e);
   };
-
-  return h(p, null, h("div", {
+  return y(preact_module_, null, y("div", {
     className: cls('panel-title'),
     style: dayGridLeftTheme
-  }, h(Template, {
+  }, y(Template, {
     template: rowTitleTemplate,
     param: "alldayTitle"
-  })), h("div", {
+  })), y("div", {
     className: cls('allday-panel'),
     ref: setPanelContainerRef,
     onMouseDown: onMouseDown
-  }, h("div", {
+  }, y("div", {
     className: cls('panel-grid-wrapper')
-  }, h(GridCells, {
+  }, y(GridCells, {
     uiModels: events,
     weekDates: weekDates,
     narrowWeekend: narrowWeekend,
@@ -19662,16 +19276,16 @@ function AlldayGridRow(_ref) {
     isClickedCount: isClickedCount,
     onClickExceedCount: onClickExceedCount,
     onClickCollapseButton: onClickCollapseButton
-  })), h("div", {
+  })), y("div", {
     className: cls("panel-allday-events")
-  }, horizontalEvents), h(ResizingEventShadow, {
+  }, horizontalEvents), y(ResizingEventShadow, {
     weekDates: weekDates,
     gridPositionFinder: gridPositionFinder,
     gridColWidthMap: gridColWidthMap
-  }), h(MovingEventShadow, {
+  }), y(MovingEventShadow, {
     rowStyleInfo: rowStyleInfo,
     gridPositionFinder: gridPositionFinder
-  }), h(AlldayGridSelection, {
+  }), y(AlldayGridSelection, {
     weekDates: weekDates,
     narrowWeekend: narrowWeekend
   })));
@@ -19693,19 +19307,12 @@ function AlldayGridRow(_ref) {
 
 
 
-
 function otherGridRow_toConsumableArray(arr) { return otherGridRow_arrayWithoutHoles(arr) || otherGridRow_iterableToArray(arr) || otherGridRow_unsupportedIterableToArray(arr) || otherGridRow_nonIterableSpread(); }
-
 function otherGridRow_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function otherGridRow_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return otherGridRow_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return otherGridRow_arrayLikeToArray(o, minLen); }
-
 function otherGridRow_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function otherGridRow_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return otherGridRow_arrayLikeToArray(arr); }
-
-function otherGridRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function otherGridRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
 
 
@@ -19719,32 +19326,30 @@ function otherGridRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.
 
 function OtherGridRow(_ref) {
   var events = _ref.events,
-      weekDates = _ref.weekDates,
-      category = _ref.category,
-      _ref$height = _ref.height,
-      height = _ref$height === void 0 ? DEFAULT_PANEL_HEIGHT : _ref$height,
-      _ref$options = _ref.options,
-      options = _ref$options === void 0 ? {} : _ref$options;
+    weekDates = _ref.weekDates,
+    category = _ref.category,
+    _ref$height = _ref.height,
+    height = _ref$height === void 0 ? DEFAULT_PANEL_HEIGHT : _ref$height,
+    _ref$options = _ref.options,
+    options = _ref$options === void 0 ? {} : _ref$options;
   var dayGridLeftTheme = useTheme(weekDayGridLeftSelector);
-  var maxTop = F(function () {
+  var maxTop = hooks_module_F(function () {
     return Math.max.apply(Math, [0].concat(otherGridRow_toConsumableArray(events.map(function (_ref2) {
       var top = _ref2.top;
       return top;
     }))));
   }, [events]);
   var _options$narrowWeeken = options.narrowWeekend,
-      narrowWeekend = _options$narrowWeeken === void 0 ? false : _options$narrowWeeken;
+    narrowWeekend = _options$narrowWeeken === void 0 ? false : _options$narrowWeeken;
   var rowTitleTemplate = "".concat(category, "Title");
-
   var _useGridRowHeightCont = useGridRowHeightController(maxTop, category),
-      clickedIndex = _useGridRowHeightCont.clickedIndex,
-      isClickedCount = _useGridRowHeightCont.isClickedCount,
-      onClickExceedCount = _useGridRowHeightCont.onClickExceedCount,
-      onClickCollapseButton = _useGridRowHeightCont.onClickCollapseButton;
-
-  var horizontalEvents = F(function () {
+    clickedIndex = _useGridRowHeightCont.clickedIndex,
+    isClickedCount = _useGridRowHeightCont.isClickedCount,
+    onClickExceedCount = _useGridRowHeightCont.onClickExceedCount,
+    onClickCollapseButton = _useGridRowHeightCont.onClickCollapseButton;
+  var horizontalEvents = hooks_module_F(function () {
     return events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map(function (uiModel) {
-      return h(HorizontalEvent, {
+      return y(HorizontalEvent, {
         key: "".concat(category, "-DayEvent-").concat(uiModel.cid()),
         uiModel: uiModel,
         eventHeight: EVENT_HEIGHT,
@@ -19752,17 +19357,17 @@ function OtherGridRow(_ref) {
       });
     });
   }, [category, events, height]);
-  return h(p, null, h("div", {
+  return y(preact_module_, null, y("div", {
     className: cls('panel-title'),
     style: dayGridLeftTheme
-  }, h(Template, {
+  }, y(Template, {
     template: rowTitleTemplate,
     param: category
-  })), h("div", {
+  })), y("div", {
     className: cls('allday-panel')
-  }, h("div", {
+  }, y("div", {
     className: cls('panel-grid-wrapper')
-  }, h(GridCells, {
+  }, y(GridCells, {
     uiModels: events,
     weekDates: weekDates,
     narrowWeekend: narrowWeekend,
@@ -19771,7 +19376,7 @@ function OtherGridRow(_ref) {
     isClickedCount: isClickedCount,
     onClickExceedCount: onClickExceedCount,
     onClickCollapseButton: onClickCollapseButton
-  })), h("div", {
+  })), y("div", {
     className: cls("panel-".concat(category, "-events"))
   }, horizontalEvents)));
 }
@@ -19785,6 +19390,10 @@ var es_array_fill = __webpack_require__(2656);
 
 
 
+
+// // @ts-ignore
+// import sanitizeHtml from 'sanitize-html-react';
+// import parse from 'html-react-parser'
 var eventDetailSectionDetail_classNames = {
   detailItem: cls('detail-item'),
   detailItemIndent: cls('detail-item', 'detail-item-indent'),
@@ -19795,37 +19404,38 @@ var eventDetailSectionDetail_classNames = {
   repeatIcon: cls('icon', 'ic-repeat-b'),
   userIcon: cls('icon', 'ic-user-b'),
   stateIcon: cls('icon', 'ic-state-b'),
-  calendarDotIcon: cls('icon', 'calendar-dot')
-}; // eslint-disable-next-line complexity
+  calendarDotIcon: cls('icon', 'ic-close')
+};
 
+// eslint-disable-next-line complexity
 function EventDetailSectionDetail(_ref) {
   var _currentUserData$cate;
-
   var event = _ref.event,
-      userData = _ref.userData;
+    userData = _ref.userData;
   var location = event.location,
-      recurrenceRule = event.recurrenceRule,
-      attendees = event.attendees,
-      state = event.state,
-      calendarId = event.calendarId,
-      body = event.body;
+    recurrenceRule = event.recurrenceRule,
+    attendees = event.attendees,
+    state = event.state,
+    calendarId = event.calendarId,
+    body = event.body;
   var calendar = useCalendarById(calendarId);
   var eventId = event === null || event === void 0 ? void 0 : event.id;
   var currentUserData = userData.find(function (user) {
     if ((user === null || user === void 0 ? void 0 : user.id) == eventId) return true;
     return false;
   });
-  return h("div", {
-    className: eventDetailSectionDetail_classNames.sectionDetail,
+  return y("div", {
+    className: "".concat(eventDetailSectionDetail_classNames.sectionDetail),
     style: {
       maxHeight: '1000px',
-      overflow: "auto"
+      overflow: "auto",
+      'font-size': "13px"
     }
-  }, (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.qr_code) && h("div", {
+  }, (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.qr_code) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
+  }, y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("img", {
+  }, y("img", {
     style: {
       maxWidth: '50%',
       aspectRatio: 1,
@@ -19835,65 +19445,79 @@ function EventDetailSectionDetail(_ref) {
       marginBottom: "10px"
     },
     src: currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.qr_code
-  }))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.image_file) && h("div", {
+  }))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.image_file) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
+  }, y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("img", {
+  }, y("img", {
     style: {
       maxWidth: '100%',
       aspectRatio: 1,
+      margin: 'auto',
+      display: 'block',
       marginTop: "10px",
       marginBottom: "10px"
     },
     src: currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.image_file
-  }))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description) && h("div", {
+  }))), y("div", {
+    className: "row"
+  }, y("div", {
+    className: "col"
+  }, (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
+  }, y("span", {
+    className: "fa-regular fa-calendar"
+  }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Description:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.category_relation) && h("div", {
+  }, y("b", null, " Register By:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.registration_count) >= 0 && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.stateIcon
-  }), h("span", {
+  }, y("span", {
+    className: "fa-solid fa-rotate"
+  }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Category:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : (_currentUserData$cate = currentUserData.category_relation) === null || _currentUserData$cate === void 0 ? void 0 : _currentUserData$cate.title)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type) && h("div", {
+  }, y("b", null, " Registration Count:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.registration_count))), y("div", {
+    className: "col"
+  }, (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.stateIcon
-  }), h("span", {
+  }, y("span", {
+    className: "fa-regular fa-square-plus"
+  }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Attendance Type:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point) && h("div", {
+  }, y("b", null, " Slots Total:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.repeatIcon
-  }), h("span", {
+  }, y("span", {
+    className: "fa-solid fa-plus-minus"
+  }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Attendance Point:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_point)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total) && h("div", {
+  }, y("b", null, " Slots Remain:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain)))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.category_relation) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.repeatIcon
-  }), h("span", {
+  }, y("span", {
+    className: "fa-regular fa-rectangle-list"
+  }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Slots Total:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_total)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain) && h("div", {
+  }, y("b", null, " Category:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : (_currentUserData$cate = currentUserData.category_relation) === null || _currentUserData$cate === void 0 ? void 0 : _currentUserData$cate.title)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.repeatIcon
-  }), h("span", {
+  }, y("span", {
+    className: "fa-solid fa-water"
+  }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Slots Remain:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.slots_remain)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.registration_count) >= 0 && h("div", {
+  }, y("b", null, " Attendance Type:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.attendance_type)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.qr_content) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.repeatIcon
-  }), h("span", {
+  }, y("span", {
+    className: "fa-solid fa-qrcode"
+  }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Registration Count:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.registration_count)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp) && h("div", {
+  }, y("b", null, " QR Code: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.qr_content)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description) && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
-  }, h("span", {
-    className: eventDetailSectionDetail_classNames.calendarDotIcon
-  }), h("span", {
+  }, y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, h("b", null, "Register By:"), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.register_by_timestamp)));
+  }, y("span", {
+    className: "fa-solid fa-circle-info"
+  }), y("b", null, " Description:"), y("div", {
+    dangerouslySetInnerHTML: {
+      __html: currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description
+    }
+  }))));
 }
 ;// CONCATENATED MODULE: ./src/components/popup/eventDetailSectionHeader.tsx
 
@@ -19906,17 +19530,20 @@ var eventDetailSectionHeader_classNames = {
 };
 function EventDetailSectionHeader(_ref) {
   var event = _ref.event;
-  return h("div", {
+  console.log({
+    event: event
+  });
+  return y("div", {
     className: eventDetailSectionHeader_classNames.sectionHeader
-  }, h("div", {
+  }, y("div", {
     className: eventDetailSectionHeader_classNames.eventTitle
-  }, h(Template, {
+  }, y(Template, {
     template: "popupDetailTitle",
     param: event,
     as: "span"
-  })), h("div", {
+  })), y("div", {
     className: eventDetailSectionHeader_classNames.content
-  }, h(Template, {
+  }, y(Template, {
     template: "popupDetailDate",
     param: event,
     as: "span"
@@ -19929,19 +19556,16 @@ var EVENT_FORM_POPUP_SLOT_CLASS_NAME = cls('event-form-popup-slot');
 var EVENT_DETAIL_POPUP_SLOT_CLASS_NAME = cls('event-detail-popup-slot');
 var HALF_OF_POPUP_ARROW_HEIGHT = 8;
 var BOOLEAN_KEYS_OF_EVENT_MODEL_DATA = ['isPrivate', 'isAllday', 'isPending', 'isFocused', 'isVisible', 'isReadOnly'];
-var DetailPopupArrowDirection;
-
-(function (DetailPopupArrowDirection) {
+var DetailPopupArrowDirection = /*#__PURE__*/function (DetailPopupArrowDirection) {
   DetailPopupArrowDirection["right"] = "right";
   DetailPopupArrowDirection["left"] = "left";
-})(DetailPopupArrowDirection || (DetailPopupArrowDirection = {}));
-
-var FormPopupArrowDirection;
-
-(function (FormPopupArrowDirection) {
+  return DetailPopupArrowDirection;
+}({});
+var FormPopupArrowDirection = /*#__PURE__*/function (FormPopupArrowDirection) {
   FormPopupArrowDirection["top"] = "top";
   FormPopupArrowDirection["bottom"] = "bottom";
-})(FormPopupArrowDirection || (FormPopupArrowDirection = {}));
+  return FormPopupArrowDirection;
+}({});
 ;// CONCATENATED MODULE: ./src/contexts/floatingLayer.tsx
 
 
@@ -19956,17 +19580,11 @@ var FormPopupArrowDirection;
 
 
 
-
 function floatingLayer_slicedToArray(arr, i) { return floatingLayer_arrayWithHoles(arr) || floatingLayer_iterableToArrayLimit(arr, i) || floatingLayer_unsupportedIterableToArray(arr, i) || floatingLayer_nonIterableRest(); }
-
 function floatingLayer_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function floatingLayer_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return floatingLayer_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return floatingLayer_arrayLikeToArray(o, minLen); }
-
-function floatingLayer_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function floatingLayer_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function floatingLayer_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function floatingLayer_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function floatingLayer_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
@@ -19974,62 +19592,53 @@ function floatingLayer_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr;
 
 
 
-
-var FloatingLayerContext = B(null);
+var FloatingLayerContext = F(null);
 function FloatingLayerProvider(_ref) {
   var children = _ref.children;
-
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = floatingLayer_slicedToArray(_useDOMNode, 2),
-      containerRef = _useDOMNode2[0],
-      containerRefCallback = _useDOMNode2[1];
-
+    _useDOMNode2 = floatingLayer_slicedToArray(_useDOMNode, 2),
+    containerRef = _useDOMNode2[0],
+    containerRefCallback = _useDOMNode2[1];
   var _useDOMNode3 = useDOMNode(),
-      _useDOMNode4 = floatingLayer_slicedToArray(_useDOMNode3, 2),
-      seeMorePopupSlotRef = _useDOMNode4[0],
-      seeMorePopupSlotRefCallback = _useDOMNode4[1];
-
+    _useDOMNode4 = floatingLayer_slicedToArray(_useDOMNode3, 2),
+    seeMorePopupSlotRef = _useDOMNode4[0],
+    seeMorePopupSlotRefCallback = _useDOMNode4[1];
   var _useDOMNode5 = useDOMNode(),
-      _useDOMNode6 = floatingLayer_slicedToArray(_useDOMNode5, 2),
-      formPopupSlotRef = _useDOMNode6[0],
-      formPopupSlotRefCallback = _useDOMNode6[1];
-
+    _useDOMNode6 = floatingLayer_slicedToArray(_useDOMNode5, 2),
+    formPopupSlotRef = _useDOMNode6[0],
+    formPopupSlotRefCallback = _useDOMNode6[1];
   var _useDOMNode7 = useDOMNode(),
-      _useDOMNode8 = floatingLayer_slicedToArray(_useDOMNode7, 2),
-      detailPopupSlotRef = _useDOMNode8[0],
-      detailPopupSlotRefCallback = _useDOMNode8[1];
-
+    _useDOMNode8 = floatingLayer_slicedToArray(_useDOMNode7, 2),
+    detailPopupSlotRef = _useDOMNode8[0],
+    detailPopupSlotRefCallback = _useDOMNode8[1];
   var floatingLayer = {
     container: containerRef,
     seeMorePopupSlot: seeMorePopupSlotRef,
     formPopupSlot: formPopupSlotRef,
     detailPopupSlot: detailPopupSlotRef
   };
-  return h(FloatingLayerContext.Provider, {
+  return y(FloatingLayerContext.Provider, {
     value: floatingLayer
-  }, children, h("div", {
+  }, children, y("div", {
     ref: containerRefCallback,
     className: cls('floating-layer')
-  }, h("div", {
+  }, y("div", {
     ref: seeMorePopupSlotRefCallback,
     className: SEE_MORE_POPUP_SLOT_CLASS_NAME
-  }), h("div", {
+  }), y("div", {
     ref: formPopupSlotRefCallback,
     className: EVENT_FORM_POPUP_SLOT_CLASS_NAME
-  }), h("div", {
+  }), y("div", {
     ref: detailPopupSlotRefCallback,
     className: EVENT_DETAIL_POPUP_SLOT_CLASS_NAME
   })));
 }
 var useFloatingLayer = function useFloatingLayer(floatingLayerType) {
   var _floatingLayers$float;
-
   var floatingLayers = hooks_module_q(FloatingLayerContext);
-
   if (isUndefined_default()(floatingLayers)) {
     throw new Error('FloatingLayerProvider is not found');
   }
-
   return (_floatingLayers$float = floatingLayers === null || floatingLayers === void 0 ? void 0 : floatingLayers[floatingLayerType]) !== null && _floatingLayers$float !== void 0 ? _floatingLayers$float : null;
 };
 ;// CONCATENATED MODULE: ./src/helpers/popup.ts
@@ -20070,19 +19679,12 @@ var sweetalert_min_default = /*#__PURE__*/__webpack_require__.n(sweetalert_min);
 
 
 
-
 function eventDetailPopup_slicedToArray(arr, i) { return eventDetailPopup_arrayWithHoles(arr) || eventDetailPopup_iterableToArrayLimit(arr, i) || eventDetailPopup_unsupportedIterableToArray(arr, i) || eventDetailPopup_nonIterableRest(); }
-
 function eventDetailPopup_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function eventDetailPopup_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return eventDetailPopup_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return eventDetailPopup_arrayLikeToArray(o, minLen); }
-
-function eventDetailPopup_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function eventDetailPopup_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function eventDetailPopup_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function eventDetailPopup_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function eventDetailPopup_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -20116,72 +19718,61 @@ var eventDetailPopup_classNames = {
   deleteButton: cls('delete-button'),
   verticalLine: cls('vertical-line')
 };
-
 function calculatePopupPosition(eventRect, layoutRect, popupRect) {
   var top = eventRect.top + eventRect.height / 2 - popupRect.height / 2;
-  var left = eventRect.left + eventRect.width;
-
+  var left = eventRect.left + eventRect.width - 225;
   if (isTopOutOfLayout(top, layoutRect, popupRect)) {
     top = layoutRect.top + layoutRect.height - popupRect.height;
   }
-
-  if (isLeftOutOfLayout(left, layoutRect, popupRect)) {
+  var outLeftLayout = isLeftOutOfLayout(left, layoutRect, popupRect);
+  if (outLeftLayout) {
     left = eventRect.left - popupRect.width;
   }
-
-  return [Math.max(top, layoutRect.top) + window.scrollY, Math.max(left, layoutRect.left) + window.scrollX];
+  return [Math.max(top, layoutRect.top) + window.scrollY - 110,
+  // Math.max(left, layoutRect.left) + window.scrollX - 225,
+  Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 250 : 25)];
 }
-
 function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   var top = eventRect.top + eventRect.height / 2 + window.scrollY;
   var popupLeft = eventRect.left + eventRect.width;
   var isOutOfLayout = popupLeft + popupRect.width > layoutRect.left + layoutRect.width;
   var direction = isOutOfLayout ? DetailPopupArrowDirection.right : DetailPopupArrowDirection.left;
+  top = top - 110;
   return {
     top: top,
     direction: direction
   };
 }
-
 function EventDetailPopup() {
   var _options$allOptions, _options$allOptions2, _options$allOptions3;
-
   var _useStore = useStore(optionsSelector),
-      useFormPopup = _useStore.useFormPopup;
-
+    useFormPopup = _useStore.useFormPopup;
   var popupParams = useStore(eventDetailPopupParamSelector);
   var options = useStore(optionsSelector);
-
   var _ref = popupParams !== null && popupParams !== void 0 ? popupParams : {},
-      event = _ref.event,
-      eventRect = _ref.eventRect;
-
+    event = _ref.event,
+    eventRect = _ref.eventRect;
   var _useDispatch = useDispatch('popup'),
-      showFormPopup = _useDispatch.showFormPopup,
-      hideDetailPopup = _useDispatch.hideDetailPopup;
-
+    showFormPopup = _useDispatch.showFormPopup,
+    hideDetailPopup = _useDispatch.hideDetailPopup;
   var calendarColor = useCalendarColor(event);
   var layoutContainer = useLayoutContainer();
   var detailPopupSlot = useFloatingLayer('detailPopupSlot');
   var eventBus = useEventBus();
-  var popupContainerRef = hooks_module_s(null);
-
-  var _useState = hooks_module_y({}),
-      _useState2 = eventDetailPopup_slicedToArray(_useState, 2),
-      style = _useState2[0],
-      setStyle = _useState2[1];
-
-  var _useState3 = hooks_module_y(0),
-      _useState4 = eventDetailPopup_slicedToArray(_useState3, 2),
-      arrowTop = _useState4[0],
-      setArrowTop = _useState4[1];
-
-  var _useState5 = hooks_module_y(DetailPopupArrowDirection.left),
-      _useState6 = eventDetailPopup_slicedToArray(_useState5, 2),
-      arrowDirection = _useState6[0],
-      setArrowDirection = _useState6[1];
-
-  var popupArrowClassName = F(function () {
+  var popupContainerRef = _(null);
+  var _useState = hooks_module_h({}),
+    _useState2 = eventDetailPopup_slicedToArray(_useState, 2),
+    style = _useState2[0],
+    setStyle = _useState2[1];
+  var _useState3 = hooks_module_h(0),
+    _useState4 = eventDetailPopup_slicedToArray(_useState3, 2),
+    arrowTop = _useState4[0],
+    setArrowTop = _useState4[1];
+  var _useState5 = hooks_module_h(DetailPopupArrowDirection.left),
+    _useState6 = eventDetailPopup_slicedToArray(_useState5, 2),
+    arrowDirection = _useState6[0],
+    setArrowDirection = _useState6[1];
+  var popupArrowClassName = hooks_module_F(function () {
     var right = arrowDirection === DetailPopupArrowDirection.right;
     var left = arrowDirection === DetailPopupArrowDirection.left;
     return cls('popup-arrow', {
@@ -20189,20 +19780,17 @@ function EventDetailPopup() {
       left: left
     });
   }, [arrowDirection]);
-  hooks_module_h(function () {
+  hooks_module_y(function () {
     if (popupContainerRef.current && eventRect && layoutContainer) {
       var layoutRect = layoutContainer.getBoundingClientRect();
       var popupRect = popupContainerRef.current.getBoundingClientRect();
-
       var _calculatePopupPositi = calculatePopupPosition(eventRect, layoutRect, popupRect),
-          _calculatePopupPositi2 = eventDetailPopup_slicedToArray(_calculatePopupPositi, 2),
-          top = _calculatePopupPositi2[0],
-          left = _calculatePopupPositi2[1];
-
+        _calculatePopupPositi2 = eventDetailPopup_slicedToArray(_calculatePopupPositi, 2),
+        top = _calculatePopupPositi2[0],
+        left = _calculatePopupPositi2[1];
       var _calculatePopupArrowP = calculatePopupArrowPosition(eventRect, layoutRect, popupRect),
-          arrowTopPosition = _calculatePopupArrowP.top,
-          direction = _calculatePopupArrowP.direction;
-
+        arrowTopPosition = _calculatePopupArrowP.top,
+        direction = _calculatePopupArrowP.direction;
       setStyle({
         top: top,
         left: left
@@ -20211,28 +19799,25 @@ function EventDetailPopup() {
       setArrowDirection(direction);
     }
   }, [eventRect, layoutContainer]);
-
   if (type_isNil(event) || type_isNil(eventRect) || type_isNil(detailPopupSlot)) {
     return null;
   }
-
   var _event$title = event.title,
-      title = _event$title === void 0 ? '' : _event$title,
-      _event$isAllday = event.isAllday,
-      isAllday = _event$isAllday === void 0 ? false : _event$isAllday,
-      _event$start = event.start,
-      start = _event$start === void 0 ? new date_TZDate() : _event$start,
-      _event$end = event.end,
-      end = _event$end === void 0 ? new date_TZDate() : _event$end,
-      location = event.location,
-      state = event.state,
-      isReadOnly = event.isReadOnly,
-      isPrivate = event.isPrivate;
+    title = _event$title === void 0 ? '' : _event$title,
+    _event$isAllday = event.isAllday,
+    isAllday = _event$isAllday === void 0 ? false : _event$isAllday,
+    _event$start = event.start,
+    start = _event$start === void 0 ? new date_TZDate() : _event$start,
+    _event$end = event.end,
+    end = _event$end === void 0 ? new date_TZDate() : _event$end,
+    location = event.location,
+    state = event.state,
+    isReadOnly = event.isReadOnly,
+    isPrivate = event.isPrivate;
   var popupArrowPointPosition = {
     top: eventRect.top + eventRect.height / 2,
     left: eventRect.left + eventRect.width / 2
   };
-
   var onClickEditButton = function onClickEditButton() {
     if (useFormPopup) {
       showFormPopup({
@@ -20254,7 +19839,6 @@ function EventDetailPopup() {
       });
     }
   };
-
   var onClickDeleteButton = function onClickDeleteButton(url, token) {
     var formdata = new FormData();
     formdata.append("_token", token);
@@ -20279,71 +19863,67 @@ function EventDetailPopup() {
     });
     hideDetailPopup();
   };
-
   var userData = (options === null || options === void 0 ? void 0 : (_options$allOptions = options.allOptions) === null || _options$allOptions === void 0 ? void 0 : _options$allOptions.userData) || null;
   var token = options === null || options === void 0 ? void 0 : (_options$allOptions2 = options.allOptions) === null || _options$allOptions2 === void 0 ? void 0 : _options$allOptions2.token;
   var backpackUrl = options === null || options === void 0 ? void 0 : (_options$allOptions3 = options.allOptions) === null || _options$allOptions3 === void 0 ? void 0 : _options$allOptions3.backpackUrl;
-  console.log({
-    options: options
-  });
   var editUrl = "".concat(backpackUrl, "/collab-event/").concat(event.id, "/edit");
   var deleteURl = "".concat(backpackUrl, "/collab-event/").concat(event.id);
-  return compat_module_V(h("div", {
+  return compat_module_z(y("div", {
     role: "dialog",
     className: eventDetailPopup_classNames.popupContainer,
     ref: popupContainerRef,
     style: style
-  }, h("div", {
+  }, y("div", {
     className: eventDetailPopup_classNames.detailContainer
-  }, h(EventDetailSectionHeader, {
+  }, y(EventDetailSectionHeader, {
     event: event
-  }), h(EventDetailSectionDetail, {
+  }), y(EventDetailSectionDetail, {
     event: event,
     userData: userData,
     backpackUrl: backpackUrl
-  }), !isReadOnly && h("div", {
+  }), !isReadOnly && y("div", {
     className: eventDetailPopup_classNames.sectionButton
-  }, h("a", {
+  }, y("a", {
     href: editUrl
-  }, h("button", {
+  }, y("button", {
     type: "button",
     className: eventDetailPopup_classNames.editButton,
     onClick: onClickEditButton
-  }, h("span", {
+  }, y("span", {
     className: eventDetailPopup_classNames.editIcon
-  }), h("span", {
+  }), y("span", {
     className: eventDetailPopup_classNames.content
-  }, h(Template, {
+  }, y(Template, {
     template: "popupEdit",
     as: "span"
-  })))), h("div", {
+  })))), y("div", {
     className: eventDetailPopup_classNames.verticalLine
-  }), h("button", {
+  }), y("button", {
     type: "button",
     className: eventDetailPopup_classNames.deleteButton,
     onClick: function onClick() {
       return onClickDeleteButton(deleteURl, token);
     }
-  }, h("span", {
+  }, y("span", {
     className: eventDetailPopup_classNames.deleteIcon
-  }), h("span", {
+  }), y("span", {
     className: eventDetailPopup_classNames.content
-  }, h(Template, {
+  }, y(Template, {
     template: "popupDelete",
     as: "span"
-  }))))), h("div", {
+  }))))), y("div", {
     className: eventDetailPopup_classNames.topLine,
     style: {
       background: calendarColor.backgroundColor
     }
-  }), h("div", {
+  }), y("div", {
     className: popupArrowClassName
-  }, h("div", {
+  }, y("div", {
     className: eventDetailPopup_classNames.border,
     style: {
       top: arrowTop
     }
-  }, h("div", {
+  }, y("div", {
     className: eventDetailPopup_classNames.fill
   })))), detailPopupSlot);
 }
@@ -20359,45 +19939,41 @@ var calendarDropdownMenu_classNames = {
   dotIcon: cls('icon', 'dot'),
   content: cls('content')
 };
-
 function DropdownMenuItem(_ref) {
   var index = _ref.index,
-      name = _ref.name,
-      backgroundColor = _ref.backgroundColor,
-      _onClick = _ref.onClick;
-  return h("li", {
+    name = _ref.name,
+    backgroundColor = _ref.backgroundColor,
+    _onClick = _ref.onClick;
+  return y("li", {
     className: calendarDropdownMenu_classNames.dropdownMenuItem,
     onClick: function onClick(e) {
       return _onClick(e, index);
     }
-  }, h("span", {
+  }, y("span", {
     className: calendarDropdownMenu_classNames.dotIcon,
     style: {
       backgroundColor: backgroundColor
     }
-  }), h("span", {
+  }), y("span", {
     className: calendarDropdownMenu_classNames.content
   }, name));
 }
-
 function CalendarDropdownMenu(_ref2) {
   var calendars = _ref2.calendars,
-      setOpened = _ref2.setOpened,
-      onChangeIndex = _ref2.onChangeIndex;
-
+    setOpened = _ref2.setOpened,
+    onChangeIndex = _ref2.onChangeIndex;
   var handleDropdownMenuItemClick = function handleDropdownMenuItemClick(e, index) {
     e.stopPropagation();
     setOpened(false);
     onChangeIndex(index);
   };
-
-  return h("ul", {
+  return y("ul", {
     className: calendarDropdownMenu_classNames.dropdownMenu
   }, calendars.map(function (_ref3, index) {
     var name = _ref3.name,
-        _ref3$backgroundColor = _ref3.backgroundColor,
-        backgroundColor = _ref3$backgroundColor === void 0 ? '000' : _ref3$backgroundColor;
-    return h(DropdownMenuItem, {
+      _ref3$backgroundColor = _ref3.backgroundColor,
+      backgroundColor = _ref3$backgroundColor === void 0 ? '000' : _ref3$backgroundColor;
+    return y(DropdownMenuItem, {
       key: "dropdown-".concat(name, "-").concat(index),
       index: index,
       name: name,
@@ -20421,29 +19997,22 @@ function CalendarDropdownMenu(_ref2) {
 
 
 
-
 function popupSection_toConsumableArray(arr) { return popupSection_arrayWithoutHoles(arr) || popupSection_iterableToArray(arr) || popupSection_unsupportedIterableToArray(arr) || popupSection_nonIterableSpread(); }
-
 function popupSection_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function popupSection_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return popupSection_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return popupSection_arrayLikeToArray(o, minLen); }
-
 function popupSection_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function popupSection_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return popupSection_arrayLikeToArray(arr); }
-
-function popupSection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function popupSection_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
 
 
 function PopupSection(_ref) {
   var children = _ref.children,
-      _ref$classNames = _ref.classNames,
-      classNames = _ref$classNames === void 0 ? [] : _ref$classNames,
-      _ref$onClick = _ref.onClick,
-      onClick = _ref$onClick === void 0 ? noop : _ref$onClick;
-  return h("div", {
+    _ref$classNames = _ref.classNames,
+    classNames = _ref$classNames === void 0 ? [] : _ref$classNames,
+    _ref$onClick = _ref.onClick,
+    onClick = _ref$onClick === void 0 ? noop : _ref$onClick;
+  return y("div", {
     className: cls.apply(void 0, ['popup-section'].concat(popupSection_toConsumableArray(classNames))),
     onClick: onClick
   }, children);
@@ -20462,32 +20031,23 @@ function PopupSection(_ref) {
 
 
 
-
 function useDropdownState_slicedToArray(arr, i) { return useDropdownState_arrayWithHoles(arr) || useDropdownState_iterableToArrayLimit(arr, i) || useDropdownState_unsupportedIterableToArray(arr, i) || useDropdownState_nonIterableRest(); }
-
 function useDropdownState_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useDropdownState_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useDropdownState_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useDropdownState_arrayLikeToArray(o, minLen); }
-
-function useDropdownState_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useDropdownState_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useDropdownState_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useDropdownState_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useDropdownState_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-
 function useDropdownState() {
-  var _useState = hooks_module_y(false),
-      _useState2 = useDropdownState_slicedToArray(_useState, 2),
-      isOpened = _useState2[0],
-      setOpened = _useState2[1];
-
+  var _useState = hooks_module_h(false),
+    _useState2 = useDropdownState_slicedToArray(_useState, 2),
+    isOpened = _useState2[0],
+    setOpened = _useState2[1];
   var toggleDropdown = function toggleDropdown() {
     return setOpened(function (prev) {
       return !prev;
     });
   };
-
   return {
     isOpened: isOpened,
     setOpened: setOpened,
@@ -20503,16 +20063,22 @@ function useDropdownState() {
 
 
 
+
+
+
+
+
+
+
+
+function useFormState_typeof(obj) { "@babel/helpers - typeof"; return useFormState_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, useFormState_typeof(obj); }
 function useFormState_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function useFormState_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? useFormState_ownKeys(Object(source), !0).forEach(function (key) { useFormState_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : useFormState_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function useFormState_defineProperty(obj, key, value) { key = useFormState_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function useFormState_toPropertyKey(arg) { var key = useFormState_toPrimitive(arg, "string"); return useFormState_typeof(key) === "symbol" ? key : String(key); }
+function useFormState_toPrimitive(input, hint) { if (useFormState_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (useFormState_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function useFormState_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
-var FormStateActionType;
-
-(function (FormStateActionType) {
+var FormStateActionType = /*#__PURE__*/function (FormStateActionType) {
   FormStateActionType["init"] = "init";
   FormStateActionType["setCalendarId"] = "setCalendarId";
   FormStateActionType["setTitle"] = "setTitle";
@@ -20521,61 +20087,53 @@ var FormStateActionType;
   FormStateActionType["setAllday"] = "setAllday";
   FormStateActionType["setState"] = "setState";
   FormStateActionType["reset"] = "reset";
-})(FormStateActionType || (FormStateActionType = {}));
-
+  return FormStateActionType;
+}({});
 var defaultFormState = {
   title: '',
   location: '',
   isAllday: false,
   isPrivate: false,
   state: 'Busy'
-}; // eslint-disable-next-line complexity
+};
 
+// eslint-disable-next-line complexity
 function formStateReducer(state, action) {
   switch (action.type) {
     case FormStateActionType.init:
       return useFormState_objectSpread(useFormState_objectSpread({}, defaultFormState), action.event);
-
     case FormStateActionType.setCalendarId:
       return useFormState_objectSpread(useFormState_objectSpread({}, state), {}, {
         calendarId: action.calendarId
       });
-
     case FormStateActionType.setTitle:
       return useFormState_objectSpread(useFormState_objectSpread({}, state), {}, {
         title: action.title
       });
-
     case FormStateActionType.setLocation:
       return useFormState_objectSpread(useFormState_objectSpread({}, state), {}, {
         location: action.location
       });
-
     case FormStateActionType.setPrivate:
       return useFormState_objectSpread(useFormState_objectSpread({}, state), {}, {
         isPrivate: action.isPrivate
       });
-
     case FormStateActionType.setAllday:
       return useFormState_objectSpread(useFormState_objectSpread({}, state), {}, {
         isAllday: action.isAllday
       });
-
     case FormStateActionType.setState:
       return useFormState_objectSpread(useFormState_objectSpread({}, state), {}, {
         state: action.state
       });
-
     case FormStateActionType.reset:
       return useFormState_objectSpread(useFormState_objectSpread({}, state), defaultFormState);
-
     default:
       return state;
   }
 }
-
 function useFormState(initCalendarId) {
-  return hooks_module_d(formStateReducer, useFormState_objectSpread({
+  return hooks_module_s(formStateReducer, useFormState_objectSpread({
     calendarId: initCalendarId
   }, defaultFormState));
 }
@@ -20597,49 +20155,44 @@ var calendarSelector_classNames = {
 };
 function CalendarSelector(_ref) {
   var calendars = _ref.calendars,
-      selectedCalendarId = _ref.selectedCalendarId,
-      formStateDispatch = _ref.formStateDispatch;
-
+    selectedCalendarId = _ref.selectedCalendarId,
+    formStateDispatch = _ref.formStateDispatch;
   var _useDropdownState = useDropdownState(),
-      isOpened = _useDropdownState.isOpened,
-      setOpened = _useDropdownState.setOpened,
-      toggleDropdown = _useDropdownState.toggleDropdown;
-
+    isOpened = _useDropdownState.isOpened,
+    setOpened = _useDropdownState.setOpened,
+    toggleDropdown = _useDropdownState.toggleDropdown;
   var selectedCalendar = calendars.find(function (calendar) {
     return calendar.id === selectedCalendarId;
   });
-
   var _ref2 = selectedCalendar !== null && selectedCalendar !== void 0 ? selectedCalendar : {},
-      _ref2$backgroundColor = _ref2.backgroundColor,
-      backgroundColor = _ref2$backgroundColor === void 0 ? '' : _ref2$backgroundColor,
-      _ref2$name = _ref2.name,
-      name = _ref2$name === void 0 ? '' : _ref2$name;
-
+    _ref2$backgroundColor = _ref2.backgroundColor,
+    backgroundColor = _ref2$backgroundColor === void 0 ? '' : _ref2$backgroundColor,
+    _ref2$name = _ref2.name,
+    name = _ref2$name === void 0 ? '' : _ref2$name;
   var changeIndex = function changeIndex(index) {
     return formStateDispatch({
       type: FormStateActionType.setCalendarId,
       calendarId: calendars[index].id
     });
   };
-
-  return h(PopupSection, {
+  return y(PopupSection, {
     onClick: toggleDropdown,
     classNames: calendarSelector_classNames.popupSection
-  }, h("button", {
+  }, y("button", {
     type: "button",
     className: calendarSelector_classNames.popupSectionItem
-  }, h("span", {
+  }, y("span", {
     className: calendarSelector_classNames.dotIcon,
     style: {
       backgroundColor: backgroundColor
     }
-  }), h("span", {
+  }), y("span", {
     className: calendarSelector_classNames.content
-  }, name), h("span", {
+  }, name), y("span", {
     className: cls('icon', 'ic-dropdown-arrow', {
       open: isOpened
     })
-  })), isOpened && h(CalendarDropdownMenu, {
+  })), isOpened && y(CalendarDropdownMenu, {
     calendars: calendars,
     setOpened: setOpened,
     onChangeIndex: changeIndex
@@ -20657,26 +20210,22 @@ var closePopupButton_classNames = {
 };
 function ClosePopupButton(_ref) {
   var type = _ref.type,
-      close = _ref.close;
-
+    close = _ref.close;
   var _useDispatch = useDispatch('popup'),
-      hideAllPopup = _useDispatch.hideAllPopup;
-
+    hideAllPopup = _useDispatch.hideAllPopup;
   var onClickHandler = function onClickHandler() {
     hideAllPopup();
-
     if (isFunction(close)) {
       close();
     }
   };
-
-  return h("button", {
+  return y("button", {
     type: "button",
     className: closePopupButton_classNames.closeButton,
     onClick: onClickHandler
-  }, type === 'moreEvents' ? h(Template, {
+  }, type === 'moreEvents' ? y(Template, {
     template: "monthMoreClose"
-  }) : h("i", {
+  }) : y("i", {
     className: closePopupButton_classNames.closeIcon
   }));
 }
@@ -20688,10 +20237,10 @@ var confirmPopupButton_classNames = {
 };
 function ConfirmPopupButton(_ref) {
   var children = _ref.children;
-  return h("button", {
+  return y("button", {
     type: "submit",
     className: confirmPopupButton_classNames.confirmButton
-  }, h("span", null, children));
+  }, y("span", null, children));
 }
 // EXTERNAL MODULE: external {"commonjs":"tui-date-picker","commonjs2":"tui-date-picker","import":"tui-date-picker","amd":"tui-date-picker","root":["tui","DatePicker"]}
 var external_commonjs_tui_date_picker_commonjs2_tui_date_picker_import_tui_date_picker_amd_tui_date_picker_root_tui_DatePicker_ = __webpack_require__(4268);
@@ -20702,22 +20251,18 @@ var external_commonjs_tui_date_picker_commonjs2_tui_date_picker_import_tui_date_
 
 function useStringOnlyTemplate(_ref) {
   var template = _ref.template,
-      model = _ref.model,
-      _ref$defaultValue = _ref.defaultValue,
-      defaultValue = _ref$defaultValue === void 0 ? '' : _ref$defaultValue;
+    model = _ref.model,
+    _ref$defaultValue = _ref.defaultValue,
+    defaultValue = _ref$defaultValue === void 0 ? '' : _ref$defaultValue;
   var templates = useStore(templateSelector);
   var templateFunc = templates[template];
-
   if (type_isNil(templateFunc)) {
     return defaultValue;
   }
-
   var result = templateFunc(model);
-
   if (!isString_default()(result)) {
     result = defaultValue;
   }
-
   return result;
 }
 ;// CONCATENATED MODULE: ./src/components/popup/dateSelector.tsx
@@ -20741,20 +20286,18 @@ var dateSelector_classNames = {
   dateDash: cls('popup-date-dash'),
   content: cls('content')
 };
-var DateSelector = R(function DateSelector(_ref, ref) {
+var DateSelector = compat_module_k(function DateSelector(_ref, ref) {
   var start = _ref.start,
-      end = _ref.end,
-      _ref$isAllday = _ref.isAllday,
-      isAllday = _ref$isAllday === void 0 ? false : _ref$isAllday,
-      formStateDispatch = _ref.formStateDispatch;
-
+    end = _ref.end,
+    _ref$isAllday = _ref.isAllday,
+    isAllday = _ref$isAllday === void 0 ? false : _ref$isAllday,
+    formStateDispatch = _ref.formStateDispatch;
   var _useStore = useStore(optionsSelector),
-      usageStatistics = _useStore.usageStatistics;
-
-  var startPickerContainerRef = hooks_module_s(null);
-  var startPickerInputRef = hooks_module_s(null);
-  var endPickerContainerRef = hooks_module_s(null);
-  var endPickerInputRef = hooks_module_s(null);
+    usageStatistics = _useStore.usageStatistics;
+  var startPickerContainerRef = _(null);
+  var startPickerInputRef = _(null);
+  var endPickerContainerRef = _(null);
+  var endPickerInputRef = _(null);
   var startDatePlaceholder = useStringOnlyTemplate({
     template: 'startDatePlaceholder',
     defaultValue: 'Start Date'
@@ -20763,25 +20306,22 @@ var DateSelector = R(function DateSelector(_ref, ref) {
     template: 'endDatePlaceholder',
     defaultValue: 'End Date'
   });
-
   var toggleAllday = function toggleAllday() {
     return formStateDispatch({
       type: FormStateActionType.setAllday,
       isAllday: !isAllday
     });
   };
-
-  hooks_module_(function () {
+  hooks_module_p(function () {
     if (startPickerContainerRef.current && startPickerInputRef.current && endPickerContainerRef.current && endPickerInputRef.current) {
       var startDate = new date_TZDate(start);
-      var endDate = new date_TZDate(end); // NOTE: Setting default start/end time when editing allday event first time.
+      var endDate = new date_TZDate(end);
+      // NOTE: Setting default start/end time when editing allday event first time.
       // This logic refers to Apple calendar's behavior.
-
       if (isAllday) {
         startDate.setHours(12, 0, 0);
         endDate.setHours(13, 0, 0);
       }
-
       ref.current = external_commonjs_tui_date_picker_commonjs2_tui_date_picker_import_tui_date_picker_amd_tui_date_picker_root_tui_DatePicker_default().createRangePicker({
         startpicker: {
           date: startDate.toDate(),
@@ -20802,45 +20342,45 @@ var DateSelector = R(function DateSelector(_ref, ref) {
       });
     }
   }, [start, end, isAllday, usageStatistics, ref]);
-  return h(PopupSection, null, h("div", {
+  return y(PopupSection, null, y("div", {
     className: dateSelector_classNames.datePicker
-  }, h("span", {
+  }, y("span", {
     className: dateSelector_classNames.dateIcon
-  }), h("input", {
+  }), y("input", {
     name: "start",
     className: dateSelector_classNames.content,
     placeholder: startDatePlaceholder,
     ref: startPickerInputRef
-  }), h("div", {
+  }), y("div", {
     className: dateSelector_classNames.datePickerContainer,
     ref: startPickerContainerRef
-  })), h("span", {
+  })), y("span", {
     className: dateSelector_classNames.dateDash
-  }, "-"), h("div", {
+  }, "-"), y("div", {
     className: dateSelector_classNames.datePicker
-  }, h("span", {
+  }, y("span", {
     className: dateSelector_classNames.dateIcon
-  }), h("input", {
+  }), y("input", {
     name: "end",
     className: dateSelector_classNames.content,
     placeholder: endDatePlaceholder,
     ref: endPickerInputRef
-  }), h("div", {
+  }), y("div", {
     className: dateSelector_classNames.datePickerContainer,
     ref: endPickerContainerRef
-  })), h("div", {
+  })), y("div", {
     className: dateSelector_classNames.allday,
     onClick: toggleAllday
-  }, h("span", {
+  }, y("span", {
     className: cls('icon', {
       'ic-checkbox-normal': !isAllday,
       'ic-checkbox-checked': isAllday
     })
-  }), h("span", {
+  }), y("span", {
     className: dateSelector_classNames.content
-  }, h(Template, {
+  }, y(Template, {
     template: "popupIsAllday"
-  })), h("input", {
+  })), y("input", {
     name: "isAllday",
     type: "checkbox",
     className: cls('hidden-input'),
@@ -20862,30 +20402,28 @@ var stateDropdownMenu_classNames = {
 };
 function StateDropdownMenu(_ref) {
   var setOpened = _ref.setOpened,
-      setEventState = _ref.setEventState;
-
+    setEventState = _ref.setEventState;
   var onClickDropdown = function onClickDropdown(e, state) {
     e.stopPropagation();
     setOpened(false);
     setEventState(state);
   };
-
-  return h("ul", {
+  return y("ul", {
     className: stateDropdownMenu_classNames.dropdownMenu
   }, EVENT_STATES.map(function (state) {
-    return h("li", {
+    return y("li", {
       key: state,
       className: stateDropdownMenu_classNames.popupSectionItem,
       onClick: function onClick(e) {
         return onClickDropdown(e, state);
       }
-    }, h("span", {
+    }, y("span", {
       className: stateDropdownMenu_classNames.icon
-    }), h("span", {
+    }), y("span", {
       className: stateDropdownMenu_classNames.content
-    }, state === 'Busy' ? h(Template, {
+    }, state === 'Busy' ? y(Template, {
       template: "popupStateBusy"
-    }) : h(Template, {
+    }) : y(Template, {
       template: "popupStateFree"
     })));
   }));
@@ -20907,38 +20445,35 @@ var eventStateSelector_classNames = {
 };
 function EventStateSelector(_ref) {
   var _ref$eventState = _ref.eventState,
-      eventState = _ref$eventState === void 0 ? 'Busy' : _ref$eventState,
-      formStateDispatch = _ref.formStateDispatch;
-
+    eventState = _ref$eventState === void 0 ? 'Busy' : _ref$eventState,
+    formStateDispatch = _ref.formStateDispatch;
   var _useDropdownState = useDropdownState(),
-      isOpened = _useDropdownState.isOpened,
-      setOpened = _useDropdownState.setOpened,
-      toggleDropdown = _useDropdownState.toggleDropdown;
-
+    isOpened = _useDropdownState.isOpened,
+    setOpened = _useDropdownState.setOpened,
+    toggleDropdown = _useDropdownState.toggleDropdown;
   var handleChangeEventState = function handleChangeEventState(state) {
     return formStateDispatch({
       type: FormStateActionType.setState,
       state: state
     });
   };
-
-  return h(PopupSection, {
+  return y(PopupSection, {
     onClick: toggleDropdown,
     classNames: eventStateSelector_classNames.popupSection
-  }, h("button", {
+  }, y("button", {
     type: "button",
     className: eventStateSelector_classNames.popupSectionItem
-  }, h("span", {
+  }, y("span", {
     className: eventStateSelector_classNames.stateIcon
-  }), h("span", {
+  }), y("span", {
     className: eventStateSelector_classNames.content
-  }, eventState === 'Busy' ? h(Template, {
+  }, eventState === 'Busy' ? y(Template, {
     template: "popupStateBusy"
-  }) : h(Template, {
+  }) : y(Template, {
     template: "popupStateFree"
-  })), h("span", {
+  })), y("span", {
     className: eventStateSelector_classNames.arrowIcon
-  })), isOpened && h(StateDropdownMenu, {
+  })), isOpened && y(StateDropdownMenu, {
     setOpened: setOpened,
     setEventState: handleChangeEventState
   }));
@@ -20956,24 +20491,22 @@ var locationInputBox_classNames = {
 };
 function LocationInputBox(_ref) {
   var location = _ref.location,
-      formStateDispatch = _ref.formStateDispatch;
+    formStateDispatch = _ref.formStateDispatch;
   var locationPlaceholder = useStringOnlyTemplate({
     template: 'locationPlaceholder',
     defaultValue: 'Location'
   });
-
   var handleLocationChange = function handleLocationChange(e) {
     formStateDispatch({
       type: FormStateActionType.setLocation,
       location: e.currentTarget.value
     });
   };
-
-  return h(PopupSection, null, h("div", {
+  return y(PopupSection, null, y("div", {
     className: locationInputBox_classNames.popupSectionItem
-  }, h("span", {
+  }, y("span", {
     className: locationInputBox_classNames.locationIcon
-  }), h("input", {
+  }), y("input", {
     name: "location",
     className: locationInputBox_classNames.content,
     placeholder: locationPlaceholder,
@@ -20995,49 +20528,46 @@ var titleInputBox_classNames = {
 };
 function TitleInputBox(_ref) {
   var title = _ref.title,
-      _ref$isPrivate = _ref.isPrivate,
-      isPrivate = _ref$isPrivate === void 0 ? false : _ref$isPrivate,
-      formStateDispatch = _ref.formStateDispatch;
+    _ref$isPrivate = _ref.isPrivate,
+    isPrivate = _ref$isPrivate === void 0 ? false : _ref$isPrivate,
+    formStateDispatch = _ref.formStateDispatch;
   var titlePlaceholder = useStringOnlyTemplate({
     template: 'titlePlaceholder',
     defaultValue: 'Subject'
   });
-
   var togglePrivate = function togglePrivate() {
     return formStateDispatch({
       type: FormStateActionType.setPrivate,
       isPrivate: !isPrivate
     });
   };
-
   var handleInputChange = function handleInputChange(e) {
     formStateDispatch({
       type: FormStateActionType.setTitle,
       title: e.currentTarget.value
     });
   };
-
-  return h(PopupSection, null, h("div", {
+  return y(PopupSection, null, y("div", {
     className: titleInputBox_classNames.popupSectionItem
-  }, h("span", {
+  }, y("span", {
     className: titleInputBox_classNames.titleIcon
-  }), h("input", {
+  }), y("input", {
     name: "title",
     className: titleInputBox_classNames.content,
     placeholder: titlePlaceholder,
     value: title,
     onChange: handleInputChange,
     required: true
-  })), h("button", {
+  })), y("button", {
     type: "button",
     className: titleInputBox_classNames.privateButton,
     onClick: togglePrivate
-  }, h("span", {
+  }, y("span", {
     className: cls('icon', {
       'ic-private': isPrivate,
       'ic-public': !isPrivate
     })
-  }), h("input", {
+  }), y("input", {
     name: "isPrivate",
     type: "checkbox",
     className: cls('hidden-input'),
@@ -21046,23 +20576,20 @@ function TitleInputBox(_ref) {
   })));
 }
 ;// CONCATENATED MODULE: ./src/components/popup/eventFormPopup.tsx
+function eventFormPopup_typeof(obj) { "@babel/helpers - typeof"; return eventFormPopup_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, eventFormPopup_typeof(obj); }
 function eventFormPopup_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function eventFormPopup_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? eventFormPopup_ownKeys(Object(source), !0).forEach(function (key) { eventFormPopup_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : eventFormPopup_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function eventFormPopup_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function eventFormPopup_defineProperty(obj, key, value) { key = eventFormPopup_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function eventFormPopup_toPropertyKey(arg) { var key = eventFormPopup_toPrimitive(arg, "string"); return eventFormPopup_typeof(key) === "symbol" ? key : String(key); }
+function eventFormPopup_toPrimitive(input, hint) { if (eventFormPopup_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (eventFormPopup_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function eventFormPopup_slicedToArray(arr, i) { return eventFormPopup_arrayWithHoles(arr) || eventFormPopup_iterableToArrayLimit(arr, i) || eventFormPopup_unsupportedIterableToArray(arr, i) || eventFormPopup_nonIterableRest(); }
-
 function eventFormPopup_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function eventFormPopup_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return eventFormPopup_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return eventFormPopup_arrayLikeToArray(o, minLen); }
-
-function eventFormPopup_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function eventFormPopup_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function eventFormPopup_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function eventFormPopup_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function eventFormPopup_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+
 
 
 
@@ -21114,44 +20641,35 @@ var eventFormPopup_classNames = {
   popupArrowBorder: cls('popup-arrow-border'),
   popupArrowFill: cls('popup-arrow-fill')
 };
-
 function eventFormPopup_calculatePopupPosition(popupArrowPointPosition, layoutRect, popupRect) {
   var top = popupArrowPointPosition.top - popupRect.height - HALF_OF_POPUP_ARROW_HEIGHT;
   var left = popupArrowPointPosition.left - popupRect.width / 2;
   var direction = FormPopupArrowDirection.bottom;
-
   if (top < layoutRect.top) {
     direction = FormPopupArrowDirection.top;
     top = popupArrowPointPosition.top + HALF_OF_POPUP_ARROW_HEIGHT;
   }
-
   if (isTopOutOfLayout(top, layoutRect, popupRect)) {
     top = layoutRect.top + layoutRect.height - popupRect.height;
   }
-
   if (isLeftOutOfLayout(left, layoutRect, popupRect)) {
     left = layoutRect.left + layoutRect.width - popupRect.width;
   }
-
   return {
     top: top + window.scrollY,
     left: Math.max(left, layoutRect.left) + window.scrollX,
     direction: direction
   };
 }
-
 function isBooleanKey(key) {
   return BOOLEAN_KEYS_OF_EVENT_MODEL_DATA.indexOf(key) !== -1;
 }
-
 function getChanges(event, eventObject) {
   return Object.entries(eventObject).reduce(function (changes, _ref) {
     var _ref2 = eventFormPopup_slicedToArray(_ref, 2),
-        key = _ref2[0],
-        value = _ref2[1];
-
+      key = _ref2[0],
+      value = _ref2[1];
     var eventObjectKey = key;
-
     if (event[eventObjectKey] instanceof date_TZDate) {
       // NOTE: handle TZDate
       if (compare(event[eventObjectKey], value) !== 0) {
@@ -21160,58 +20678,45 @@ function getChanges(event, eventObject) {
     } else if (event[eventObjectKey] !== value) {
       changes[eventObjectKey] = value;
     }
-
     return changes;
   }, {});
 }
-
 function EventFormPopup() {
   var _calendars$;
-
   var _useStore = useStore(calendarSelector),
-      calendars = _useStore.calendars;
-
+    calendars = _useStore.calendars;
   var _useDispatch = useDispatch('popup'),
-      hideAllPopup = _useDispatch.hideAllPopup;
-
+    hideAllPopup = _useDispatch.hideAllPopup;
   var popupParams = useStore(eventFormPopupParamSelector);
-
   var _ref3 = popupParams !== null && popupParams !== void 0 ? popupParams : {},
-      start = _ref3.start,
-      end = _ref3.end,
-      popupArrowPointPosition = _ref3.popupArrowPointPosition,
-      close = _ref3.close,
-      isCreationPopup = _ref3.isCreationPopup,
-      event = _ref3.event;
-
+    start = _ref3.start,
+    end = _ref3.end,
+    popupArrowPointPosition = _ref3.popupArrowPointPosition,
+    close = _ref3.close,
+    isCreationPopup = _ref3.isCreationPopup,
+    event = _ref3.event;
   var eventBus = useEventBus();
   var formPopupSlot = useFloatingLayer('formPopupSlot');
-
   var _useFormState = useFormState((_calendars$ = calendars[0]) === null || _calendars$ === void 0 ? void 0 : _calendars$.id),
-      _useFormState2 = eventFormPopup_slicedToArray(_useFormState, 2),
-      formState = _useFormState2[0],
-      formStateDispatch = _useFormState2[1];
-
-  var datePickerRef = hooks_module_s(null);
-  var popupContainerRef = hooks_module_s(null);
-
-  var _useState = hooks_module_y({}),
-      _useState2 = eventFormPopup_slicedToArray(_useState, 2),
-      style = _useState2[0],
-      setStyle = _useState2[1];
-
-  var _useState3 = hooks_module_y(0),
-      _useState4 = eventFormPopup_slicedToArray(_useState3, 2),
-      arrowLeft = _useState4[0],
-      setArrowLeft = _useState4[1];
-
-  var _useState5 = hooks_module_y(FormPopupArrowDirection.bottom),
-      _useState6 = eventFormPopup_slicedToArray(_useState5, 2),
-      arrowDirection = _useState6[0],
-      setArrowDirection = _useState6[1];
-
+    _useFormState2 = eventFormPopup_slicedToArray(_useFormState, 2),
+    formState = _useFormState2[0],
+    formStateDispatch = _useFormState2[1];
+  var datePickerRef = _(null);
+  var popupContainerRef = _(null);
+  var _useState = hooks_module_h({}),
+    _useState2 = eventFormPopup_slicedToArray(_useState, 2),
+    style = _useState2[0],
+    setStyle = _useState2[1];
+  var _useState3 = hooks_module_h(0),
+    _useState4 = eventFormPopup_slicedToArray(_useState3, 2),
+    arrowLeft = _useState4[0],
+    setArrowLeft = _useState4[1];
+  var _useState5 = hooks_module_h(FormPopupArrowDirection.bottom),
+    _useState6 = eventFormPopup_slicedToArray(_useState5, 2),
+    arrowDirection = _useState6[0],
+    setArrowDirection = _useState6[1];
   var layoutContainer = useLayoutContainer();
-  var popupArrowClassName = F(function () {
+  var popupArrowClassName = hooks_module_F(function () {
     var top = arrowDirection === FormPopupArrowDirection.top;
     var bottom = arrowDirection === FormPopupArrowDirection.bottom;
     return cls('popup-arrow', {
@@ -21219,16 +20724,14 @@ function EventFormPopup() {
       bottom: bottom
     });
   }, [arrowDirection]);
-  hooks_module_h(function () {
+  hooks_module_y(function () {
     if (popupContainerRef.current && popupArrowPointPosition && layoutContainer) {
       var layoutRect = layoutContainer.getBoundingClientRect();
       var popupRect = popupContainerRef.current.getBoundingClientRect();
-
       var _calculatePopupPositi = eventFormPopup_calculatePopupPosition(popupArrowPointPosition, layoutRect, popupRect),
-          top = _calculatePopupPositi.top,
-          left = _calculatePopupPositi.left,
-          direction = _calculatePopupPositi.direction;
-
+        top = _calculatePopupPositi.top,
+        left = _calculatePopupPositi.left,
+        direction = _calculatePopupPositi.direction;
       var arrowLeftPosition = popupArrowPointPosition.left - left;
       setStyle({
         left: left,
@@ -21237,9 +20740,10 @@ function EventFormPopup() {
       setArrowLeft(arrowLeftPosition);
       setArrowDirection(direction);
     }
-  }, [layoutContainer, popupArrowPointPosition]); // Sync store's popupParams with formState when editing event
+  }, [layoutContainer, popupArrowPointPosition]);
 
-  hooks_module_(function () {
+  // Sync store's popupParams with formState when editing event
+  hooks_module_p(function () {
     if (isPresent(popupParams) && isPresent(event)) {
       formStateDispatch({
         type: FormStateActionType.init,
@@ -21253,34 +20757,29 @@ function EventFormPopup() {
         }
       });
     }
-  }, [calendars, event, formStateDispatch, popupParams]); // Reset form states when closing the popup
+  }, [calendars, event, formStateDispatch, popupParams]);
 
-  hooks_module_(function () {
+  // Reset form states when closing the popup
+  hooks_module_p(function () {
     if (type_isNil(popupParams)) {
       formStateDispatch({
         type: FormStateActionType.reset
       });
     }
   }, [formStateDispatch, popupParams]);
-
   if (type_isNil(start) || type_isNil(end) || type_isNil(formPopupSlot)) {
     return null;
   }
-
   var onSubmit = function onSubmit(e) {
     var _datePickerRef$curren, _datePickerRef$curren2;
-
     e.preventDefault();
     var formData = new FormData(e.target);
-
     var eventData = eventFormPopup_objectSpread({}, formState);
-
     formData.forEach(function (data, key) {
       eventData[key] = isBooleanKey(key) ? data === 'true' : data;
     });
     eventData.start = new date_TZDate((_datePickerRef$curren = datePickerRef.current) === null || _datePickerRef$curren === void 0 ? void 0 : _datePickerRef$curren.getStartDate());
     eventData.end = new date_TZDate((_datePickerRef$curren2 = datePickerRef.current) === null || _datePickerRef$curren2 === void 0 ? void 0 : _datePickerRef$curren2.getEndDate());
-
     if (isCreationPopup) {
       eventBus.fire('beforeCreateEvent', eventData);
     } else if (event) {
@@ -21290,59 +20789,56 @@ function EventFormPopup() {
         changes: changes
       });
     }
-
     hideAllPopup();
   };
-
-  return compat_module_V(h("div", {
+  return compat_module_z(y("div", {
     role: "dialog",
     className: eventFormPopup_classNames.popupContainer,
     ref: popupContainerRef,
     style: style
-  }, h("form", {
+  }, y("form", {
     onSubmit: onSubmit
-  }, h("div", {
+  }, y("div", {
     className: eventFormPopup_classNames.formContainer
-  }, calendars !== null && calendars !== void 0 && calendars.length ? h(CalendarSelector, {
+  }, calendars !== null && calendars !== void 0 && calendars.length ? y(CalendarSelector, {
     selectedCalendarId: formState.calendarId,
     calendars: calendars,
     formStateDispatch: formStateDispatch
-  }) : h(PopupSection, null), h(TitleInputBox, {
+  }) : y(PopupSection, null), y(TitleInputBox, {
     title: formState.title,
     isPrivate: formState.isPrivate,
     formStateDispatch: formStateDispatch
-  }), h(LocationInputBox, {
+  }), y(LocationInputBox, {
     location: formState.location,
     formStateDispatch: formStateDispatch
-  }), h(DateSelector, {
+  }), y(DateSelector, {
     start: start,
     end: end,
     isAllday: formState.isAllday,
     formStateDispatch: formStateDispatch,
     ref: datePickerRef
-  }), h(EventStateSelector, {
+  }), y(EventStateSelector, {
     eventState: formState.state,
     formStateDispatch: formStateDispatch
-  }), h(ClosePopupButton, {
+  }), y(ClosePopupButton, {
     type: "form",
     close: close
-  }), h(PopupSection, null, h(ConfirmPopupButton, null, isCreationPopup ? h(Template, {
+  }), y(PopupSection, null, y(ConfirmPopupButton, null, isCreationPopup ? y(Template, {
     template: "popupSave"
-  }) : h(Template, {
+  }) : y(Template, {
     template: "popupUpdate"
-  })))), h("div", {
+  })))), y("div", {
     className: popupArrowClassName
-  }, h("div", {
+  }, y("div", {
     className: eventFormPopup_classNames.popupArrowBorder,
     style: {
       left: arrowLeft
     }
-  }, h("div", {
+  }, y("div", {
     className: eventFormPopup_classNames.popupArrowFill
   }))))), formPopupSlot);
 }
 ;// CONCATENATED MODULE: ./src/components/popup/popupOverlay.tsx
-
 
 
 
@@ -21355,24 +20851,18 @@ function shownPopupParamSelector(state) {
     return isPresent(popup);
   });
 }
-
 function PopupOverlay() {
   var shownPopupParam = useStore(shownPopupParamSelector);
-
   var _useDispatch = useDispatch('popup'),
-      hideAllPopup = _useDispatch.hideAllPopup;
-
+    hideAllPopup = _useDispatch.hideAllPopup;
   var isPopupShown = isPresent(shownPopupParam);
-
   var onClick = function onClick(ev) {
     var _shownPopupParam$clos;
-
     ev.stopPropagation();
     shownPopupParam === null || shownPopupParam === void 0 ? void 0 : (_shownPopupParam$clos = shownPopupParam.close) === null || _shownPopupParam$clos === void 0 ? void 0 : _shownPopupParam$clos.call(shownPopupParam);
     hideAllPopup();
   };
-
-  return h("div", {
+  return y("div", {
     className: cls('popup-overlay'),
     style: {
       display: isPopupShown ? 'block' : 'none'
@@ -21408,22 +20898,19 @@ var seeMoreEventsPopup_classNames = {
 };
 function SeeMoreEventsPopup() {
   var popupParams = useStore(seeMorePopupParamSelector);
-
   var _ref = popupParams !== null && popupParams !== void 0 ? popupParams : {},
-      date = _ref.date,
-      _ref$events = _ref.events,
-      events = _ref$events === void 0 ? [] : _ref$events,
-      popupPosition = _ref.popupPosition;
-
+    date = _ref.date,
+    _ref$events = _ref.events,
+    events = _ref$events === void 0 ? [] : _ref$events,
+    popupPosition = _ref.popupPosition;
   var _useMonthTheme = useMonthTheme(),
-      moreView = _useMonthTheme.moreView,
-      moreViewTitle = _useMonthTheme.moreViewTitle;
-
+    moreView = _useMonthTheme.moreView,
+    moreViewTitle = _useMonthTheme.moreViewTitle;
   var seeMorePopupSlot = useFloatingLayer('seeMorePopupSlot');
   var eventBus = useEventBus();
-  var moreEventsPopupContainerRef = hooks_module_s(null);
+  var moreEventsPopupContainerRef = _(null);
   var isHidden = type_isNil(date) || type_isNil(popupPosition) || type_isNil(seeMorePopupSlot);
-  hooks_module_(function () {
+  hooks_module_p(function () {
     if (!isHidden && moreEventsPopupContainerRef.current) {
       eventBus.fire('clickMoreEventsBtn', {
         date: date.toDate(),
@@ -21431,11 +20918,9 @@ function SeeMoreEventsPopup() {
       });
     }
   }, [date, eventBus, isHidden]);
-
   if (isHidden) {
     return null;
   }
-
   var style = {
     height: MONTH_MORE_VIEW_HEADER_HEIGHT,
     marginBottom: MONTH_MORE_VIEW_HEADER_MARGIN_BOTTOM,
@@ -21450,27 +20935,27 @@ function SeeMoreEventsPopup() {
   var moreViewListStyle = {
     height: "calc(100% - ".concat(MONTH_MORE_VIEW_HEADER_HEIGHT + MONTH_MORE_VIEW_HEADER_MARGIN_BOTTOM + MONTH_MORE_VIEW_HEADER_PADDING_TOP, "px)")
   };
-  return compat_module_V(h("div", {
+  return compat_module_z(y("div", {
     role: "dialog",
     className: seeMoreEventsPopup_classNames.container,
     style: popupPosition,
     ref: moreEventsPopupContainerRef
-  }, h("div", {
+  }, y("div", {
     className: seeMoreEventsPopup_classNames.seeMore,
     style: moreView
-  }, h("div", {
+  }, y("div", {
     className: seeMoreEventsPopup_classNames.header,
     style: style
-  }, h(Template, {
+  }, y(Template, {
     template: "monthMoreTitleDate",
     param: moreTitle
-  }), h(ClosePopupButton, {
+  }), y(ClosePopupButton, {
     type: "moreEvents"
-  })), h("div", {
+  })), y("div", {
     className: seeMoreEventsPopup_classNames.list,
     style: moreViewListStyle
   }, events.map(function (uiModel) {
-    return h(HorizontalEvent, {
+    return y(HorizontalEvent, {
       key: "see-more-event-item-".concat(uiModel.cid()),
       uiModel: uiModel,
       eventHeight: MONTH_EVENT_HEIGHT,
@@ -21480,11 +20965,13 @@ function SeeMoreEventsPopup() {
   })))), seeMorePopupSlot);
 }
 ;// CONCATENATED MODULE: ./src/components/layout.tsx
+function layout_typeof(obj) { "@babel/helpers - typeof"; return layout_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, layout_typeof(obj); }
 function layout_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function layout_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? layout_ownKeys(Object(source), !0).forEach(function (key) { layout_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : layout_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function layout_defineProperty(obj, key, value) { key = layout_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function layout_toPropertyKey(arg) { var key = layout_toPrimitive(arg, "string"); return layout_typeof(key) === "symbol" ? key : String(key); }
+function layout_toPrimitive(input, hint) { if (layout_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (layout_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function layout_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
 
@@ -21507,18 +20994,11 @@ function layout_defineProperty(obj, key, value) { if (key in obj) { Object.defin
 
 
 function layout_slicedToArray(arr, i) { return layout_arrayWithHoles(arr) || layout_iterableToArrayLimit(arr, i) || layout_unsupportedIterableToArray(arr, i) || layout_nonIterableRest(); }
-
 function layout_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function layout_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return layout_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return layout_arrayLikeToArray(o, minLen); }
-
-function layout_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function layout_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function layout_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function layout_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function layout_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -21537,96 +21017,82 @@ function getLayoutStylesFromInfo(width, height) {
   var styles = {
     height: toPercent(100)
   };
-
   if (width) {
     styles.width = width;
   }
-
   if (height) {
     styles.height = height;
   }
-
   return styles;
-} // TODO: consider `direction` and `resizeMode`
+}
 
-
+// TODO: consider `direction` and `resizeMode`
 function Layout(_ref) {
   var children = _ref.children,
-      width = _ref.width,
-      height = _ref.height,
-      _ref$className = _ref.className,
-      className = _ref$className === void 0 ? '' : _ref$className,
-      _ref$autoAdjustPanels = _ref.autoAdjustPanels,
-      autoAdjustPanels = _ref$autoAdjustPanels === void 0 ? false : _ref$autoAdjustPanels;
-
+    width = _ref.width,
+    height = _ref.height,
+    _ref$className = _ref.className,
+    className = _ref$className === void 0 ? '' : _ref$className,
+    _ref$autoAdjustPanels = _ref.autoAdjustPanels,
+    autoAdjustPanels = _ref$autoAdjustPanels === void 0 ? false : _ref$autoAdjustPanels;
   var _useTheme = useTheme(commonThemeSelector),
-      backgroundColor = _useTheme.backgroundColor;
-
+    backgroundColor = _useTheme.backgroundColor;
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = layout_slicedToArray(_useDOMNode, 2),
-      container = _useDOMNode2[0],
-      containerRefCallback = _useDOMNode2[1];
-
+    _useDOMNode2 = layout_slicedToArray(_useDOMNode, 2),
+    container = _useDOMNode2[0],
+    containerRefCallback = _useDOMNode2[1];
   var _useDispatch = useDispatch('weekViewLayout'),
-      setLastPanelType = _useDispatch.setLastPanelType,
-      updateLayoutHeight = _useDispatch.updateLayoutHeight;
-
-  var layoutClassName = F(function () {
+    setLastPanelType = _useDispatch.setLastPanelType,
+    updateLayoutHeight = _useDispatch.updateLayoutHeight;
+  var layoutClassName = hooks_module_F(function () {
     return "".concat(cls('layout'), " ").concat(className);
   }, [className]);
-  hooks_module_h(function () {
+  hooks_module_y(function () {
     if (container) {
       var onResizeWindow = function onResizeWindow() {
         return updateLayoutHeight(container.offsetHeight);
       };
-
       onResizeWindow();
       window.addEventListener('resize', onResizeWindow);
       return function () {
         return window.removeEventListener('resize', onResizeWindow);
       };
     }
-
     return noop;
   }, [container, updateLayoutHeight]);
-  hooks_module_h(function () {
+  hooks_module_y(function () {
     if (container && autoAdjustPanels) {
-      var childArray = x(children);
+      var childArray = P(children);
       var lastChild = childArray[childArray.length - 1];
-
       if (!isString_default()(lastChild) && !isNumber_default()(lastChild) && !type_isNil(lastChild)) {
         setLastPanelType(lastChild.props.name);
       }
     }
   }, [children, setLastPanelType, autoAdjustPanels, container]);
-  return h(LayoutContainerProvider, {
+  return y(LayoutContainerProvider, {
     value: container
-  }, h("div", {
+  }, y("div", {
     ref: containerRefCallback,
     className: layoutClassName,
     style: layout_objectSpread(layout_objectSpread({}, getLayoutStylesFromInfo(width, height)), {}, {
       backgroundColor: backgroundColor
     })
-  }, container ? children : null), h(EventFormPopup, null), h(EventDetailPopup, null), h(SeeMoreEventsPopup, null), h(PopupOverlay, null));
+  }, container ? children : null), y(EventFormPopup, null), y(EventDetailPopup, null), y(SeeMoreEventsPopup, null), y(PopupOverlay, null));
 }
 ;// CONCATENATED MODULE: ./src/components/panelResizer.tsx
+function panelResizer_typeof(obj) { "@babel/helpers - typeof"; return panelResizer_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, panelResizer_typeof(obj); }
 function panelResizer_slicedToArray(arr, i) { return panelResizer_arrayWithHoles(arr) || panelResizer_iterableToArrayLimit(arr, i) || panelResizer_unsupportedIterableToArray(arr, i) || panelResizer_nonIterableRest(); }
-
 function panelResizer_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function panelResizer_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return panelResizer_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return panelResizer_arrayLikeToArray(o, minLen); }
-
-function panelResizer_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function panelResizer_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function panelResizer_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function panelResizer_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function panelResizer_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 function panelResizer_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function panelResizer_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? panelResizer_ownKeys(Object(source), !0).forEach(function (key) { panelResizer_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : panelResizer_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function panelResizer_defineProperty(obj, key, value) { key = panelResizer_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function panelResizer_toPropertyKey(arg) { var key = panelResizer_toPrimitive(arg, "string"); return panelResizer_typeof(key) === "symbol" ? key : String(key); }
+function panelResizer_toPrimitive(input, hint) { if (panelResizer_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (panelResizer_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function panelResizer_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
 
@@ -21663,31 +21129,25 @@ function getDefaultStyle(height, border) {
     borderBottom: border
   };
 }
-
 function PanelResizer(_ref) {
   var name = _ref.name,
-      height = _ref.height;
+    height = _ref.height;
   var border = useTheme(hooks_module_T(function (theme) {
     return theme.week.panelResizer.border;
   }, []));
   var style = getDefaultStyle(height, border);
-
   var defaultGuideStyle = panelResizer_objectSpread(panelResizer_objectSpread({}, style), {}, {
     display: 'none',
     border: 'none',
     backgroundColor: '#999'
   });
-
-  var _useState = hooks_module_y(defaultGuideStyle),
-      _useState2 = panelResizer_slicedToArray(_useState, 2),
-      guideStyle = _useState2[0],
-      setGuideStyle = _useState2[1];
-
-  var startPos = hooks_module_s(null);
-
+  var _useState = hooks_module_h(defaultGuideStyle),
+    _useState2 = panelResizer_slicedToArray(_useState, 2),
+    guideStyle = _useState2[0],
+    setGuideStyle = _useState2[1];
+  var startPos = _(null);
   var _useDispatch = useDispatch('weekViewLayout'),
-      updateDayGridRowHeightByDiff = _useDispatch.updateDayGridRowHeightByDiff;
-
+    updateDayGridRowHeightByDiff = _useDispatch.updateDayGridRowHeightByDiff;
   var onMouseDown = useDrag(DRAGGING_TYPE_CONSTANTS.panelResizer, {
     onDragStart: function onDragStart(e) {
       startPos.current = {
@@ -21718,20 +21178,29 @@ function PanelResizer(_ref) {
       }
     }
   });
-  return h("div", {
+  return y("div", {
     style: {
       position: 'relative'
     }
-  }, h("div", {
+  }, y("div", {
     className: cls('panel-resizer'),
     style: style,
     onMouseDown: onMouseDown
-  }), h("div", {
+  }), y("div", {
     className: cls('panel-resizer-guide'),
     style: guideStyle
   }));
 }
 ;// CONCATENATED MODULE: ./src/components/panel.tsx
+function panel_typeof(obj) { "@babel/helpers - typeof"; return panel_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, panel_typeof(obj); }
+
+
+
+
+
+
+
+
 
 
 
@@ -21744,12 +21213,10 @@ function PanelResizer(_ref) {
 
 
 function panel_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function panel_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? panel_ownKeys(Object(source), !0).forEach(function (key) { panel_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : panel_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function panel_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
+function panel_defineProperty(obj, key, value) { key = panel_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function panel_toPropertyKey(arg) { var key = panel_toPrimitive(arg, "string"); return panel_typeof(key) === "symbol" ? key : String(key); }
+function panel_toPrimitive(input, hint) { if (panel_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (panel_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
@@ -21762,38 +21229,32 @@ function panel_defineProperty(obj, key, value) { if (key in obj) { Object.define
 function getPanelSide(side, maxExpandableSide) {
   return maxExpandableSide ? Math.min(maxExpandableSide, side) : side;
 }
-
 function getPanelStyle(_ref) {
   var initialHeight = _ref.initialHeight,
-      initialWidth = _ref.initialWidth,
-      overflowX = _ref.overflowX,
-      overflowY = _ref.overflowY,
-      maxExpandableWidth = _ref.maxExpandableWidth,
-      maxExpandableHeight = _ref.maxExpandableHeight,
-      minHeight = _ref.minHeight,
-      maxHeight = _ref.maxHeight,
-      minWidth = _ref.minWidth,
-      maxWidth = _ref.maxWidth;
+    initialWidth = _ref.initialWidth,
+    overflowX = _ref.overflowX,
+    overflowY = _ref.overflowY,
+    maxExpandableWidth = _ref.maxExpandableWidth,
+    maxExpandableHeight = _ref.maxExpandableHeight,
+    minHeight = _ref.minHeight,
+    maxHeight = _ref.maxHeight,
+    minWidth = _ref.minWidth,
+    maxWidth = _ref.maxWidth;
   var style = {};
-
   if (initialWidth) {
     style.width = getPanelSide(initialWidth, maxExpandableWidth);
     style.height = '100%';
   }
-
   if (initialHeight) {
     style.width = '100%';
     style.height = getPanelSide(initialHeight, maxExpandableHeight);
   }
-
   if (overflowX) {
     style.overflowX = 'auto';
   }
-
   if (overflowY) {
     style.overflowY = 'auto';
   }
-
   return panel_objectSpread(panel_objectSpread({}, style), {}, {
     minHeight: minHeight,
     maxHeight: maxHeight,
@@ -21801,40 +21262,35 @@ function getPanelStyle(_ref) {
     maxWidth: maxWidth
   });
 }
-
-var Panel = R(function Panel(_ref2, ref) {
+var Panel = compat_module_k(function Panel(_ref2, ref) {
   var name = _ref2.name,
-      _ref2$initialWidth = _ref2.initialWidth,
-      initialWidth = _ref2$initialWidth === void 0 ? DEFAULT_PANEL_HEIGHT : _ref2$initialWidth,
-      _ref2$initialHeight = _ref2.initialHeight,
-      initialHeight = _ref2$initialHeight === void 0 ? DEFAULT_PANEL_HEIGHT : _ref2$initialHeight,
-      overflowX = _ref2.overflowX,
-      overflowY = _ref2.overflowY,
-      maxExpandableWidth = _ref2.maxExpandableWidth,
-      maxExpandableHeight = _ref2.maxExpandableHeight,
-      minHeight = _ref2.minHeight,
-      maxHeight = _ref2.maxHeight,
-      minWidth = _ref2.minWidth,
-      maxWidth = _ref2.maxWidth,
-      _ref2$resizerWidth = _ref2.resizerWidth,
-      resizerWidth = _ref2$resizerWidth === void 0 ? DEFAULT_RESIZER_LENGTH : _ref2$resizerWidth,
-      _ref2$resizerHeight = _ref2.resizerHeight,
-      resizerHeight = _ref2$resizerHeight === void 0 ? DEFAULT_RESIZER_LENGTH : _ref2$resizerHeight,
-      resizable = _ref2.resizable,
-      children = _ref2.children;
-
+    _ref2$initialWidth = _ref2.initialWidth,
+    initialWidth = _ref2$initialWidth === void 0 ? DEFAULT_PANEL_HEIGHT : _ref2$initialWidth,
+    _ref2$initialHeight = _ref2.initialHeight,
+    initialHeight = _ref2$initialHeight === void 0 ? DEFAULT_PANEL_HEIGHT : _ref2$initialHeight,
+    overflowX = _ref2.overflowX,
+    overflowY = _ref2.overflowY,
+    maxExpandableWidth = _ref2.maxExpandableWidth,
+    maxExpandableHeight = _ref2.maxExpandableHeight,
+    minHeight = _ref2.minHeight,
+    maxHeight = _ref2.maxHeight,
+    minWidth = _ref2.minWidth,
+    maxWidth = _ref2.maxWidth,
+    _ref2$resizerWidth = _ref2.resizerWidth,
+    resizerWidth = _ref2$resizerWidth === void 0 ? DEFAULT_RESIZER_LENGTH : _ref2$resizerWidth,
+    _ref2$resizerHeight = _ref2.resizerHeight,
+    resizerHeight = _ref2$resizerHeight === void 0 ? DEFAULT_RESIZER_LENGTH : _ref2$resizerHeight,
+    resizable = _ref2.resizable,
+    children = _ref2.children;
   var _useDispatch = useDispatch('weekViewLayout'),
-      updateDayGridRowHeight = _useDispatch.updateDayGridRowHeight;
-
+    updateDayGridRowHeight = _useDispatch.updateDayGridRowHeight;
   var _useStore = useStore(hooks_module_T(function (state) {
-    var _state$weekViewLayout;
-
-    return (_state$weekViewLayout = state.weekViewLayout.dayGridRows[name]) !== null && _state$weekViewLayout !== void 0 ? _state$weekViewLayout : {};
-  }, [name])),
-      dayGridRowHeight = _useStore.height;
-
+      var _state$weekViewLayout;
+      return (_state$weekViewLayout = state.weekViewLayout.dayGridRows[name]) !== null && _state$weekViewLayout !== void 0 ? _state$weekViewLayout : {};
+    }, [name])),
+    dayGridRowHeight = _useStore.height;
   var height = dayGridRowHeight !== null && dayGridRowHeight !== void 0 ? dayGridRowHeight : initialHeight;
-  hooks_module_h(function () {
+  hooks_module_y(function () {
     updateDayGridRowHeight({
       rowName: name,
       height: initialHeight
@@ -21852,18 +21308,17 @@ var Panel = R(function Panel(_ref2, ref) {
     minWidth: minWidth,
     maxWidth: maxWidth
   });
-  var isResizable = F(function () {
+  var isResizable = hooks_module_F(function () {
     if (type_isNil(resizable) || isBoolean_default()(resizable)) {
       return !!resizable;
     }
-
     return resizable.includes(name);
   }, [resizable, name]);
-  return h(p, null, h("div", {
+  return y(preact_module_, null, y("div", {
     className: cls('panel', name),
     style: styles,
     ref: ref
-  }, children), isResizable ? h(PanelResizer, {
+  }, children), isResizable ? y(PanelResizer, {
     name: name,
     width: resizerWidth,
     height: resizerHeight
@@ -21883,23 +21338,20 @@ var timeFormats = {
   year: 'YYYY.MM.DD'
 };
 ;// CONCATENATED MODULE: ./src/components/events/timeEvent.tsx
+function timeEvent_typeof(obj) { "@babel/helpers - typeof"; return timeEvent_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, timeEvent_typeof(obj); }
 function timeEvent_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function timeEvent_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? timeEvent_ownKeys(Object(source), !0).forEach(function (key) { timeEvent_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : timeEvent_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function timeEvent_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function timeEvent_defineProperty(obj, key, value) { key = timeEvent_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function timeEvent_toPropertyKey(arg) { var key = timeEvent_toPrimitive(arg, "string"); return timeEvent_typeof(key) === "symbol" ? key : String(key); }
+function timeEvent_toPrimitive(input, hint) { if (timeEvent_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (timeEvent_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function timeEvent_slicedToArray(arr, i) { return timeEvent_arrayWithHoles(arr) || timeEvent_iterableToArrayLimit(arr, i) || timeEvent_unsupportedIterableToArray(arr, i) || timeEvent_nonIterableRest(); }
-
 function timeEvent_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function timeEvent_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return timeEvent_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return timeEvent_arrayLikeToArray(o, minLen); }
-
-function timeEvent_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function timeEvent_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function timeEvent_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function timeEvent_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function timeEvent_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+
 
 
 
@@ -21944,56 +21396,48 @@ var timeEvent_classNames = {
   moveEvent: cls('dragging--move-event'),
   resizeEvent: cls('dragging--resize-vertical-event')
 };
-
 function getMarginLeft(left) {
   var _extractPercentPx = extractPercentPx("".concat(left)),
-      percent = _extractPercentPx.percent,
-      px = _extractPercentPx.px;
-
+    percent = _extractPercentPx.percent,
+    px = _extractPercentPx.px;
   return left > 0 || percent > 0 || px > 0 ? TIME_EVENT_CONTAINER_MARGIN_LEFT : 0;
 }
-
 function getContainerWidth(width, marginLeft) {
   if (isString_default()(width)) {
     return width;
   }
-
   if (width >= 0) {
     return "calc(".concat(toPercent(width), " - ").concat(marginLeft, "px)");
   }
-
   return '';
 }
-
 function getStyles(_ref) {
   var uiModel = _ref.uiModel,
-      isDraggingTarget = _ref.isDraggingTarget,
-      hasNextStartTime = _ref.hasNextStartTime,
-      calendarColor = _ref.calendarColor,
-      minHeight = _ref.minHeight;
+    isDraggingTarget = _ref.isDraggingTarget,
+    hasNextStartTime = _ref.hasNextStartTime,
+    calendarColor = _ref.calendarColor,
+    minHeight = _ref.minHeight;
   var top = uiModel.top,
-      left = uiModel.left,
-      height = uiModel.height,
-      width = uiModel.width,
-      duplicateLeft = uiModel.duplicateLeft,
-      duplicateWidth = uiModel.duplicateWidth,
-      goingDurationHeight = uiModel.goingDurationHeight,
-      modelDurationHeight = uiModel.modelDurationHeight,
-      comingDurationHeight = uiModel.comingDurationHeight,
-      croppedStart = uiModel.croppedStart,
-      croppedEnd = uiModel.croppedEnd; // TODO: check and get theme values
-
+    left = uiModel.left,
+    height = uiModel.height,
+    width = uiModel.width,
+    duplicateLeft = uiModel.duplicateLeft,
+    duplicateWidth = uiModel.duplicateWidth,
+    goingDurationHeight = uiModel.goingDurationHeight,
+    modelDurationHeight = uiModel.modelDurationHeight,
+    comingDurationHeight = uiModel.comingDurationHeight,
+    croppedStart = uiModel.croppedStart,
+    croppedEnd = uiModel.croppedEnd;
+  // TODO: check and get theme values
   var travelBorderColor = 'white';
   var borderRadius = 2;
   var defaultMarginBottom = 2;
   var marginLeft = getMarginLeft(left);
-
   var _getEventColors = getEventColors(uiModel, calendarColor),
-      color = _getEventColors.color,
-      backgroundColor = _getEventColors.backgroundColor,
-      borderColor = _getEventColors.borderColor,
-      dragBackgroundColor = _getEventColors.dragBackgroundColor;
-
+    color = _getEventColors.color,
+    backgroundColor = _getEventColors.backgroundColor,
+    borderColor = _getEventColors.borderColor,
+    dragBackgroundColor = _getEventColors.dragBackgroundColor;
   var containerStyle = {
     width: getContainerWidth(duplicateWidth || width, marginLeft),
     height: "calc(".concat(toPercent(Math.max(height, minHeight)), " - ").concat(defaultMarginBottom, "px)"),
@@ -22018,17 +21462,14 @@ function getStyles(_ref) {
     height: toPercent(comingDurationHeight),
     borderTop: "1px dashed ".concat(travelBorderColor)
   };
-
   if (croppedStart) {
     containerStyle.borderTopLeftRadius = 0;
     containerStyle.borderTopRightRadius = 0;
   }
-
   if (croppedEnd) {
     containerStyle.borderBottomLeftRadius = 0;
     containerStyle.borderBottomRightRadius = 0;
   }
-
   return {
     containerStyle: containerStyle,
     goingDurationStyle: goingDurationStyle,
@@ -22036,102 +21477,87 @@ function getStyles(_ref) {
     comingDurationStyle: comingDurationStyle
   };
 }
-
 function isDraggableEvent(_ref2) {
   var uiModel = _ref2.uiModel,
-      isReadOnlyCalendar = _ref2.isReadOnlyCalendar,
-      isDraggingTarget = _ref2.isDraggingTarget,
-      hasNextStartTime = _ref2.hasNextStartTime;
+    isReadOnlyCalendar = _ref2.isReadOnlyCalendar,
+    isDraggingTarget = _ref2.isDraggingTarget,
+    hasNextStartTime = _ref2.hasNextStartTime;
   var model = uiModel.model;
   return !isReadOnlyCalendar && !model.isReadOnly && !isDraggingTarget && !hasNextStartTime;
-} // eslint-disable-next-line complexity
+}
 
-
+// eslint-disable-next-line complexity
 function TimeEvent(_ref3) {
   var uiModel = _ref3.uiModel,
-      nextStartTime = _ref3.nextStartTime,
-      _ref3$isResizingGuide = _ref3.isResizingGuide,
-      isResizingGuide = _ref3$isResizingGuide === void 0 ? false : _ref3$isResizingGuide,
-      _ref3$minHeight = _ref3.minHeight,
-      minHeight = _ref3$minHeight === void 0 ? 0 : _ref3$minHeight;
-
+    nextStartTime = _ref3.nextStartTime,
+    _ref3$isResizingGuide = _ref3.isResizingGuide,
+    isResizingGuide = _ref3$isResizingGuide === void 0 ? false : _ref3$isResizingGuide,
+    _ref3$minHeight = _ref3.minHeight,
+    minHeight = _ref3$minHeight === void 0 ? 0 : _ref3$minHeight;
   var _useStore = useStore(optionsSelector),
-      useDetailPopup = _useStore.useDetailPopup,
-      isReadOnlyCalendar = _useStore.isReadOnly,
-      weekOptions = _useStore.week;
-
+    useDetailPopup = _useStore.useDetailPopup,
+    isReadOnlyCalendar = _useStore.isReadOnly,
+    weekOptions = _useStore.week;
   var calendarColor = useCalendarColor(uiModel.model);
   var collapseDuplicateEvents = weekOptions.collapseDuplicateEvents;
   var layoutContainer = useLayoutContainer();
-
   var _useDispatch = useDispatch('popup'),
-      showDetailPopup = _useDispatch.showDetailPopup;
-
+    showDetailPopup = _useDispatch.showDetailPopup;
   var _useDispatch2 = useDispatch('dnd'),
-      setDraggingEventUIModel = _useDispatch2.setDraggingEventUIModel;
-
+    setDraggingEventUIModel = _useDispatch2.setDraggingEventUIModel;
   var _useDispatch3 = useDispatch('weekViewLayout'),
-      setSelectedDuplicateEventCid = _useDispatch3.setSelectedDuplicateEventCid;
-
+    setSelectedDuplicateEventCid = _useDispatch3.setSelectedDuplicateEventCid;
   var eventBus = useEventBus();
-  var eventContainerRef = hooks_module_s(null);
-
-  var _useState = hooks_module_y(false),
-      _useState2 = timeEvent_slicedToArray(_useState, 2),
-      isDraggingTarget = _useState2[0],
-      setIsDraggingTarget = _useState2[1];
-
+  var eventContainerRef = _(null);
+  var _useState = hooks_module_h(false),
+    _useState2 = timeEvent_slicedToArray(_useState, 2),
+    isDraggingTarget = _useState2[0],
+    setIsDraggingTarget = _useState2[1];
   var model = uiModel.model,
-      goingDurationHeight = uiModel.goingDurationHeight,
-      modelDurationHeight = uiModel.modelDurationHeight,
-      comingDurationHeight = uiModel.comingDurationHeight,
-      croppedEnd = uiModel.croppedEnd;
+    goingDurationHeight = uiModel.goingDurationHeight,
+    modelDurationHeight = uiModel.modelDurationHeight,
+    comingDurationHeight = uiModel.comingDurationHeight,
+    croppedEnd = uiModel.croppedEnd;
   var id = model.id,
-      calendarId = model.calendarId,
-      customStyle = model.customStyle;
+    calendarId = model.calendarId,
+    customStyle = model.customStyle;
   var hasNextStartTime = isPresent(nextStartTime);
-
   var _getStyles = getStyles({
-    uiModel: uiModel,
-    isDraggingTarget: isDraggingTarget,
-    hasNextStartTime: hasNextStartTime,
-    calendarColor: calendarColor,
-    minHeight: minHeight
-  }),
-      containerStyle = _getStyles.containerStyle,
-      goingDurationStyle = _getStyles.goingDurationStyle,
-      modelDurationStyle = _getStyles.modelDurationStyle,
-      comingDurationStyle = _getStyles.comingDurationStyle;
-
+      uiModel: uiModel,
+      isDraggingTarget: isDraggingTarget,
+      hasNextStartTime: hasNextStartTime,
+      calendarColor: calendarColor,
+      minHeight: minHeight
+    }),
+    containerStyle = _getStyles.containerStyle,
+    goingDurationStyle = _getStyles.goingDurationStyle,
+    modelDurationStyle = _getStyles.modelDurationStyle,
+    comingDurationStyle = _getStyles.comingDurationStyle;
   var isGuide = hasNextStartTime || isResizingGuide;
   useTransientUpdate(dndSelector, function (_ref4) {
     var draggingEventUIModel = _ref4.draggingEventUIModel,
-        draggingState = _ref4.draggingState;
-
+      draggingState = _ref4.draggingState;
     if (draggingState === DraggingState.DRAGGING && (draggingEventUIModel === null || draggingEventUIModel === void 0 ? void 0 : draggingEventUIModel.cid()) === uiModel.cid() && !hasNextStartTime && !isResizingGuide) {
       setIsDraggingTarget(true);
     } else {
       setIsDraggingTarget(false);
     }
   });
-  hooks_module_(function () {
+  hooks_module_p(function () {
     if (!isResizingGuide) {
       eventBus.fire('afterRenderEvent', uiModel.model.toEventObject());
-    } // This effect is only for the first render.
+    }
+    // This effect is only for the first render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-
   }, []);
-
   var startDragEvent = function startDragEvent(className) {
     setDraggingEventUIModel(uiModel);
     layoutContainer === null || layoutContainer === void 0 ? void 0 : layoutContainer.classList.add(className);
   };
-
   var endDragEvent = function endDragEvent(className) {
     setIsDraggingTarget(false);
     layoutContainer === null || layoutContainer === void 0 ? void 0 : layoutContainer.classList.remove(className);
   };
-
   var onMoveStart = useDrag(DRAGGING_TYPE_CREATORS.moveEvent('timeGrid', "".concat(uiModel.cid())), {
     onDragStart: function onDragStart() {
       if (isDraggable) {
@@ -22142,19 +21568,16 @@ function TimeEvent(_ref3) {
       var draggingState = _ref5.draggingState;
       endDragEvent(timeEvent_classNames.moveEvent);
       var isClick = draggingState <= DraggingState.INIT;
-
       if (isClick && collapseDuplicateEvents) {
         var selectedDuplicateEventCid = uiModel.duplicateEvents.length > 0 ? uiModel.cid() : DEFAULT_DUPLICATE_EVENT_CID;
         setSelectedDuplicateEventCid(selectedDuplicateEventCid);
       }
-
       if (isClick && useDetailPopup && eventContainerRef.current) {
         showDetailPopup({
           event: uiModel.model,
           eventRect: eventContainerRef.current.getBoundingClientRect()
         }, false);
       }
-
       if (isClick) {
         eventBus.fire('clickEvent', {
           event: uiModel.model.toEventObject(),
@@ -22166,12 +21589,10 @@ function TimeEvent(_ref3) {
       return endDragEvent(timeEvent_classNames.moveEvent);
     }
   });
-
   var handleMoveStart = function handleMoveStart(e) {
     e.stopPropagation();
     onMoveStart(e);
   };
-
   var onResizeStart = useDrag(DRAGGING_TYPE_CREATORS.resizeEvent('timeGrid', "".concat(uiModel.cid())), {
     onDragStart: function onDragStart() {
       return startDragEvent(timeEvent_classNames.resizeEvent);
@@ -22183,12 +21604,10 @@ function TimeEvent(_ref3) {
       return endDragEvent(timeEvent_classNames.resizeEvent);
     }
   });
-
   var handleResizeStart = function handleResizeStart(e) {
     e.stopPropagation();
     onResizeStart(e);
   };
-
   var isDraggable = isDraggableEvent({
     uiModel: uiModel,
     isReadOnlyCalendar: isReadOnlyCalendar,
@@ -22196,7 +21615,7 @@ function TimeEvent(_ref3) {
     hasNextStartTime: hasNextStartTime
   });
   var shouldShowResizeHandle = isDraggable && !croppedEnd;
-  return h("div", {
+  return y("div", {
     "data-testid": "".concat(isGuide ? 'guide-' : '', "time-event-").concat(model.title, "-").concat(uiModel.cid()),
     "data-calendar-id": calendarId,
     "data-event-id": id,
@@ -22204,27 +21623,27 @@ function TimeEvent(_ref3) {
     style: timeEvent_objectSpread(timeEvent_objectSpread({}, containerStyle), customStyle),
     onMouseDown: handleMoveStart,
     ref: eventContainerRef
-  }, goingDurationHeight ? h("div", {
+  }, goingDurationHeight ? y("div", {
     className: timeEvent_classNames.travelTime,
     style: goingDurationStyle
-  }, h(Template, {
+  }, y(Template, {
     template: "goingDuration",
     param: model
-  })) : null, modelDurationHeight ? h("div", {
+  })) : null, modelDurationHeight ? y("div", {
     className: timeEvent_classNames.content,
     style: modelDurationStyle
-  }, h(Template, {
+  }, y(Template, {
     template: "time",
     param: timeEvent_objectSpread(timeEvent_objectSpread({}, model.toEventObject()), {}, {
       start: hasNextStartTime ? nextStartTime : model.start
     })
-  })) : null, comingDurationHeight ? h("div", {
+  })) : null, comingDurationHeight ? y("div", {
     className: timeEvent_classNames.travelTime,
     style: comingDurationStyle
-  }, h(Template, {
+  }, y(Template, {
     template: "comingDuration",
     param: model
-  })) : null, shouldShowResizeHandle ? h("div", {
+  })) : null, shouldShowResizeHandle ? y("div", {
     className: timeEvent_classNames.resizeHandleX,
     onMouseDown: handleResizeStart
   }) : null);
@@ -22238,18 +21657,15 @@ function TimeEvent(_ref3) {
 
 
 
-
 function gridSelectionByColumn_GridSelection(_ref) {
   var top = _ref.top,
-      height = _ref.height,
-      text = _ref.text;
-
+    height = _ref.height,
+    text = _ref.text;
   var _useTheme = useTheme(hooks_module_T(function (theme) {
-    return theme.common.gridSelection;
-  }, [])),
-      backgroundColor = _useTheme.backgroundColor,
-      border = _useTheme.border;
-
+      return theme.common.gridSelection;
+    }, [])),
+    backgroundColor = _useTheme.backgroundColor,
+    border = _useTheme.border;
   var color = useTheme(hooks_module_T(function (theme) {
     return theme.week.gridSelection.color;
   }, []));
@@ -22259,59 +21675,53 @@ function gridSelectionByColumn_GridSelection(_ref) {
     backgroundColor: backgroundColor,
     border: border
   };
-  return h("div", {
+  return y("div", {
     className: cls('time', 'grid-selection'),
     style: style,
     "data-testid": "time-grid-selection-".concat(top, "-").concat(height)
-  }, text.length > 0 ? h("span", {
+  }, text.length > 0 ? y("span", {
     className: cls('grid-selection-label'),
     style: {
       color: color
     }
   }, text) : null);
 }
-
 function GridSelectionByColumn(_ref2) {
   var columnIndex = _ref2.columnIndex,
-      timeGridRows = _ref2.timeGridRows;
+    timeGridRows = _ref2.timeGridRows;
   var gridSelectionData = useStore(hooks_module_T(function (state) {
     return timeGridSelectionHelper.calculateSelection(state.gridSelection.timeGrid, columnIndex, timeGridRows.length - 1);
   }, [columnIndex, timeGridRows]));
-  var gridSelectionProps = F(function () {
+  var gridSelectionProps = hooks_module_F(function () {
     if (!gridSelectionData) {
       return null;
     }
-
     var startRowIndex = gridSelectionData.startRowIndex,
-        endRowIndex = gridSelectionData.endRowIndex,
-        isStartingColumn = gridSelectionData.isStartingColumn,
-        isSelectingMultipleColumns = gridSelectionData.isSelectingMultipleColumns;
+      endRowIndex = gridSelectionData.endRowIndex,
+      isStartingColumn = gridSelectionData.isStartingColumn,
+      isSelectingMultipleColumns = gridSelectionData.isSelectingMultipleColumns;
     var _timeGridRows$startRo = timeGridRows[startRowIndex],
-        startRowTop = _timeGridRows$startRo.top,
-        startRowStartTime = _timeGridRows$startRo.startTime;
+      startRowTop = _timeGridRows$startRo.top,
+      startRowStartTime = _timeGridRows$startRo.startTime;
     var _timeGridRows$endRowI = timeGridRows[endRowIndex],
-        endRowTop = _timeGridRows$endRowI.top,
-        endRowHeight = _timeGridRows$endRowI.height,
-        endRowEndTime = _timeGridRows$endRowI.endTime;
+      endRowTop = _timeGridRows$endRowI.top,
+      endRowHeight = _timeGridRows$endRowI.height,
+      endRowEndTime = _timeGridRows$endRowI.endTime;
     var gridSelectionHeight = endRowTop + endRowHeight - startRowTop;
     var text = "".concat(startRowStartTime, " - ").concat(endRowEndTime);
-
     if (isSelectingMultipleColumns) {
       text = isStartingColumn ? startRowStartTime : '';
     }
-
     return {
       top: startRowTop,
       height: gridSelectionHeight,
       text: text
     };
   }, [gridSelectionData, timeGridRows]);
-
   if (type_isNil(gridSelectionProps)) {
     return null;
   }
-
-  return h(gridSelectionByColumn_GridSelection, gridSelectionProps);
+  return y(gridSelectionByColumn_GridSelection, gridSelectionProps);
 }
 ;// CONCATENATED MODULE: ./src/hooks/timeGrid/useTimeGridEventResize.ts
 
@@ -22330,19 +21740,12 @@ function GridSelectionByColumn(_ref2) {
 
 
 
-
 function useTimeGridEventResize_slicedToArray(arr, i) { return useTimeGridEventResize_arrayWithHoles(arr) || useTimeGridEventResize_iterableToArrayLimit(arr, i) || useTimeGridEventResize_unsupportedIterableToArray(arr, i) || useTimeGridEventResize_nonIterableRest(); }
-
 function useTimeGridEventResize_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useTimeGridEventResize_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useTimeGridEventResize_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useTimeGridEventResize_arrayLikeToArray(o, minLen); }
-
-function useTimeGridEventResize_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useTimeGridEventResize_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useTimeGridEventResize_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useTimeGridEventResize_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useTimeGridEventResize_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -22353,49 +21756,43 @@ function useTimeGridEventResize_arrayWithHoles(arr) { if (Array.isArray(arr)) re
 
 function useTimeGridEventResize(_ref) {
   var gridPositionFinder = _ref.gridPositionFinder,
-      totalUIModels = _ref.totalUIModels,
-      columnIndex = _ref.columnIndex,
-      timeGridData = _ref.timeGridData;
+    totalUIModels = _ref.totalUIModels,
+    columnIndex = _ref.columnIndex,
+    timeGridData = _ref.timeGridData;
   var eventBus = useEventBus();
-
   var _useDraggingEvent = useDraggingEvent('timeGrid', 'resize'),
-      isDraggingEnd = _useDraggingEvent.isDraggingEnd,
-      isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
-      resizingStartUIModel = _useDraggingEvent.draggingEvent,
-      clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
-
+    isDraggingEnd = _useDraggingEvent.isDraggingEnd,
+    isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
+    resizingStartUIModel = _useDraggingEvent.draggingEvent,
+    clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
   var _useCurrentPointerPos = useCurrentPointerPositionInGrid(gridPositionFinder),
-      _useCurrentPointerPos2 = useTimeGridEventResize_slicedToArray(_useCurrentPointerPos, 2),
-      currentGridPos = _useCurrentPointerPos2[0],
-      clearCurrentGridPos = _useCurrentPointerPos2[1];
-
-  var _useState = hooks_module_y(null),
-      _useState2 = useTimeGridEventResize_slicedToArray(_useState, 2),
-      guideUIModel = _useState2[0],
-      setGuideUIModel = _useState2[1];
-
+    _useCurrentPointerPos2 = useTimeGridEventResize_slicedToArray(_useCurrentPointerPos, 2),
+    currentGridPos = _useCurrentPointerPos2[0],
+    clearCurrentGridPos = _useCurrentPointerPos2[1];
+  var _useState = hooks_module_h(null),
+    _useState2 = useTimeGridEventResize_slicedToArray(_useState, 2),
+    guideUIModel = _useState2[0],
+    setGuideUIModel = _useState2[1];
   var clearStates = hooks_module_T(function () {
     setGuideUIModel(null);
     clearDraggingEvent();
     clearCurrentGridPos();
   }, [clearCurrentGridPos, clearDraggingEvent]);
-  var baseResizingInfo = F(function () {
+  var baseResizingInfo = hooks_module_F(function () {
     if (type_isNil(resizingStartUIModel)) {
       return null;
     }
-
     var columns = timeGridData.columns,
-        rows = timeGridData.rows;
+      rows = timeGridData.rows;
+
     /**
      * Filter UIModels that are made from the target event.
      */
-
     var resizeTargetUIModelColumns = totalUIModels.map(function (uiModels) {
       return uiModels.filter(function (uiModel) {
         return uiModel.cid() === resizingStartUIModel.cid();
       });
     });
-
     var findRowIndexOf = function findRowIndexOf(targetDate, targetColumnIndex) {
       return function (row) {
         var rowStartTZDate = setTimeStrToDate(columns[targetColumnIndex].date, row.startTime);
@@ -22403,13 +21800,12 @@ function useTimeGridEventResize(_ref) {
         return rowStartTZDate <= targetDate && targetDate < rowEndTZDate;
       };
     };
-
     var eventStartDateColumnIndex = resizeTargetUIModelColumns.findIndex(function (row) {
       return row.length > 0;
     });
     var resizingStartEventUIModel = resizeTargetUIModelColumns[eventStartDateColumnIndex][0];
     var _resizingStartEventUI = resizingStartEventUIModel.model.goingDuration,
-        goingDuration = _resizingStartEventUI === void 0 ? 0 : _resizingStartEventUI;
+      goingDuration = _resizingStartEventUI === void 0 ? 0 : _resizingStartEventUI;
     var renderStart = addMinutes(resizingStartEventUIModel.getStarts(), -goingDuration);
     var eventStartDateRowIndex = Math.max(rows.findIndex(findRowIndexOf(renderStart, eventStartDateColumnIndex)), 0); // when it is -1, the event starts before the current view.
 
@@ -22418,10 +21814,9 @@ function useTimeGridEventResize(_ref) {
     });
     var resizingEndEventUIModel = resizeTargetUIModelColumns[eventEndDateColumnIndex][0];
     var _resizingEndEventUIMo = resizingEndEventUIModel.model.comingDuration,
-        comingDuration = _resizingEndEventUIMo === void 0 ? 0 : _resizingEndEventUIMo;
+      comingDuration = _resizingEndEventUIMo === void 0 ? 0 : _resizingEndEventUIMo;
     var renderEnd = addMinutes(resizingEndEventUIModel.getStarts(), comingDuration);
     var eventEndDateRowIndex = rows.findIndex(findRowIndexOf(renderEnd, eventEndDateColumnIndex)); // when it is -1, the event ends after the current view.
-
     eventEndDateRowIndex = eventEndDateRowIndex >= 0 ? eventEndDateRowIndex : rows.length - 1;
     return {
       eventStartDateColumnIndex: eventStartDateColumnIndex,
@@ -22432,21 +21827,21 @@ function useTimeGridEventResize(_ref) {
     };
   }, [resizingStartUIModel, timeGridData, totalUIModels]);
   var canCalculateGuideUIModel = isPresent(baseResizingInfo) && isPresent(resizingStartUIModel) && isPresent(currentGridPos);
-  var oneRowHeight = F(function () {
+  var oneRowHeight = hooks_module_F(function () {
     return baseResizingInfo ? timeGridData.rows[0].height : 0;
-  }, [baseResizingInfo, timeGridData.rows]); // When drag an one-day event
+  }, [baseResizingInfo, timeGridData.rows]);
 
-  hooks_module_(function () {
+  // When drag an one-day event
+  hooks_module_p(function () {
     if (canCalculateGuideUIModel) {
       var eventStartDateRowIndex = baseResizingInfo.eventStartDateRowIndex,
-          eventStartDateColumnIndex = baseResizingInfo.eventStartDateColumnIndex,
-          eventEndDateColumnIndex = baseResizingInfo.eventEndDateColumnIndex;
-
+        eventStartDateColumnIndex = baseResizingInfo.eventStartDateColumnIndex,
+        eventEndDateColumnIndex = baseResizingInfo.eventEndDateColumnIndex;
       if (columnIndex === eventEndDateColumnIndex && eventStartDateColumnIndex === eventEndDateColumnIndex) {
         var clonedUIModel = resizingStartUIModel.clone();
         var height = clonedUIModel.height,
-            goingDurationHeight = clonedUIModel.goingDurationHeight,
-            comingDurationHeight = clonedUIModel.comingDurationHeight;
+          goingDurationHeight = clonedUIModel.goingDurationHeight,
+          comingDurationHeight = clonedUIModel.comingDurationHeight;
         var newHeight = Math.max(oneRowHeight + goingDurationHeight * height / 100 + comingDurationHeight * height / 100, timeGridData.rows[currentGridPos.rowIndex].top - timeGridData.rows[eventStartDateRowIndex].top + oneRowHeight);
         var newGoingDurationHeight = goingDurationHeight * height / newHeight;
         var newComingDurationHeight = comingDurationHeight * height / newHeight;
@@ -22459,17 +21854,16 @@ function useTimeGridEventResize(_ref) {
         setGuideUIModel(clonedUIModel);
       }
     }
-  }, [baseResizingInfo, canCalculateGuideUIModel, columnIndex, currentGridPos, resizingStartUIModel, timeGridData.rows, oneRowHeight]); // When drag a two-day event (but less than 24 hours)
+  }, [baseResizingInfo, canCalculateGuideUIModel, columnIndex, currentGridPos, resizingStartUIModel, timeGridData.rows, oneRowHeight]);
 
-  hooks_module_(function () {
+  // When drag a two-day event (but less than 24 hours)
+  hooks_module_p(function () {
     if (canCalculateGuideUIModel) {
       var resizeTargetUIModelColumns = baseResizingInfo.resizeTargetUIModelColumns,
-          eventStartDateColumnIndex = baseResizingInfo.eventStartDateColumnIndex,
-          eventEndDateColumnIndex = baseResizingInfo.eventEndDateColumnIndex;
-
+        eventStartDateColumnIndex = baseResizingInfo.eventStartDateColumnIndex,
+        eventEndDateColumnIndex = baseResizingInfo.eventEndDateColumnIndex;
       if ((columnIndex === eventStartDateColumnIndex || columnIndex === eventEndDateColumnIndex) && eventStartDateColumnIndex !== eventEndDateColumnIndex) {
         var clonedUIModel;
-
         if (columnIndex === eventStartDateColumnIndex) {
           // first column
           clonedUIModel = resizeTargetUIModelColumns[columnIndex][0].clone();
@@ -22480,17 +21874,15 @@ function useTimeGridEventResize(_ref) {
             height: timeGridData.rows[currentGridPos.rowIndex].top + oneRowHeight
           });
         }
-
         setGuideUIModel(clonedUIModel);
       }
     }
   }, [baseResizingInfo, canCalculateGuideUIModel, columnIndex, currentGridPos, resizingStartUIModel, timeGridData.rows, oneRowHeight]);
   useWhen(function () {
     var shouldUpdate = !isDraggingCanceled && isPresent(baseResizingInfo) && isPresent(currentGridPos) && isPresent(resizingStartUIModel) && baseResizingInfo.eventEndDateColumnIndex === columnIndex;
-
     if (shouldUpdate) {
       var _resizingStartUIModel = resizingStartUIModel.model.comingDuration,
-          comingDuration = _resizingStartUIModel === void 0 ? 0 : _resizingStartUIModel;
+        comingDuration = _resizingStartUIModel === void 0 ? 0 : _resizingStartUIModel;
       var targetEndDate = addMinutes(setTimeStrToDate(timeGridData.columns[columnIndex].date, timeGridData.rows[currentGridPos.rowIndex].endTime), -comingDuration);
       var minEndDate = addMinutes(resizingStartUIModel.getStarts(), 30);
       eventBus.fire('beforeUpdateEvent', {
@@ -22500,7 +21892,6 @@ function useTimeGridEventResize(_ref) {
         }
       });
     }
-
     clearStates();
   }, isDraggingEnd);
   return guideUIModel;
@@ -22512,43 +21903,38 @@ function useTimeGridEventResize(_ref) {
 
 function ResizingGuideByColumn(_ref) {
   var gridPositionFinder = _ref.gridPositionFinder,
-      totalUIModels = _ref.totalUIModels,
-      columnIndex = _ref.columnIndex,
-      timeGridData = _ref.timeGridData;
+    totalUIModels = _ref.totalUIModels,
+    columnIndex = _ref.columnIndex,
+    timeGridData = _ref.timeGridData;
   var guideUIModel = useTimeGridEventResize({
     gridPositionFinder: gridPositionFinder,
     totalUIModels: totalUIModels,
     columnIndex: columnIndex,
     timeGridData: timeGridData
   });
-
   if (type_isNil(guideUIModel)) {
     return null;
   }
-
-  return h(TimeEvent, {
+  return y(TimeEvent, {
     uiModel: guideUIModel,
     isResizingGuide: true
   });
 }
 ;// CONCATENATED MODULE: ./src/components/timeGrid/column.tsx
+function column_typeof(obj) { "@babel/helpers - typeof"; return column_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, column_typeof(obj); }
 function column_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function column_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? column_ownKeys(Object(source), !0).forEach(function (key) { column_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : column_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function column_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function column_defineProperty(obj, key, value) { key = column_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function column_toPropertyKey(arg) { var key = column_toPrimitive(arg, "string"); return column_typeof(key) === "symbol" ? key : String(key); }
+function column_toPrimitive(input, hint) { if (column_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (column_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function column_slicedToArray(arr, i) { return column_arrayWithHoles(arr) || column_iterableToArrayLimit(arr, i) || column_unsupportedIterableToArray(arr, i) || column_nonIterableRest(); }
-
 function column_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function column_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return column_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return column_arrayLikeToArray(o, minLen); }
-
-function column_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function column_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function column_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function column_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function column_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+
 
 
 
@@ -22584,7 +21970,9 @@ var column_classNames = {
   column: cls('column'),
   backgrounds: cls('background-events'),
   events: cls('events')
-}; // TODO: implement BackgroundEvents
+};
+
+// TODO: implement BackgroundEvents
 // function BackgroundEvents({
 //   eventUIModels,
 //   startTime,
@@ -22595,6 +21983,7 @@ var column_classNames = {
 //   endTime: TZDate;
 // }) {
 //   const backgroundEvents = eventUIModels.filter(isBackgroundEvent);
+
 //   return (
 //     <div className={classNames.backgrounds}>
 //       {backgroundEvents.map((eventUIModel, index) => {
@@ -22604,6 +21993,7 @@ var column_classNames = {
 //           startTime,
 //           endTime
 //         );
+
 //         return (
 //           <BackgroundEvent
 //             uiModel={eventUIModel}
@@ -22619,23 +22009,22 @@ var column_classNames = {
 
 function VerticalEvents(_ref) {
   var eventUIModels = _ref.eventUIModels,
-      minEventHeight = _ref.minEventHeight;
+    minEventHeight = _ref.minEventHeight;
   // @TODO: use dynamic value
   var style = {
     marginRight: 8
   };
-  return h("div", {
+  return y("div", {
     className: column_classNames.events,
     style: style
   }, eventUIModels.map(function (eventUIModel) {
-    return h(TimeEvent, {
+    return y(TimeEvent, {
       key: "".concat(eventUIModel.valueOf(), "-").concat(eventUIModel.cid()),
       uiModel: eventUIModel,
       minHeight: minEventHeight
     });
   }));
 }
-
 function backgroundColorSelector(theme) {
   return {
     defaultBackgroundColor: theme.week.dayGrid.backgroundColor,
@@ -22643,50 +22032,47 @@ function backgroundColorSelector(theme) {
     weekendBackgroundColor: theme.week.weekend.backgroundColor
   };
 }
-
 function getBackgroundColor(_ref2) {
   var today = _ref2.today,
-      columnDate = _ref2.columnDate,
-      defaultBackgroundColor = _ref2.defaultBackgroundColor,
-      todayBackgroundColor = _ref2.todayBackgroundColor,
-      weekendBackgroundColor = _ref2.weekendBackgroundColor;
+    columnDate = _ref2.columnDate,
+    defaultBackgroundColor = _ref2.defaultBackgroundColor,
+    todayBackgroundColor = _ref2.todayBackgroundColor,
+    weekendBackgroundColor = _ref2.weekendBackgroundColor;
   var isTodayColumn = isSameDate(today, columnDate);
   var isWeekendColumn = isWeekend(columnDate.getDay());
-
   if (isTodayColumn) {
     return todayBackgroundColor;
   }
-
   if (isWeekendColumn) {
     return weekendBackgroundColor;
   }
-
   return defaultBackgroundColor;
 }
-
-var Column = compat_module_g(function Column(_ref3) {
+var Column = compat_module_x(function Column(_ref3) {
   var columnDate = _ref3.columnDate,
-      columnWidth = _ref3.columnWidth,
-      columnIndex = _ref3.columnIndex,
-      totalUIModels = _ref3.totalUIModels,
-      gridPositionFinder = _ref3.gridPositionFinder,
-      timeGridData = _ref3.timeGridData,
-      isLastColumn = _ref3.isLastColumn;
+    columnWidth = _ref3.columnWidth,
+    columnIndex = _ref3.columnIndex,
+    totalUIModels = _ref3.totalUIModels,
+    gridPositionFinder = _ref3.gridPositionFinder,
+    timeGridData = _ref3.timeGridData,
+    isLastColumn = _ref3.isLastColumn;
   var timeGridRows = timeGridData.rows;
   var borderRight = useTheme(hooks_module_T(function (theme) {
     return theme.week.timeGrid.borderRight;
   }, []));
   var backgroundColorTheme = useTheme(backgroundColorSelector);
-
   var _usePrimaryTimezone = usePrimaryTimezone(),
-      _usePrimaryTimezone2 = column_slicedToArray(_usePrimaryTimezone, 2),
-      getNow = _usePrimaryTimezone2[1];
+    _usePrimaryTimezone2 = column_slicedToArray(_usePrimaryTimezone, 2),
+    getNow = _usePrimaryTimezone2[1];
+  var today = getNow();
 
-  var today = getNow(); // const [startTime, endTime] = useMemo(() => {
+  // const [startTime, endTime] = useMemo(() => {
   //   const { startTime: startTimeStr } = first(timeGridRows);
   //   const { endTime: endTimeStr } = last(timeGridRows);
+
   //   const start = setTimeStrToDate(columnDate, startTimeStr);
   //   const end = setTimeStrToDate(columnDate, endTimeStr);
+
   //   return [start, end];
   // }, [columnDate, timeGridRows]);
 
@@ -22701,25 +22087,24 @@ var Column = compat_module_g(function Column(_ref3) {
   };
   var uiModelsByColumn = totalUIModels[columnIndex];
   var minEventHeight = timeGridRows[0].height;
-  return h("div", {
+  return y("div", {
     className: column_classNames.column,
     style: style,
     "data-testid": "timegrid-column-".concat(columnDate.getDay())
-  }, h(VerticalEvents, {
+  }, y(VerticalEvents, {
     eventUIModels: uiModelsByColumn,
     minEventHeight: minEventHeight
-  }), h(ResizingGuideByColumn, {
+  }), y(ResizingGuideByColumn, {
     gridPositionFinder: gridPositionFinder,
     totalUIModels: totalUIModels,
     columnIndex: columnIndex,
     timeGridData: timeGridData
-  }), h(GridSelectionByColumn, {
+  }), y(GridSelectionByColumn, {
     columnIndex: columnIndex,
     timeGridRows: timeGridRows
   }));
 });
 ;// CONCATENATED MODULE: ./src/components/timeGrid/gridLines.tsx
-
 
 
 
@@ -22732,19 +22117,16 @@ function gridLineBorderSelector(theme) {
     hourLineBorder: theme.week.timeGridHourLine.borderBottom
   };
 }
-
-var GridLines = compat_module_g(function GridLines(_ref) {
+var GridLines = compat_module_x(function GridLines(_ref) {
   var timeGridRows = _ref.timeGridRows;
-
   var _useTheme = useTheme(gridLineBorderSelector),
-      halfHourLineBorder = _useTheme.halfHourLineBorder,
-      hourLineBorder = _useTheme.hourLineBorder;
-
-  return h("div", {
+    halfHourLineBorder = _useTheme.halfHourLineBorder,
+    hourLineBorder = _useTheme.hourLineBorder;
+  return y("div", {
     className: cls('gridlines')
   }, timeGridRows.map(function (time, index) {
     var isUpperLine = index % 2 === 0;
-    return h("div", {
+    return y("div", {
       key: "gridline-".concat(time.startTime, "-").concat(time.endTime),
       className: cls('gridline-half'),
       style: {
@@ -22758,15 +22140,10 @@ var GridLines = compat_module_g(function GridLines(_ref) {
 });
 ;// CONCATENATED MODULE: ./src/hooks/timeGrid/useTimeGridEventMove.ts
 function useTimeGridEventMove_slicedToArray(arr, i) { return useTimeGridEventMove_arrayWithHoles(arr) || useTimeGridEventMove_iterableToArrayLimit(arr, i) || useTimeGridEventMove_unsupportedIterableToArray(arr, i) || useTimeGridEventMove_nonIterableRest(); }
-
 function useTimeGridEventMove_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useTimeGridEventMove_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useTimeGridEventMove_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useTimeGridEventMove_arrayLikeToArray(o, minLen); }
-
-function useTimeGridEventMove_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useTimeGridEventMove_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useTimeGridEventMove_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useTimeGridEventMove_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useTimeGridEventMove_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
@@ -22790,31 +22167,27 @@ function useTimeGridEventMove_arrayWithHoles(arr) { if (Array.isArray(arr)) retu
 
 
 
-
-
 var THIRTY_MINUTES = 30;
-
 function getCurrentIndexByTime(time, hourStart) {
   var hour = time.getHours() - hourStart;
   var minutes = time.getMinutes();
   return hour * 2 + Math.floor(minutes / THIRTY_MINUTES);
 }
-
 function getMovingEventPosition(_ref) {
   var draggingEvent = _ref.draggingEvent,
-      columnDiff = _ref.columnDiff,
-      rowDiff = _ref.rowDiff,
-      timeGridDataRows = _ref.timeGridDataRows,
-      currentDate = _ref.currentDate;
+    columnDiff = _ref.columnDiff,
+    rowDiff = _ref.rowDiff,
+    timeGridDataRows = _ref.timeGridDataRows,
+    currentDate = _ref.currentDate;
   var rowHeight = timeGridDataRows[0].height;
   var maxHeight = rowHeight * timeGridDataRows.length;
   var millisecondsDiff = rowDiff * MS_PER_THIRTY_MINUTES + columnDiff * MS_PER_DAY;
   var hourStart = Number(timeGridDataRows[0].startTime.split(':')[0]);
   var _draggingEvent$model = draggingEvent.model,
-      _draggingEvent$model$ = _draggingEvent$model.goingDuration,
-      goingDuration = _draggingEvent$model$ === void 0 ? 0 : _draggingEvent$model$,
-      _draggingEvent$model$2 = _draggingEvent$model.comingDuration,
-      comingDuration = _draggingEvent$model$2 === void 0 ? 0 : _draggingEvent$model$2;
+    _draggingEvent$model$ = _draggingEvent$model.goingDuration,
+    goingDuration = _draggingEvent$model$ === void 0 ? 0 : _draggingEvent$model$,
+    _draggingEvent$model$2 = _draggingEvent$model.comingDuration,
+    comingDuration = _draggingEvent$model$2 === void 0 ? 0 : _draggingEvent$model$2;
   var goingStart = addMinutes(draggingEvent.getStarts(), -goingDuration);
   var comingEnd = addMinutes(draggingEvent.getEnds(), comingDuration);
   var nextStart = addMilliseconds(goingStart, millisecondsDiff);
@@ -22831,35 +22204,29 @@ function getMovingEventPosition(_ref) {
     height: height
   };
 }
-
 var initXSelector = function initXSelector(state) {
   return state.dnd.initX;
 };
-
 var initYSelector = function initYSelector(state) {
   return state.dnd.initY;
 };
-
 function useTimeGridEventMove(_ref2) {
   var gridPositionFinder = _ref2.gridPositionFinder,
-      timeGridData = _ref2.timeGridData;
+    timeGridData = _ref2.timeGridData;
   var initX = useStore(initXSelector);
   var initY = useStore(initYSelector);
   var eventBus = useEventBus();
-
   var _useDraggingEvent = useDraggingEvent('timeGrid', 'move'),
-      isDraggingEnd = _useDraggingEvent.isDraggingEnd,
-      isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
-      draggingEvent = _useDraggingEvent.draggingEvent,
-      clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
-
+    isDraggingEnd = _useDraggingEvent.isDraggingEnd,
+    isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
+    draggingEvent = _useDraggingEvent.draggingEvent,
+    clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
   var _useCurrentPointerPos = useCurrentPointerPositionInGrid(gridPositionFinder),
-      _useCurrentPointerPos2 = useTimeGridEventMove_slicedToArray(_useCurrentPointerPos, 2),
-      currentGridPos = _useCurrentPointerPos2[0],
-      clearCurrentGridPos = _useCurrentPointerPos2[1];
-
-  var initGridPosRef = hooks_module_s(null);
-  hooks_module_(function () {
+    _useCurrentPointerPos2 = useTimeGridEventMove_slicedToArray(_useCurrentPointerPos, 2),
+    currentGridPos = _useCurrentPointerPos2[0],
+    clearCurrentGridPos = _useCurrentPointerPos2[1];
+  var initGridPosRef = _(null);
+  hooks_module_p(function () {
     if (isPresent(initX) && isPresent(initY)) {
       initGridPosRef.current = gridPositionFinder({
         clientX: initX,
@@ -22867,21 +22234,19 @@ function useTimeGridEventMove(_ref2) {
       });
     }
   }, [gridPositionFinder, initX, initY]);
-  var gridDiff = F(function () {
+  var gridDiff = hooks_module_F(function () {
     if (type_isNil(initGridPosRef.current) || type_isNil(currentGridPos)) {
       return null;
     }
-
     return {
       columnDiff: currentGridPos.columnIndex - initGridPosRef.current.columnIndex,
       rowDiff: currentGridPos.rowIndex - initGridPosRef.current.rowIndex
     };
   }, [currentGridPos]);
-  var startDateTime = F(function () {
+  var startDateTime = hooks_module_F(function () {
     if (type_isNil(draggingEvent)) {
       return null;
     }
-
     return draggingEvent.getStarts();
   }, [draggingEvent]);
   var clearState = hooks_module_T(function () {
@@ -22889,30 +22254,26 @@ function useTimeGridEventMove(_ref2) {
     clearDraggingEvent();
     initGridPosRef.current = null;
   }, [clearCurrentGridPos, clearDraggingEvent]);
-  var nextStartTime = F(function () {
+  var nextStartTime = hooks_module_F(function () {
     if (type_isNil(gridDiff) || type_isNil(startDateTime)) {
       return null;
     }
-
     return addMilliseconds(startDateTime, gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.columnDiff * MS_PER_DAY);
   }, [gridDiff, startDateTime]);
-  var movingEvent = F(function () {
+  var movingEvent = hooks_module_F(function () {
     if (type_isNil(draggingEvent) || type_isNil(currentGridPos) || type_isNil(gridDiff)) {
       return null;
     }
-
     var clonedEvent = draggingEvent.clone();
-
     var _getMovingEventPositi = getMovingEventPosition({
-      draggingEvent: clonedEvent,
-      columnDiff: gridDiff.columnDiff,
-      rowDiff: gridDiff.rowDiff,
-      timeGridDataRows: timeGridData.rows,
-      currentDate: timeGridData.columns[currentGridPos.columnIndex].date
-    }),
-        top = _getMovingEventPositi.top,
-        height = _getMovingEventPositi.height;
-
+        draggingEvent: clonedEvent,
+        columnDiff: gridDiff.columnDiff,
+        rowDiff: gridDiff.rowDiff,
+        timeGridDataRows: timeGridData.rows,
+        currentDate: timeGridData.columns[currentGridPos.columnIndex].date
+      }),
+      top = _getMovingEventPositi.top,
+      height = _getMovingEventPositi.height;
     clonedEvent.setUIProps({
       left: timeGridData.columns[currentGridPos.columnIndex].left,
       width: timeGridData.columns[currentGridPos.columnIndex].width,
@@ -22923,7 +22284,6 @@ function useTimeGridEventMove(_ref2) {
   }, [currentGridPos, draggingEvent, gridDiff, timeGridData.columns, timeGridData.rows]);
   useWhen(function () {
     var shouldUpdate = !isDraggingCanceled && isPresent(draggingEvent) && isPresent(currentGridPos) && isPresent(gridDiff) && isPresent(nextStartTime) && (gridDiff.rowDiff !== 0 || gridDiff.columnDiff !== 0);
-
     if (shouldUpdate) {
       var duration = draggingEvent.duration();
       var nextEndTime = addMilliseconds(nextStartTime, duration);
@@ -22935,7 +22295,6 @@ function useTimeGridEventMove(_ref2) {
         }
       });
     }
-
     clearState();
   }, isDraggingEnd);
   return {
@@ -22950,20 +22309,17 @@ function useTimeGridEventMove(_ref2) {
 
 function movingEventShadow_MovingEventShadow(_ref) {
   var gridPositionFinder = _ref.gridPositionFinder,
-      timeGridData = _ref.timeGridData;
-
+    timeGridData = _ref.timeGridData;
   var _useTimeGridEventMove = useTimeGridEventMove({
-    gridPositionFinder: gridPositionFinder,
-    timeGridData: timeGridData
-  }),
-      movingEvent = _useTimeGridEventMove.movingEvent,
-      nextStartTime = _useTimeGridEventMove.nextStartTime;
-
+      gridPositionFinder: gridPositionFinder,
+      timeGridData: timeGridData
+    }),
+    movingEvent = _useTimeGridEventMove.movingEvent,
+    nextStartTime = _useTimeGridEventMove.nextStartTime;
   if (type_isNil(movingEvent)) {
     return null;
   }
-
-  return h(TimeEvent, {
+  return y(TimeEvent, {
     uiModel: movingEvent,
     nextStartTime: nextStartTime
   });
@@ -22990,7 +22346,6 @@ var nowIndicator_classNames = {
   today: cls(addTimeGridPrefix('now-indicator-today')),
   right: cls(addTimeGridPrefix('now-indicator-right'))
 };
-
 function nowIndicatorTheme(theme) {
   return {
     pastBorder: theme.week.nowIndicatorPast.border,
@@ -22999,22 +22354,19 @@ function nowIndicatorTheme(theme) {
     bulletBackgroundColor: theme.week.nowIndicatorBullet.backgroundColor
   };
 }
-
 function NowIndicator(_ref) {
   var top = _ref.top,
-      columnWidth = _ref.columnWidth,
-      columnCount = _ref.columnCount,
-      columnIndex = _ref.columnIndex;
-
+    columnWidth = _ref.columnWidth,
+    columnCount = _ref.columnCount,
+    columnIndex = _ref.columnIndex;
   var _useTheme = useTheme(nowIndicatorTheme),
-      pastBorder = _useTheme.pastBorder,
-      todayBorder = _useTheme.todayBorder,
-      futureBorder = _useTheme.futureBorder,
-      bulletBackgroundColor = _useTheme.bulletBackgroundColor;
-
+    pastBorder = _useTheme.pastBorder,
+    todayBorder = _useTheme.todayBorder,
+    futureBorder = _useTheme.futureBorder,
+    bulletBackgroundColor = _useTheme.bulletBackgroundColor;
   var layoutContainer = useLayoutContainer();
   var eventBus = useEventBus();
-  var indicatorRef = hooks_module_s(null);
+  var indicatorRef = _(null);
   var leftLine = {
     left: toPercent(columnWidth * columnIndex),
     width: toPercent(columnWidth * columnIndex)
@@ -23023,18 +22375,17 @@ function NowIndicator(_ref) {
     left: toPercent(columnWidth * (columnIndex + 1)),
     width: toPercent(columnWidth * (columnCount - columnIndex + 1))
   };
-  hooks_module_(function () {
+  hooks_module_p(function () {
     var scrollToNow = function scrollToNow(behavior) {
       var _layoutContainer$quer;
-
       var scrollArea = (_layoutContainer$quer = layoutContainer === null || layoutContainer === void 0 ? void 0 : layoutContainer.querySelector(".".concat(cls('panel'), ".").concat(cls('time')))) !== null && _layoutContainer$quer !== void 0 ? _layoutContainer$quer : null;
-
       if (scrollArea && indicatorRef.current) {
         var _ref2 = scrollArea,
-            scrollAreaOffsetHeight = _ref2.offsetHeight;
+          scrollAreaOffsetHeight = _ref2.offsetHeight;
         var targetOffsetTop = indicatorRef.current.offsetTop;
-        var newScrollTop = targetOffsetTop - scrollAreaOffsetHeight / 2; // NOTE: IE11 doesn't support `scrollTo`
+        var newScrollTop = targetOffsetTop - scrollAreaOffsetHeight / 2;
 
+        // NOTE: IE11 doesn't support `scrollTo`
         if (scrollArea.scrollTo) {
           scrollArea.scrollTo({
             top: newScrollTop,
@@ -23045,42 +22396,41 @@ function NowIndicator(_ref) {
         }
       }
     };
-
     eventBus.on('scrollToNow', scrollToNow);
     return function () {
       return eventBus.off('scrollToNow', scrollToNow);
     };
   }, [eventBus, layoutContainer]);
-  hooks_module_(function () {
+  hooks_module_p(function () {
     eventBus.fire('scrollToNow', 'smooth');
   }, [eventBus]);
-  return h("div", {
+  return y("div", {
     ref: indicatorRef,
     className: nowIndicator_classNames.line,
     style: {
       top: toPercent(top)
     },
     "data-testid": TEST_IDS.NOW_INDICATOR
-  }, h("div", {
+  }, y("div", {
     className: nowIndicator_classNames.left,
     style: {
       width: leftLine.width,
       borderTop: pastBorder
     }
-  }), h("div", {
+  }), y("div", {
     className: nowIndicator_classNames.marker,
     style: {
       left: leftLine.left,
       backgroundColor: bulletBackgroundColor
     }
-  }), h("div", {
+  }), y("div", {
     className: nowIndicator_classNames.today,
     style: {
       left: leftLine.left,
       width: toPercent(columnWidth),
       borderTop: todayBorder
     }
-  }), h("div", {
+  }), y("div", {
     className: nowIndicator_classNames.right,
     style: {
       left: rightLine.left,
@@ -23104,13 +22454,13 @@ var nowIndicatorLabel_classNames = {
 };
 function NowIndicatorLabel(_ref) {
   var unit = _ref.unit,
-      top = _ref.top,
-      now = _ref.now,
-      zonedNow = _ref.zonedNow;
+    top = _ref.top,
+    now = _ref.now,
+    zonedNow = _ref.zonedNow;
   var color = useTheme(hooks_module_T(function (theme) {
     return theme.week.nowIndicatorLabel.color;
   }, []));
-  var dateDifference = F(function () {
+  var dateDifference = hooks_module_F(function () {
     return getDateDifference(zonedNow, now);
   }, [zonedNow, now]);
   var model = {
@@ -23118,16 +22468,16 @@ function NowIndicatorLabel(_ref) {
     time: zonedNow,
     format: timeFormats[unit]
   };
-  return h("div", {
+  return y("div", {
     className: cls(nowIndicatorLabel_classNames.now),
     style: {
       top: toPercent(top),
       color: color
     },
     "data-testid": TEST_IDS.NOW_INDICATOR_LABEL
-  }, dateDifference !== 0 && h("span", {
+  }, dateDifference !== 0 && y("span", {
     className: cls(nowIndicatorLabel_classNames.dayDifference)
-  }, "[".concat(dateDifference > 0 ? '+' : '-').concat(Math.abs(dateDifference), "]")), h(Template, {
+  }, "[".concat(dateDifference > 0 ? '+' : '-').concat(Math.abs(dateDifference), "]")), y(Template, {
     template: "timegridNowIndicatorLabel",
     param: model,
     as: "span"
@@ -23136,7 +22486,6 @@ function NowIndicatorLabel(_ref) {
 ;// CONCATENATED MODULE: ./src/selectors/options.ts
 var monthVisibleEventCountSelector = function monthVisibleEventCountSelector(state) {
   var _state$options$month$;
-
   return (_state$options$month$ = state.options.month.visibleEventCount) !== null && _state$options$month$ !== void 0 ? _state$options$month$ : 6;
 };
 var showNowIndicatorOptionSelector = function showNowIndicatorOptionSelector(state) {
@@ -23144,31 +22493,28 @@ var showNowIndicatorOptionSelector = function showNowIndicatorOptionSelector(sta
 };
 var showTimezoneCollapseButtonOptionSelector = function showTimezoneCollapseButtonOptionSelector(state) {
   var _state$options$week$s;
-
   return (_state$options$week$s = state.options.week.showTimezoneCollapseButton) !== null && _state$options$week$s !== void 0 ? _state$options$week$s : false;
 };
 var timezonesCollapsedOptionSelector = function timezonesCollapsedOptionSelector(state) {
   var _state$options$week$t;
-
   return (_state$options$week$t = state.options.week.timezonesCollapsed) !== null && _state$options$week$t !== void 0 ? _state$options$week$t : false;
 };
 var allOptionSelector = function allOptionSelector(state) {
   return state;
 };
 ;// CONCATENATED MODULE: ./src/components/timeGrid/timeColumn.tsx
+function timeColumn_typeof(obj) { "@babel/helpers - typeof"; return timeColumn_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, timeColumn_typeof(obj); }
 function _toArray(arr) { return timeColumn_arrayWithHoles(arr) || timeColumn_iterableToArray(arr) || timeColumn_unsupportedIterableToArray(arr) || timeColumn_nonIterableRest(); }
-
 function timeColumn_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function timeColumn_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return timeColumn_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return timeColumn_arrayLikeToArray(o, minLen); }
-
-function timeColumn_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function timeColumn_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function timeColumn_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function timeColumn_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+function timeColumn_defineProperty(obj, key, value) { key = timeColumn_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function timeColumn_toPropertyKey(arg) { var key = timeColumn_toPrimitive(arg, "string"); return timeColumn_typeof(key) === "symbol" ? key : String(key); }
+function timeColumn_toPrimitive(input, hint) { if (timeColumn_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (timeColumn_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function timeColumn_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -23210,42 +22556,35 @@ var timeColumn_classNames = {
   last: addTimeGridPrefix('time-last'),
   hidden: addTimeGridPrefix('time-hidden')
 };
-
 function timeColumn_backgroundColorSelector(theme) {
   return {
     primaryTimezoneBackgroundColor: theme.week.timeGridLeft.backgroundColor,
     subTimezoneBackgroundColor: theme.week.timeGridLeftAdditionalTimezone.backgroundColor
   };
 }
-
 function timeColorSelector(theme) {
   return {
     pastTimeColor: theme.week.pastTime.color,
     futureTimeColor: theme.week.futureTime.color
   };
 }
-
 function HourRows(_ref) {
   var _rowsInfo$0$diffFromP;
-
   var rowsInfo = _ref.rowsInfo,
-      isPrimary = _ref.isPrimary,
-      borderRight = _ref.borderRight,
-      width = _ref.width,
-      nowIndicatorState = _ref.nowIndicatorState;
+    isPrimary = _ref.isPrimary,
+    borderRight = _ref.borderRight,
+    width = _ref.width,
+    nowIndicatorState = _ref.nowIndicatorState;
   var showNowIndicator = useStore(showNowIndicatorOptionSelector);
-
   var _useTheme = useTheme(timeColumn_backgroundColorSelector),
-      primaryTimezoneBackgroundColor = _useTheme.primaryTimezoneBackgroundColor,
-      subTimezoneBackgroundColor = _useTheme.subTimezoneBackgroundColor;
-
+    primaryTimezoneBackgroundColor = _useTheme.primaryTimezoneBackgroundColor,
+    subTimezoneBackgroundColor = _useTheme.subTimezoneBackgroundColor;
   var _useTheme2 = useTheme(timeColorSelector),
-      pastTimeColor = _useTheme2.pastTimeColor,
-      futureTimeColor = _useTheme2.futureTimeColor;
-
+    pastTimeColor = _useTheme2.pastTimeColor,
+    futureTimeColor = _useTheme2.futureTimeColor;
   var zonedNow = isPresent(nowIndicatorState) ? addMinutes(nowIndicatorState.now, (_rowsInfo$0$diffFromP = rowsInfo[0].diffFromPrimaryTimezone) !== null && _rowsInfo$0$diffFromP !== void 0 ? _rowsInfo$0$diffFromP : 0) : null;
   var backgroundColor = isPrimary ? primaryTimezoneBackgroundColor : subTimezoneBackgroundColor;
-  return h("div", {
+  return y("div", {
     role: "rowgroup",
     className: cls(timeColumn_classNames.hourRows),
     style: {
@@ -23255,11 +22594,11 @@ function HourRows(_ref) {
     }
   }, rowsInfo.map(function (_ref2) {
     var date = _ref2.date,
-        top = _ref2.top,
-        className = _ref2.className;
+      top = _ref2.top,
+      className = _ref2.className;
     var isPast = isPresent(zonedNow) && date < zonedNow;
     var color = isPast ? pastTimeColor : futureTimeColor;
-    return h("div", {
+    return y("div", {
       key: date.getTime(),
       className: className,
       style: {
@@ -23267,62 +22606,53 @@ function HourRows(_ref) {
         color: color
       },
       role: "row"
-    }, h(Template, {
+    }, y(Template, {
       template: "timegridDisplay".concat(isPrimary ? 'Primary' : '', "Time"),
       param: {
         time: date
       },
       as: "span"
     }));
-  }), showNowIndicator && isPresent(nowIndicatorState) && isPresent(zonedNow) && h(NowIndicatorLabel, {
+  }), showNowIndicator && isPresent(nowIndicatorState) && isPresent(zonedNow) && y(NowIndicatorLabel, {
     unit: "hour",
     top: nowIndicatorState.top,
     now: nowIndicatorState.now,
     zonedNow: zonedNow
   }));
 }
-
-var TimeColumn = compat_module_g(function TimeColumn(_ref3) {
+var TimeColumn = compat_module_x(function TimeColumn(_ref3) {
   var timeGridRows = _ref3.timeGridRows,
-      nowIndicatorState = _ref3.nowIndicatorState;
+    nowIndicatorState = _ref3.nowIndicatorState;
   var showNowIndicator = useStore(showNowIndicatorOptionSelector);
   var timezones = useStore(timezonesSelector);
   var timezonesCollapsed = useStore(timezonesCollapsedOptionSelector);
   var tzConverter = useTZConverter();
-
   var _useTheme3 = useTheme(weekTimeGridLeftSelector),
-      width = _useTheme3.width,
-      borderRight = _useTheme3.borderRight;
-
-  var rowsByHour = F(function () {
+    width = _useTheme3.width,
+    borderRight = _useTheme3.borderRight;
+  var rowsByHour = hooks_module_F(function () {
     return timeGridRows.filter(function (_, index) {
       return index % 2 === 0 || index === timeGridRows.length - 1;
     });
   }, [timeGridRows]);
   var hourRowsPropsMapper = hooks_module_T(function (row, index, diffFromPrimaryTimezone) {
     var _cls;
-
     var shouldHideRow = function shouldHideRow(_ref4) {
       var rowTop = _ref4.top,
-          rowHeight = _ref4.height;
-
+        rowHeight = _ref4.height;
       if (!showNowIndicator || type_isNil(nowIndicatorState)) {
         return false;
       }
-
       var indicatorTop = nowIndicatorState.top;
       return rowTop - rowHeight <= indicatorTop && indicatorTop <= rowTop + rowHeight;
     };
-
     var isFirst = index === 0;
     var isLast = index === rowsByHour.length - 1;
     var className = cls(timeColumn_classNames.time, (_cls = {}, timeColumn_defineProperty(_cls, timeColumn_classNames.first, isFirst), timeColumn_defineProperty(_cls, timeColumn_classNames.last, isLast), timeColumn_defineProperty(_cls, timeColumn_classNames.hidden, shouldHideRow(row)), _cls));
     var date = setTimeStrToDate(new date_TZDate(), isLast ? row.endTime : row.startTime);
-
     if (isPresent(diffFromPrimaryTimezone)) {
       date = addMinutes(date, diffFromPrimaryTimezone);
     }
-
     return {
       date: date,
       top: row.top,
@@ -23330,20 +22660,17 @@ var TimeColumn = compat_module_g(function TimeColumn(_ref3) {
       diffFromPrimaryTimezone: diffFromPrimaryTimezone
     };
   }, [rowsByHour, nowIndicatorState, showNowIndicator]);
-
   var _timezones = _toArray(timezones),
-      primaryTimezone = _timezones[0],
-      otherTimezones = _timezones.slice(1);
-
+    primaryTimezone = _timezones[0],
+    otherTimezones = _timezones.slice(1);
   var hourRowsWidth = otherTimezones.length > 0 ? 100 / (otherTimezones.length + 1) : 100;
   var primaryTimezoneHourRowsProps = rowsByHour.map(function (row, index) {
     return hourRowsPropsMapper(row, index);
   });
-  var otherTimezoneHourRowsProps = F(function () {
+  var otherTimezoneHourRowsProps = hooks_module_F(function () {
     if (otherTimezones.length === 0) {
       return [];
     }
-
     return otherTimezones.reverse().map(function (timezone) {
       var timezoneName = timezone.timezoneName;
       var primaryTimezoneOffset = tzConverter(primaryTimezone.timezoneName).getTimezoneOffset();
@@ -23354,14 +22681,14 @@ var TimeColumn = compat_module_g(function TimeColumn(_ref3) {
       });
     });
   }, [hourRowsPropsMapper, otherTimezones, primaryTimezone, rowsByHour, tzConverter]);
-  return h("div", {
+  return y("div", {
     className: cls(timeColumn_classNames.timeColumn),
     style: {
       width: width
     },
     "data-testid": "timegrid-time-column"
   }, !timezonesCollapsed && otherTimezoneHourRowsProps.map(function (rowsInfo) {
-    return h(HourRows, {
+    return y(HourRows, {
       key: rowsInfo[0].diffFromPrimaryTimezone,
       rowsInfo: rowsInfo,
       isPrimary: false,
@@ -23369,7 +22696,7 @@ var TimeColumn = compat_module_g(function TimeColumn(_ref3) {
       width: hourRowsWidth,
       nowIndicatorState: nowIndicatorState
     });
-  }), h(HourRows, {
+  }), y(HourRows, {
     rowsInfo: primaryTimezoneHourRowsProps,
     isPrimary: true,
     borderRight: borderRight,
@@ -23378,7 +22705,6 @@ var TimeColumn = compat_module_g(function TimeColumn(_ref3) {
   }));
 });
 ;// CONCATENATED MODULE: ./src/controller/times.ts
-
 
 
 /**
@@ -23395,12 +22721,12 @@ function getTopPercentByTime(date, start, end) {
   var topPercent = ratio(max, 100, time);
   return math_limit(topPercent, [0], [100]);
 }
+
 /**
  * @typedef {Object} VerticalPositionsByTime
  * @property {number} top - top percent
  * @property {number} height - height percent
  */
-
 /**
  *
  * @param {TZDate} start target time which is converted to percent value
@@ -23409,7 +22735,6 @@ function getTopPercentByTime(date, start, end) {
  * @param {TZDate} maxTime end time
  * @returns {VerticalPositionsByTime} verticalPositions
  */
-
 function getTopHeightByTime(start, end, minTime, maxTime) {
   var top = getTopPercentByTime(start, minTime, maxTime);
   var bottom = getTopPercentByTime(end, minTime, maxTime);
@@ -23419,7 +22744,6 @@ function getTopHeightByTime(start, end, minTime, maxTime) {
     height: height
   };
 }
-
 function setValueByUnit(time, value, unit) {
   if (unit === 'minute') {
     time.setMinutes(value, 0, 0);
@@ -23435,9 +22759,9 @@ function setValueByUnit(time, value, unit) {
     time.setHours(0, 0, 0, 0);
     time.setFullYear(value, 0, 1);
   }
-
   return time;
 }
+
 /**
  * Get a previous grid time before the time
  * @param {TZDate} time - target time
@@ -23445,25 +22769,21 @@ function setValueByUnit(time, value, unit) {
  * @param unit
  * @returns {TZDate} - next grid time
  */
-
-
 function getPrevGridTime(time, slot, unit) {
   var index = 0;
   var prevGridTime = setValueByUnit(clone(time), slot * index, unit);
   var nextGridTime;
   index += 1;
-
   do {
     nextGridTime = setValueByUnit(clone(time), slot * index, unit);
     index += 1;
-
     if (nextGridTime < time) {
       prevGridTime = clone(nextGridTime);
     }
   } while (nextGridTime <= time);
-
   return prevGridTime;
 }
+
 /**
  * Get a next grid time after the time
  * @param {TZDate} time - target time
@@ -23471,31 +22791,22 @@ function getPrevGridTime(time, slot, unit) {
  * @param unit
  * @returns {TZDate} - next grid time
  */
-
 function getNextGridTime(time, slot, unit) {
   var index = 0;
   var nextGridTime;
-
   do {
     nextGridTime = setValueByUnit(clone(time), slot * index, unit);
     index += 1;
   } while (nextGridTime < time);
-
   return nextGridTime;
 }
 ;// CONCATENATED MODULE: ./src/controller/column.ts
 function column_toConsumableArray(arr) { return column_arrayWithoutHoles(arr) || column_iterableToArray(arr) || controller_column_unsupportedIterableToArray(arr) || column_nonIterableSpread(); }
-
 function column_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function controller_column_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return controller_column_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return controller_column_arrayLikeToArray(o, minLen); }
-
 function column_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function column_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return controller_column_arrayLikeToArray(arr); }
-
-function controller_column_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function controller_column_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
 
 
@@ -23525,7 +22836,6 @@ function controller_column_arrayLikeToArray(arr, len) { if (len == null || len >
 
 
 var MIN_HEIGHT_PERCENT = 1;
-
 /**
  * Filter that get events in supplied date ranges.
  * @param {TZDate} startColumnTime - start date
@@ -23535,81 +22845,67 @@ var MIN_HEIGHT_PERCENT = 1;
 function column_isBetween(startColumnTime, endColumnTime) {
   return function (uiModel) {
     var _uiModel$model = uiModel.model,
-        _uiModel$model$goingD = _uiModel$model.goingDuration,
-        goingDuration = _uiModel$model$goingD === void 0 ? 0 : _uiModel$model$goingD,
-        _uiModel$model$coming = _uiModel$model.comingDuration,
-        comingDuration = _uiModel$model$coming === void 0 ? 0 : _uiModel$model$coming;
+      _uiModel$model$goingD = _uiModel$model.goingDuration,
+      goingDuration = _uiModel$model$goingD === void 0 ? 0 : _uiModel$model$goingD,
+      _uiModel$model$coming = _uiModel$model.comingDuration,
+      comingDuration = _uiModel$model$coming === void 0 ? 0 : _uiModel$model$coming;
     var ownStarts = addMinutes(uiModel.getStarts(), -goingDuration);
     var ownEnds = addMinutes(uiModel.getEnds(), comingDuration);
     return !(ownEnds <= startColumnTime || ownStarts >= endColumnTime);
   };
 }
-
 function setInnerHeights(uiModel, options) {
   var renderStart = options.renderStart,
-      renderEnd = options.renderEnd,
-      modelStart = options.modelStart,
-      modelEnd = options.modelEnd;
+    renderEnd = options.renderEnd,
+    modelStart = options.modelStart,
+    modelEnd = options.modelEnd;
   var _uiModel$model2 = uiModel.model,
-      _uiModel$model2$going = _uiModel$model2.goingDuration,
-      goingDuration = _uiModel$model2$going === void 0 ? 0 : _uiModel$model2$going,
-      _uiModel$model2$comin = _uiModel$model2.comingDuration,
-      comingDuration = _uiModel$model2$comin === void 0 ? 0 : _uiModel$model2$comin;
+    _uiModel$model2$going = _uiModel$model2.goingDuration,
+    goingDuration = _uiModel$model2$going === void 0 ? 0 : _uiModel$model2$going,
+    _uiModel$model2$comin = _uiModel$model2.comingDuration,
+    comingDuration = _uiModel$model2$comin === void 0 ? 0 : _uiModel$model2$comin;
   var modelDurationHeight = 100;
-
   if (goingDuration > 0) {
     var _getTopHeightByTime = getTopHeightByTime(renderStart, modelStart, renderStart, renderEnd),
-        goingDurationHeight = _getTopHeightByTime.height;
-
+      goingDurationHeight = _getTopHeightByTime.height;
     uiModel.goingDurationHeight = goingDurationHeight;
     modelDurationHeight -= goingDurationHeight;
   }
-
   if (comingDuration > 0) {
     var _getTopHeightByTime2 = getTopHeightByTime(modelEnd, renderEnd, renderStart, renderEnd),
-        comingDurationHeight = _getTopHeightByTime2.height;
-
+      comingDurationHeight = _getTopHeightByTime2.height;
     uiModel.comingDurationHeight = comingDurationHeight;
     modelDurationHeight -= comingDurationHeight;
   }
-
   uiModel.modelDurationHeight = modelDurationHeight;
 }
-
 function setCroppedEdges(uiModel, options) {
   var goingStart = options.goingStart,
-      comingEnd = options.comingEnd,
-      startColumnTime = options.startColumnTime,
-      endColumnTime = options.endColumnTime;
-
+    comingEnd = options.comingEnd,
+    startColumnTime = options.startColumnTime,
+    endColumnTime = options.endColumnTime;
   if (goingStart < startColumnTime) {
     uiModel.croppedStart = true;
   }
-
   if (comingEnd > endColumnTime) {
     uiModel.croppedEnd = true;
   }
 }
-
 function getDuplicateLeft(uiModel, baseLeft) {
   var duplicateEvents = uiModel.duplicateEvents,
-      duplicateEventIndex = uiModel.duplicateEventIndex;
+    duplicateEventIndex = uiModel.duplicateEventIndex;
   var prevEvent = duplicateEvents[duplicateEventIndex - 1];
   var left = baseLeft;
-
   if (prevEvent) {
     // duplicateLeft = prevEvent.duplicateLeft + prevEvent.duplicateWidth + marginLeft
     var _extractPercentPx = extractPercentPx("".concat(prevEvent.duplicateLeft)),
-        leftPercent = _extractPercentPx.percent,
-        leftPx = _extractPercentPx.px;
-
+      leftPercent = _extractPercentPx.percent,
+      leftPx = _extractPercentPx.px;
     var _extractPercentPx2 = extractPercentPx("".concat(prevEvent.duplicateWidth)),
-        widthPercent = _extractPercentPx2.percent,
-        widthPx = _extractPercentPx2.px;
-
+      widthPercent = _extractPercentPx2.percent,
+      widthPx = _extractPercentPx2.px;
     var percent = leftPercent + widthPercent;
     var px = leftPx + widthPx + TIME_EVENT_CONTAINER_MARGIN_LEFT;
-
     if (percent !== 0) {
       left = "calc(".concat(toPercent(percent), " ").concat(px > 0 ? '+' : '-', " ").concat(toPx(Math.abs(px)), ")");
     } else {
@@ -23618,30 +22914,26 @@ function getDuplicateLeft(uiModel, baseLeft) {
   } else {
     left = toPercent(left);
   }
-
   return left;
 }
-
 function getDuplicateWidth(uiModel, baseWidth) {
-  var collapse = uiModel.collapse; // if it is collapsed, (COLLAPSED_DUPLICATE_EVENT_WIDTH_PX)px
-  // if it is expanded, (baseWidth)% - (other duplicate events' width + marginLeft)px - (its marginLeft)px
+  var collapse = uiModel.collapse;
 
+  // if it is collapsed, (COLLAPSED_DUPLICATE_EVENT_WIDTH_PX)px
+  // if it is expanded, (baseWidth)% - (other duplicate events' width + marginLeft)px - (its marginLeft)px
   return collapse ? "".concat(COLLAPSED_DUPLICATE_EVENT_WIDTH_PX, "px") : "calc(".concat(toPercent(baseWidth), " - ").concat(toPx((COLLAPSED_DUPLICATE_EVENT_WIDTH_PX + TIME_EVENT_CONTAINER_MARGIN_LEFT) * (uiModel.duplicateEvents.length - 1) + TIME_EVENT_CONTAINER_MARGIN_LEFT), ")");
 }
-
 function setDimension(uiModel, options) {
   var startColumnTime = options.startColumnTime,
-      endColumnTime = options.endColumnTime,
-      baseWidth = options.baseWidth,
-      columnIndex = options.columnIndex,
-      renderStart = options.renderStart,
-      renderEnd = options.renderEnd;
+    endColumnTime = options.endColumnTime,
+    baseWidth = options.baseWidth,
+    columnIndex = options.columnIndex,
+    renderStart = options.renderStart,
+    renderEnd = options.renderEnd;
   var duplicateEvents = uiModel.duplicateEvents;
-
   var _getTopHeightByTime3 = getTopHeightByTime(renderStart, renderEnd, startColumnTime, endColumnTime),
-      top = _getTopHeightByTime3.top,
-      height = _getTopHeightByTime3.height;
-
+    top = _getTopHeightByTime3.top,
+    height = _getTopHeightByTime3.height;
   var dimension = {
     top: top,
     left: baseWidth * columnIndex,
@@ -23650,21 +22942,18 @@ function setDimension(uiModel, options) {
     duplicateLeft: '',
     duplicateWidth: ''
   };
-
   if (duplicateEvents.length > 0) {
     dimension.duplicateLeft = getDuplicateLeft(uiModel, dimension.left);
     dimension.duplicateWidth = getDuplicateWidth(uiModel, dimension.width);
   }
-
   uiModel.setUIProps(dimension);
 }
-
 function getRenderInfoOptions(uiModel, columnIndex, baseWidth, startColumnTime, endColumnTime) {
   var _uiModel$model3 = uiModel.model,
-      _uiModel$model3$going = _uiModel$model3.goingDuration,
-      goingDuration = _uiModel$model3$going === void 0 ? 0 : _uiModel$model3$going,
-      _uiModel$model3$comin = _uiModel$model3.comingDuration,
-      comingDuration = _uiModel$model3$comin === void 0 ? 0 : _uiModel$model3$comin;
+    _uiModel$model3$going = _uiModel$model3.goingDuration,
+    goingDuration = _uiModel$model3$going === void 0 ? 0 : _uiModel$model3$going,
+    _uiModel$model3$comin = _uiModel$model3.comingDuration,
+    comingDuration = _uiModel$model3$comin === void 0 ? 0 : _uiModel$model3$comin;
   var modelStart = uiModel.getStarts();
   var modelEnd = uiModel.getEnds();
   var goingStart = addMinutes(modelStart, -goingDuration);
@@ -23685,16 +22974,14 @@ function getRenderInfoOptions(uiModel, columnIndex, baseWidth, startColumnTime, 
     duplicateEvents: uiModel.duplicateEvents
   };
 }
-
 function setRenderInfo(_ref) {
   var uiModel = _ref.uiModel,
-      columnIndex = _ref.columnIndex,
-      baseWidth = _ref.baseWidth,
-      startColumnTime = _ref.startColumnTime,
-      endColumnTime = _ref.endColumnTime,
-      _ref$isDuplicateEvent = _ref.isDuplicateEvent,
-      isDuplicateEvent = _ref$isDuplicateEvent === void 0 ? false : _ref$isDuplicateEvent;
-
+    columnIndex = _ref.columnIndex,
+    baseWidth = _ref.baseWidth,
+    startColumnTime = _ref.startColumnTime,
+    endColumnTime = _ref.endColumnTime,
+    _ref$isDuplicateEvent = _ref.isDuplicateEvent,
+    isDuplicateEvent = _ref$isDuplicateEvent === void 0 ? false : _ref$isDuplicateEvent;
   if (!isDuplicateEvent && uiModel.duplicateEvents.length > 0) {
     uiModel.duplicateEvents.forEach(function (event) {
       setRenderInfo({
@@ -23708,16 +22995,14 @@ function setRenderInfo(_ref) {
     });
     return;
   }
-
   var renderInfoOptions = getRenderInfoOptions(uiModel, columnIndex, baseWidth, startColumnTime, endColumnTime);
   setDimension(uiModel, renderInfoOptions);
   setInnerHeights(uiModel, renderInfoOptions);
   setCroppedEdges(uiModel, renderInfoOptions);
 }
-
 function setDuplicateEvents(uiModels, options, selectedDuplicateEventCid) {
   var getDuplicateEvents = options.getDuplicateEvents,
-      getMainEvent = options.getMainEvent;
+    getMainEvent = options.getMainEvent;
   var eventObjects = uiModels.map(function (uiModel) {
     return uiModel.model.toEventObject();
   });
@@ -23725,13 +23010,10 @@ function setDuplicateEvents(uiModels, options, selectedDuplicateEventCid) {
     if (targetUIModel.collapse || targetUIModel.duplicateEvents.length > 0) {
       return;
     }
-
     var duplicateEvents = getDuplicateEvents(targetUIModel.model.toEventObject(), eventObjects);
-
     if (duplicateEvents.length <= 1) {
       return;
     }
-
     var mainEvent = getMainEvent(duplicateEvents);
     var duplicateEventUIModels = duplicateEvents.map(function (event) {
       return uiModels.find(function (uiModel) {
@@ -23743,19 +23025,18 @@ function setDuplicateEvents(uiModels, options, selectedDuplicateEventCid) {
     }));
     var duplicateStarts = duplicateEvents.reduce(function (acc, _ref2) {
       var start = _ref2.start,
-          goingDuration = _ref2.goingDuration;
+        goingDuration = _ref2.goingDuration;
       var renderStart = addMinutes(start, -goingDuration);
       return min(acc, renderStart);
     }, duplicateEvents[0].start);
     var duplicateEnds = duplicateEvents.reduce(function (acc, _ref3) {
       var end = _ref3.end,
-          comingDuration = _ref3.comingDuration;
+        comingDuration = _ref3.comingDuration;
       var renderEnd = addMinutes(end, comingDuration);
       return max(acc, renderEnd);
     }, duplicateEvents[0].end);
     duplicateEventUIModels.forEach(function (event, index) {
       var isMain = event.cid() === mainEvent.__cid;
-
       var collapse = !(isSelectedGroup && event.cid() === selectedDuplicateEventCid || !isSelectedGroup && isMain);
       event.setUIProps({
         duplicateEvents: duplicateEventUIModels,
@@ -23769,21 +23050,18 @@ function setDuplicateEvents(uiModels, options, selectedDuplicateEventCid) {
   });
   return uiModels;
 }
+
 /**
  * Convert to EventUIModel and make rendering information of events
  * @param {EventUIModel[]} events - event list
  * @param {TZDate} startColumnTime - start date
  * @param {TZDate} endColumnTime - end date
  */
-
-
 function setRenderInfoOfUIModels(events, startColumnTime, endColumnTime, selectedDuplicateEventCid, collapseDuplicateEventsOptions) {
   var uiModels = events.filter(isTimeEvent).filter(column_isBetween(startColumnTime, endColumnTime)).sort(array.compare.event.asc);
-
   if (collapseDuplicateEventsOptions) {
     setDuplicateEvents(uiModels, collapseDuplicateEventsOptions, selectedDuplicateEventCid);
   }
-
   var expandedEvents = uiModels.filter(function (uiModel) {
     return !uiModel.collapse;
   });
@@ -23813,20 +23091,20 @@ function setRenderInfoOfUIModels(events, startColumnTime, endColumnTime, selecte
 ;// CONCATENATED MODULE: ./src/hooks/common/useInterval.ts
 
 function useInterval(callback, delay) {
-  var savedCallback = hooks_module_s(callback); // Remember the latest callback.
+  var savedCallback = _(callback);
 
-  hooks_module_(function () {
+  // Remember the latest callback.
+  hooks_module_p(function () {
     savedCallback.current = callback;
-  }, [callback]); // Set up the interval.
-  // eslint-disable-next-line consistent-return
+  }, [callback]);
 
-  hooks_module_(function () {
+  // Set up the interval.
+  // eslint-disable-next-line consistent-return
+  hooks_module_p(function () {
     var tick = function tick() {
       return savedCallback.current();
     };
-
     var intervalDelay = delay !== null && delay !== void 0 ? delay : -1;
-
     if (intervalDelay > 0) {
       var id = setInterval(tick, intervalDelay);
       return function () {
@@ -23838,8 +23116,8 @@ function useInterval(callback, delay) {
 ;// CONCATENATED MODULE: ./src/hooks/common/useIsMounted.ts
 
 function useIsMounted() {
-  var isMountedRef = hooks_module_s(true);
-  hooks_module_(function () {
+  var isMountedRef = _(true);
+  hooks_module_p(function () {
     return function () {
       isMountedRef.current = false;
     };
@@ -23866,19 +23144,12 @@ function useIsMounted() {
 
 
 
-
 function timeGrid_slicedToArray(arr, i) { return timeGrid_arrayWithHoles(arr) || timeGrid_iterableToArrayLimit(arr, i) || timeGrid_unsupportedIterableToArray(arr, i) || timeGrid_nonIterableRest(); }
-
 function timeGrid_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function timeGrid_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return timeGrid_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return timeGrid_arrayLikeToArray(o, minLen); }
-
-function timeGrid_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function timeGrid_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function timeGrid_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function timeGrid_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function timeGrid_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -23912,41 +23183,35 @@ var timeGrid_classNames = {
 };
 function TimeGrid(_ref) {
   var timeGridData = _ref.timeGridData,
-      events = _ref.events;
-
+    events = _ref.events;
   var _useStore = useStore(optionsSelector),
-      isReadOnly = _useStore.isReadOnly,
-      _useStore$week = _useStore.week,
-      narrowWeekend = _useStore$week.narrowWeekend,
-      startDayOfWeek = _useStore$week.startDayOfWeek,
-      collapseDuplicateEvents = _useStore$week.collapseDuplicateEvents;
-
+    isReadOnly = _useStore.isReadOnly,
+    _useStore$week = _useStore.week,
+    narrowWeekend = _useStore$week.narrowWeekend,
+    startDayOfWeek = _useStore$week.startDayOfWeek,
+    collapseDuplicateEvents = _useStore$week.collapseDuplicateEvents;
   var showNowIndicator = useStore(showNowIndicatorOptionSelector);
   var selectedDuplicateEventCid = useStore(function (state) {
     return state.weekViewLayout.selectedDuplicateEventCid;
   });
-
   var _usePrimaryTimezone = usePrimaryTimezone(),
-      _usePrimaryTimezone2 = timeGrid_slicedToArray(_usePrimaryTimezone, 2),
-      getNow = _usePrimaryTimezone2[1];
-
+    _usePrimaryTimezone2 = timeGrid_slicedToArray(_usePrimaryTimezone, 2),
+    getNow = _usePrimaryTimezone2[1];
   var isMounted = useIsMounted();
-
   var _useTheme = useTheme(weekTimeGridLeftSelector),
-      timeGridLeftWidth = _useTheme.width;
-
-  var _useState = hooks_module_y(null),
-      _useState2 = timeGrid_slicedToArray(_useState, 2),
-      nowIndicatorState = _useState2[0],
-      setNowIndicatorState = _useState2[1];
-
+    timeGridLeftWidth = _useTheme.width;
+  var _useState = hooks_module_h(null),
+    _useState2 = timeGrid_slicedToArray(_useState, 2),
+    nowIndicatorState = _useState2[0],
+    setNowIndicatorState = _useState2[1];
   var columns = timeGridData.columns,
-      rows = timeGridData.rows;
+    rows = timeGridData.rows;
   var lastColumnIndex = columns.length - 1;
-  var totalUIModels = F(function () {
+  var totalUIModels = hooks_module_F(function () {
     return columns.map(function (_ref2) {
       var date = _ref2.date;
-      return events.filter(column_isBetween(toStartOfDay(date), toEndOfDay(date))) // NOTE: prevent shared reference between columns
+      return events.filter(column_isBetween(toStartOfDay(date), toEndOfDay(date)))
+      // NOTE: prevent shared reference between columns
       .map(function (uiModel) {
         return uiModel.clone();
       });
@@ -23954,16 +23219,14 @@ function TimeGrid(_ref) {
       return setRenderInfoOfUIModels(uiModelsByColumn, setTimeStrToDate(columns[columnIndex].date, first(rows).startTime), setTimeStrToDate(columns[columnIndex].date, last(rows).endTime), selectedDuplicateEventCid, collapseDuplicateEvents);
     });
   }, [columns, rows, events, selectedDuplicateEventCid, collapseDuplicateEvents]);
-  var currentDateData = F(function () {
+  var currentDateData = hooks_module_F(function () {
     var now = getNow();
     var currentDateIndexInColumns = columns.findIndex(function (column) {
       return isSameDate(column.date, now);
     });
-
     if (currentDateIndexInColumns < 0) {
       return null;
     }
-
     var startTime = setTimeStrToDate(columns[currentDateIndexInColumns].date, timeGridData.rows[0].startTime);
     var endTime = setTimeStrToDate(columns[currentDateIndexInColumns].date, last(timeGridData.rows).endTime);
     return {
@@ -23972,13 +23235,11 @@ function TimeGrid(_ref) {
       currentDateIndex: currentDateIndexInColumns
     };
   }, [columns, getNow, timeGridData.rows]);
-
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = timeGrid_slicedToArray(_useDOMNode, 2),
-      columnsContainer = _useDOMNode2[0],
-      setColumnsContainer = _useDOMNode2[1];
-
-  var gridPositionFinder = F(function () {
+    _useDOMNode2 = timeGrid_slicedToArray(_useDOMNode, 2),
+    columnsContainer = _useDOMNode2[0],
+    setColumnsContainer = _useDOMNode2[1];
+  var gridPositionFinder = hooks_module_F(function () {
     return createGridPositionFinder({
       rowsCount: rows.length,
       columnsCount: columns.length,
@@ -23997,9 +23258,8 @@ function TimeGrid(_ref) {
   var updateTimeGridIndicator = hooks_module_T(function () {
     if (isPresent(currentDateData)) {
       var startTime = currentDateData.startTime,
-          endTime = currentDateData.endTime;
+        endTime = currentDateData.endTime;
       var now = getNow();
-
       if (startTime <= now && now <= endTime) {
         setNowIndicatorState({
           top: getTopPercentByTime(now, startTime, endTime),
@@ -24007,42 +23267,43 @@ function TimeGrid(_ref) {
         });
       }
     }
-  }, [currentDateData, getNow]); // Calculate initial setTimeIndicatorTop
+  }, [currentDateData, getNow]);
 
-  hooks_module_h(function () {
+  // Calculate initial setTimeIndicatorTop
+  hooks_module_y(function () {
     if (isMounted()) {
       var _currentDateData$curr;
-
       if (((_currentDateData$curr = currentDateData === null || currentDateData === void 0 ? void 0 : currentDateData.currentDateIndex) !== null && _currentDateData$curr !== void 0 ? _currentDateData$curr : -1) >= 0) {
         updateTimeGridIndicator();
       } else {
         setNowIndicatorState(null);
       }
     }
-  }, [currentDateData, isMounted, updateTimeGridIndicator]); // Set interval to update timeIndicatorTop
+  }, [currentDateData, isMounted, updateTimeGridIndicator]);
 
+  // Set interval to update timeIndicatorTop
   useInterval(updateTimeGridIndicator, isPresent(currentDateData) ? MS_PER_MINUTES : null);
-  return h("div", {
+  return y("div", {
     className: timeGrid_classNames.timegrid
-  }, h("div", {
+  }, y("div", {
     className: timeGrid_classNames.scrollArea
-  }, h(TimeColumn, {
+  }, y(TimeColumn, {
     timeGridRows: rows,
     nowIndicatorState: nowIndicatorState
-  }), h("div", {
+  }), y("div", {
     className: cls('columns'),
     style: {
       left: timeGridLeftWidth
     },
     ref: setColumnsContainer,
     onMouseDown: passConditionalProp(!isReadOnly, onMouseDown)
-  }, h(GridLines, {
+  }, y(GridLines, {
     timeGridRows: rows
-  }), h(movingEventShadow_MovingEventShadow, {
+  }), y(movingEventShadow_MovingEventShadow, {
     gridPositionFinder: gridPositionFinder,
     timeGridData: timeGridData
   }), columns.map(function (column, index) {
-    return h(Column, {
+    return y(Column, {
       key: column.date.toString(),
       timeGridData: timeGridData,
       columnDate: column.date,
@@ -24052,7 +23313,7 @@ function TimeGrid(_ref) {
       gridPositionFinder: gridPositionFinder,
       isLastColumn: index === lastColumnIndex
     });
-  }), showNowIndicator && isPresent(currentDateData) && isPresent(nowIndicatorState) ? h(NowIndicator, {
+  }), showNowIndicator && isPresent(currentDateData) && isPresent(nowIndicatorState) ? y(NowIndicator, {
     top: nowIndicatorState.top,
     columnWidth: columns[0].width,
     columnCount: columns.length,
@@ -24071,33 +23332,25 @@ function TimezoneCollapseButton(_ref) {
     'ic-arrow-right': isCollapsed,
     'ic-arrow-left': !isCollapsed
   });
-  return h("button", {
+  return y("button", {
     className: cls(addTimeGridPrefix('timezone-collapse-button')),
     "aria-expanded": !isCollapsed,
     onClick: function onClick() {
       return eventBus.fire('clickTimezonesCollapseBtn', isCollapsed);
     }
-  }, h("span", {
+  }, y("span", {
     className: iconClassName,
     role: "img"
   }));
 }
 ;// CONCATENATED MODULE: ./src/components/timeGrid/timezoneLabels.tsx
 function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-
 function timezoneLabels_toArray(arr) { return timezoneLabels_arrayWithHoles(arr) || timezoneLabels_iterableToArray(arr) || timezoneLabels_unsupportedIterableToArray(arr) || timezoneLabels_nonIterableRest(); }
-
 function timezoneLabels_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function timezoneLabels_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return timezoneLabels_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return timezoneLabels_arrayLikeToArray(o, minLen); }
-
-function timezoneLabels_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function timezoneLabels_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function timezoneLabels_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function timezoneLabels_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -24128,12 +23381,12 @@ function timezoneLabels_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr
 
 function TimezoneLabel(_ref) {
   var label = _ref.label,
-      offset = _ref.offset,
-      tooltip = _ref.tooltip,
-      _ref$width = _ref.width,
-      width = _ref$width === void 0 ? 100 : _ref$width,
-      left = _ref.left;
-  return h("div", {
+    offset = _ref.offset,
+    tooltip = _ref.tooltip,
+    _ref$width = _ref.width,
+    width = _ref$width === void 0 ? 100 : _ref$width,
+    left = _ref.left;
+  return y("div", {
     title: tooltip,
     className: cls(addTimeGridPrefix('timezone-label')),
     style: {
@@ -24142,7 +23395,7 @@ function TimezoneLabel(_ref) {
       left: toPercent(left)
     },
     role: "gridcell"
-  }, h(Template, {
+  }, y(Template, {
     template: "timezoneDisplayLabel",
     param: {
       displayLabel: label,
@@ -24151,39 +23404,32 @@ function TimezoneLabel(_ref) {
     as: "span"
   }));
 }
-
 function useTimezoneCollapseOptions() {
   var showTimezoneCollapseButton = useStore(showTimezoneCollapseButtonOptionSelector);
   var timezonesCollapsed = useStore(timezonesCollapsedOptionSelector);
-  return F(function () {
+  return hooks_module_F(function () {
     return {
       showTimezoneCollapseButton: showTimezoneCollapseButton,
       timezonesCollapsed: timezonesCollapsed
     };
   }, [showTimezoneCollapseButton, timezonesCollapsed]);
 }
-
 function TimezoneLabels(_ref2) {
   var top = _ref2.top;
   var timezones = useStore(timezonesSelector);
-
   var _useTheme = useTheme(weekTimeGridLeftSelector),
-      width = _useTheme.width;
-
+    width = _useTheme.width;
   var tzConverter = useTZConverter();
-
   var _useTimezoneCollapseO = useTimezoneCollapseOptions(),
-      showTimezoneCollapseButton = _useTimezoneCollapseO.showTimezoneCollapseButton,
-      timezonesCollapsed = _useTimezoneCollapseO.timezonesCollapsed;
-
+    showTimezoneCollapseButton = _useTimezoneCollapseO.showTimezoneCollapseButton,
+    timezonesCollapsed = _useTimezoneCollapseO.timezonesCollapsed;
   if (timezones.length <= 1) {
     return null;
   }
-
   var timezoneLabelProps = timezones.map(function (_ref3) {
     var displayLabel = _ref3.displayLabel,
-        timezoneName = _ref3.timezoneName,
-        tooltip = _ref3.tooltip;
+      timezoneName = _ref3.timezoneName,
+      tooltip = _ref3.tooltip;
     return !isUndefined_default()(displayLabel) ? {
       label: displayLabel,
       offset: null,
@@ -24194,15 +23440,13 @@ function TimezoneLabels(_ref2) {
       tooltip: tooltip !== null && tooltip !== void 0 ? tooltip : timezoneName
     };
   });
-
   var _timezoneLabelProps = timezoneLabels_toArray(timezoneLabelProps),
-      primaryTimezone = _timezoneLabelProps[0],
-      restTimezones = _timezoneLabelProps.slice(1);
-
+    primaryTimezone = _timezoneLabelProps[0],
+    restTimezones = _timezoneLabelProps.slice(1);
   var subTimezones = restTimezones.reverse();
   var timezonesCount = timezonesCollapsed ? 1 : timezones.length;
   var timezoneLabelWidth = 100 / timezonesCount;
-  return h("div", {
+  return y("div", {
     style: {
       top: top,
       width: width
@@ -24211,15 +23455,14 @@ function TimezoneLabels(_ref2) {
     className: cls('timezone-labels-slot')
   }, !timezonesCollapsed && subTimezones.map(function (subTimezone, index) {
     var _subTimezone$label;
-
-    return h(TimezoneLabel, _extends({
+    return y(TimezoneLabel, _extends({
       key: "subTimezone-".concat((_subTimezone$label = subTimezone.label) !== null && _subTimezone$label !== void 0 ? _subTimezone$label : subTimezone.offset),
       width: timezoneLabelWidth,
       left: timezoneLabelWidth * index
     }, subTimezone));
-  }), showTimezoneCollapseButton && h(TimezoneCollapseButton, {
+  }), showTimezoneCollapseButton && y(TimezoneCollapseButton, {
     isCollapsed: timezonesCollapsed
-  }), h(TimezoneLabel, _extends({
+  }), y(TimezoneLabel, _extends({
     width: timezoneLabelWidth,
     left: timezoneLabelWidth * subTimezones.length
   }, primaryTimezone)));
@@ -24246,35 +23489,25 @@ var DEFAULT_EVENT_PANEL = ['allday', 'time'];
 
 
 
-
 function view_toConsumableArray(arr) { return view_arrayWithoutHoles(arr) || view_iterableToArray(arr) || view_unsupportedIterableToArray(arr) || view_nonIterableSpread(); }
-
 function view_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function view_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return view_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return view_arrayLikeToArray(o, minLen); }
-
 function view_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function view_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return view_arrayLikeToArray(arr); }
-
-function view_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
+function view_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
 function getActivePanels(taskView, eventView) {
   var activePanels = [];
-
   if (taskView === true) {
     activePanels.push.apply(activePanels, view_toConsumableArray(DEFAULT_TASK_PANEL));
   } else if (Array.isArray(taskView)) {
     activePanels.push.apply(activePanels, view_toConsumableArray(taskView));
   }
-
   if (eventView === true) {
     activePanels.push.apply(activePanels, view_toConsumableArray(DEFAULT_EVENT_PANEL));
   } else if (Array.isArray(eventView)) {
     activePanels.push.apply(activePanels, view_toConsumableArray(eventView));
   }
-
   return activePanels;
 }
 ;// CONCATENATED MODULE: ./src/hooks/timezone/useEventsWithTimezone.ts
@@ -24289,31 +23522,28 @@ function getActivePanels(taskView, eventView) {
 function useEventsWithTimezone(events) {
   var primaryTimezoneName = useStore(primaryTimezoneSelector);
   var tzConverter = useTZConverter();
-  return F(function () {
+  return hooks_module_F(function () {
     if (primaryTimezoneName === 'Local') {
       return events;
     }
-
     var isSystemUsingDST = isUsingDST(new date_TZDate());
-
     var _events$groupBy = events.groupBy(function (eventModel) {
-      return eventModel.category === 'time' ? 'timedEvents' : 'totalEvents';
-    }),
-        _events$groupBy$timed = _events$groupBy.timedEvents,
-        timedEvents = _events$groupBy$timed === void 0 ? createEventCollection() : _events$groupBy$timed,
-        _events$groupBy$total = _events$groupBy.totalEvents,
-        totalEvents = _events$groupBy$total === void 0 ? createEventCollection() : _events$groupBy$total;
-
+        return eventModel.category === 'time' ? 'timedEvents' : 'totalEvents';
+      }),
+      _events$groupBy$timed = _events$groupBy.timedEvents,
+      timedEvents = _events$groupBy$timed === void 0 ? createEventCollection() : _events$groupBy$timed,
+      _events$groupBy$total = _events$groupBy.totalEvents,
+      totalEvents = _events$groupBy$total === void 0 ? createEventCollection() : _events$groupBy$total;
     timedEvents.each(function (eventModel) {
       var clonedEventModel = object_clone(eventModel);
       var zonedStart = tzConverter(primaryTimezoneName, clonedEventModel.start);
-      var zonedEnd = tzConverter(primaryTimezoneName, clonedEventModel.end); // Adjust the start and end time to the system timezone.
+      var zonedEnd = tzConverter(primaryTimezoneName, clonedEventModel.end);
 
+      // Adjust the start and end time to the system timezone.
       if (isSystemUsingDST) {
         if (!isUsingDST(zonedStart)) {
           zonedStart = zonedStart.addHours(1);
         }
-
         if (!isUsingDST(zonedEnd)) {
           zonedEnd = zonedEnd.addHours(1);
         }
@@ -24321,12 +23551,10 @@ function useEventsWithTimezone(events) {
         if (isUsingDST(zonedStart)) {
           zonedStart = zonedStart.addHours(-1);
         }
-
         if (isUsingDST(zonedEnd)) {
           zonedEnd = zonedEnd.addHours(-1);
         }
       }
-
       clonedEventModel.start = zonedStart;
       clonedEventModel.end = zonedEnd;
       totalEvents.add(clonedEventModel);
@@ -24335,11 +23563,20 @@ function useEventsWithTimezone(events) {
   }, [events, primaryTimezoneName, tzConverter]);
 }
 ;// CONCATENATED MODULE: ./src/hooks/calendar/useCalendarData.ts
+function useCalendarData_typeof(obj) { "@babel/helpers - typeof"; return useCalendarData_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, useCalendarData_typeof(obj); }
 function useCalendarData_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function useCalendarData_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? useCalendarData_ownKeys(Object(source), !0).forEach(function (key) { useCalendarData_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : useCalendarData_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function useCalendarData_defineProperty(obj, key, value) { key = useCalendarData_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function useCalendarData_toPropertyKey(arg) { var key = useCalendarData_toPrimitive(arg, "string"); return useCalendarData_typeof(key) === "symbol" ? key : String(key); }
+function useCalendarData_toPrimitive(input, hint) { if (useCalendarData_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (useCalendarData_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function useCalendarData_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+
+
+
 
 
 
@@ -24355,12 +23592,11 @@ function useCalendarData(calendar) {
   for (var _len = arguments.length, filters = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     filters[_key - 1] = arguments[_key];
   }
-
-  var filteredEvents = F(function () {
+  var filteredEvents = hooks_module_F(function () {
     return calendar.events.filter(Collection.and.apply(Collection, filters));
   }, [calendar.events, filters]);
   var filteredEventsWithTimezone = useEventsWithTimezone(filteredEvents);
-  return F(function () {
+  return hooks_module_F(function () {
     return useCalendarData_objectSpread(useCalendarData_objectSpread({}, calendar), {}, {
       events: filteredEventsWithTimezone
     });
@@ -24373,31 +23609,26 @@ function useCalendarData(calendar) {
 
 
 
-
 function isTimeGridDraggingType(draggingItemType) {
   return /^(event|gridSelection)\/timeGrid/.test(draggingItemType !== null && draggingItemType !== void 0 ? draggingItemType : '');
 }
-
 function useTimeGridScrollSync(scrollArea, rowCount) {
   useTransientUpdate(dndSelector, function (_ref) {
     var y = _ref.y,
-        draggingItemType = _ref.draggingItemType,
-        draggingState = _ref.draggingState;
-
+      draggingItemType = _ref.draggingItemType,
+      draggingState = _ref.draggingState;
     if (isPresent(scrollArea) && isTimeGridDraggingType(draggingItemType) && draggingState === DraggingState.DRAGGING && isPresent(y)) {
       var offsetTop = scrollArea.offsetTop,
-          offsetHeight = scrollArea.offsetHeight,
-          scrollHeight = scrollArea.scrollHeight; // Set minimum scroll boundary to the height of one row.
-
+        offsetHeight = scrollArea.offsetHeight,
+        scrollHeight = scrollArea.scrollHeight;
+      // Set minimum scroll boundary to the height of one row.
       var scrollBoundary = Math.floor(scrollHeight / rowCount);
       var layoutHeight = offsetTop + offsetHeight;
-
       if (y < offsetTop + scrollBoundary) {
         var scrollDiff = y - (offsetTop + scrollBoundary);
         scrollArea.scrollTop = Math.max(0, scrollArea.scrollTop + scrollDiff);
       } else if (y > layoutHeight - scrollBoundary) {
         var _scrollDiff = y - (layoutHeight - scrollBoundary);
-
         scrollArea.scrollTop = Math.min(offsetHeight, scrollArea.scrollTop + _scrollDiff);
       }
     }
@@ -24417,39 +23648,27 @@ function useTimeGridScrollSync(scrollArea, rowCount) {
 
 
 
-
 function useTimezoneLabelsTop_slicedToArray(arr, i) { return useTimezoneLabelsTop_arrayWithHoles(arr) || useTimezoneLabelsTop_iterableToArrayLimit(arr, i) || useTimezoneLabelsTop_unsupportedIterableToArray(arr, i) || useTimezoneLabelsTop_nonIterableRest(); }
-
 function useTimezoneLabelsTop_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useTimezoneLabelsTop_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useTimezoneLabelsTop_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useTimezoneLabelsTop_arrayLikeToArray(o, minLen); }
-
-function useTimezoneLabelsTop_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useTimezoneLabelsTop_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useTimezoneLabelsTop_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useTimezoneLabelsTop_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useTimezoneLabelsTop_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
 function timegridHeightSelector(state) {
   var _state$weekViewLayout, _state$weekViewLayout2, _state$weekViewLayout3;
-
   // TODO: change `dayGridRows` to `panels`
   return (_state$weekViewLayout = state.weekViewLayout) === null || _state$weekViewLayout === void 0 ? void 0 : (_state$weekViewLayout2 = _state$weekViewLayout.dayGridRows) === null || _state$weekViewLayout2 === void 0 ? void 0 : (_state$weekViewLayout3 = _state$weekViewLayout2.time) === null || _state$weekViewLayout3 === void 0 ? void 0 : _state$weekViewLayout3.height;
 }
-
 function useTimezoneLabelsTop(timePanel) {
   var timeGridPanelHeight = useStore(timegridHeightSelector);
-
-  var _useState = hooks_module_y(null),
-      _useState2 = useTimezoneLabelsTop_slicedToArray(_useState, 2),
-      stickyTop = _useState2[0],
-      setStickyTop = _useState2[1];
-
-  hooks_module_h(function () {
+  var _useState = hooks_module_h(null),
+    _useState2 = useTimezoneLabelsTop_slicedToArray(_useState, 2),
+    stickyTop = _useState2[0],
+    setStickyTop = _useState2[1];
+  hooks_module_y(function () {
     if (isPresent(timeGridPanelHeight) && timePanel) {
       setStickyTop(timePanel.offsetTop);
     }
@@ -24473,20 +23692,12 @@ function useTimezoneLabelsTop(timePanel) {
 
 
 
-
 function day_slicedToArray(arr, i) { return day_arrayWithHoles(arr) || day_iterableToArrayLimit(arr, i) || day_unsupportedIterableToArray(arr, i) || day_nonIterableRest(); }
-
 function day_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function day_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return day_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return day_arrayLikeToArray(o, minLen); }
-
-function day_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function day_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function day_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function day_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function day_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -24513,15 +23724,12 @@ function day_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 function useDayViewState() {
   var calendar = useStore(calendarSelector);
   var options = useStore(optionsSelector);
-
   var _useStore = useStore(weekViewLayoutSelector),
-      gridRowLayout = _useStore.dayGridRows,
-      lastPanelType = _useStore.lastPanelType;
-
+    gridRowLayout = _useStore.dayGridRows,
+    lastPanelType = _useStore.lastPanelType;
   var _useStore2 = useStore(viewSelector),
-      renderDate = _useStore2.renderDate;
-
-  return F(function () {
+    renderDate = _useStore2.renderDate;
+  return hooks_module_F(function () {
     return {
       calendar: calendar,
       options: options,
@@ -24531,60 +23739,51 @@ function useDayViewState() {
     };
   }, [calendar, options, gridRowLayout, lastPanelType, renderDate]);
 }
-
 function day_Day() {
   var _options$week$dayName, _options$week;
-
   var _useDayViewState = useDayViewState(),
-      calendar = _useDayViewState.calendar,
-      options = _useDayViewState.options,
-      gridRowLayout = _useDayViewState.gridRowLayout,
-      lastPanelType = _useDayViewState.lastPanelType,
-      renderDate = _useDayViewState.renderDate;
-
+    calendar = _useDayViewState.calendar,
+    options = _useDayViewState.options,
+    gridRowLayout = _useDayViewState.gridRowLayout,
+    lastPanelType = _useDayViewState.lastPanelType,
+    renderDate = _useDayViewState.renderDate;
   var primaryTimezoneName = useStore(primaryTimezoneSelector);
   var gridHeaderMarginLeft = useTheme(hooks_module_T(function (theme) {
     return theme.week.dayGridLeft.width;
   }, []));
-
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = day_slicedToArray(_useDOMNode, 2),
-      timePanel = _useDOMNode2[0],
-      setTimePanelRef = _useDOMNode2[1];
-
+    _useDOMNode2 = day_slicedToArray(_useDOMNode, 2),
+    timePanel = _useDOMNode2[0],
+    setTimePanelRef = _useDOMNode2[1];
   var weekOptions = options.week;
   var narrowWeekend = weekOptions.narrowWeekend,
-      startDayOfWeek = weekOptions.startDayOfWeek,
-      workweek = weekOptions.workweek,
-      hourStart = weekOptions.hourStart,
-      hourEnd = weekOptions.hourEnd,
-      eventView = weekOptions.eventView,
-      taskView = weekOptions.taskView;
-  var days = F(function () {
+    startDayOfWeek = weekOptions.startDayOfWeek,
+    workweek = weekOptions.workweek,
+    hourStart = weekOptions.hourStart,
+    hourEnd = weekOptions.hourEnd,
+    eventView = weekOptions.eventView,
+    taskView = weekOptions.taskView;
+  var days = hooks_module_F(function () {
     return [renderDate];
   }, [renderDate]);
   var dayNames = getDayNames(days, (_options$week$dayName = (_options$week = options.week) === null || _options$week === void 0 ? void 0 : _options$week.dayNames) !== null && _options$week$dayName !== void 0 ? _options$week$dayName : []);
-
   var _getRowStyleInfo = getRowStyleInfo(days.length, narrowWeekend, startDayOfWeek, workweek),
-      rowStyleInfo = _getRowStyleInfo.rowStyleInfo,
-      cellWidthMap = _getRowStyleInfo.cellWidthMap;
-
+    rowStyleInfo = _getRowStyleInfo.rowStyleInfo,
+    cellWidthMap = _getRowStyleInfo.cellWidthMap;
   var calendarData = useCalendarData(calendar, options.eventFilter);
-  var dayGridEvents = F(function () {
+  var dayGridEvents = hooks_module_F(function () {
     var getFilterRange = function getFilterRange() {
       if (primaryTimezoneName === 'Local') {
         return [toStartOfDay(days[0]), toEndOfDay(days[0])];
-      } // NOTE: Extend filter range because of timezone offset differences
+      }
 
-
+      // NOTE: Extend filter range because of timezone offset differences
       return [toStartOfDay(addDate(days[0], -1)), toEndOfDay(addDate(days[0], 1))];
     };
-
     var _getFilterRange = getFilterRange(),
-        _getFilterRange2 = day_slicedToArray(_getFilterRange, 2),
-        weekStartDate = _getFilterRange2[0],
-        weekEndDate = _getFilterRange2[1];
-
+      _getFilterRange2 = day_slicedToArray(_getFilterRange, 2),
+      weekStartDate = _getFilterRange2[0],
+      weekEndDate = _getFilterRange2[1];
     return getWeekViewEvents(days, calendarData, {
       narrowWeekend: narrowWeekend,
       hourStart: hourStart,
@@ -24593,7 +23792,7 @@ function day_Day() {
       weekEndDate: weekEndDate
     });
   }, [calendarData, days, hourEnd, hourStart, narrowWeekend, primaryTimezoneName]);
-  var timeGridData = F(function () {
+  var timeGridData = hooks_module_F(function () {
     return createTimeGridData(days, {
       hourStart: hourStart,
       hourEnd: hourEnd,
@@ -24603,24 +23802,22 @@ function day_Day() {
   var activePanels = getActivePanels(taskView, eventView);
   var gridRows = activePanels.map(function (key) {
     var _gridRowLayout$rowTyp, _gridRowLayout$rowTyp2;
-
     if (key === 'time') {
       return null;
     }
-
     var rowType = key;
-    return h(Panel, {
+    return y(Panel, {
       key: rowType,
       name: rowType,
       resizable: rowType !== lastPanelType
-    }, rowType === 'allday' ? h(AlldayGridRow, {
+    }, rowType === 'allday' ? y(AlldayGridRow, {
       events: dayGridEvents[rowType],
       rowStyleInfo: rowStyleInfo,
       gridColWidthMap: cellWidthMap,
       weekDates: days,
       height: (_gridRowLayout$rowTyp = gridRowLayout[rowType]) === null || _gridRowLayout$rowTyp === void 0 ? void 0 : _gridRowLayout$rowTyp.height,
       options: weekOptions
-    }) : h(OtherGridRow, {
+    }) : y(OtherGridRow, {
       category: rowType,
       events: dayGridEvents[rowType],
       weekDates: days,
@@ -24631,25 +23828,25 @@ function day_Day() {
   });
   useTimeGridScrollSync(timePanel, timeGridData.rows.length);
   var stickyTop = useTimezoneLabelsTop(timePanel);
-  return h(Layout, {
+  return y(Layout, {
     className: cls('day-view'),
     autoAdjustPanels: true
-  }, h(Panel, {
+  }, y(Panel, {
     name: "day-view-day-names",
     initialHeight: WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER
-  }, h(GridHeader, {
+  }, y(GridHeader, {
     type: "week",
     dayNames: dayNames,
     marginLeft: gridHeaderMarginLeft,
     rowStyleInfo: rowStyleInfo
-  })), gridRows, activePanels.includes('time') ? h(Panel, {
+  })), gridRows, activePanels.includes('time') ? y(Panel, {
     name: "time",
     autoSize: 1,
     ref: setTimePanelRef
-  }, h(TimeGrid, {
+  }, y(TimeGrid, {
     events: dayGridEvents.time,
     timeGridData: timeGridData
-  }), h(TimezoneLabels, {
+  }), y(TimezoneLabels, {
     top: stickyTop
   })) : null);
 }
@@ -24663,17 +23860,17 @@ function day_Day() {
 
 function AccumulatedGridSelection(_ref) {
   var rowIndex = _ref.rowIndex,
-      weekDates = _ref.weekDates,
-      narrowWeekend = _ref.narrowWeekend;
+    weekDates = _ref.weekDates,
+    narrowWeekend = _ref.narrowWeekend;
   var gridSelectionDataByRow = useStore(hooks_module_T(function (state) {
     return state.gridSelection.accumulated.dayGridMonth.map(function (gridSelection) {
       return dayGridMonthSelectionHelper.calculateSelection(gridSelection, rowIndex, weekDates.length);
     });
   }, [rowIndex, weekDates]));
-  return h("div", {
+  return y("div", {
     className: cls('accumulated-grid-selection')
   }, gridSelectionDataByRow.map(function (gridSelectionData) {
-    return gridSelectionData ? h(GridSelection, {
+    return gridSelectionData ? y(GridSelection, {
       type: "accumulated",
       gridSelectionData: gridSelectionData,
       weekDates: weekDates,
@@ -24688,30 +23885,27 @@ function AccumulatedGridSelection(_ref) {
 
 function MoreEventsButton(_ref) {
   var type = _ref.type,
-      number = _ref.number,
-      onClickButton = _ref.onClickButton,
-      className = _ref.className;
-
+    number = _ref.number,
+    onClickButton = _ref.onClickButton,
+    className = _ref.className;
   var _useDispatch = useDispatch('dnd'),
-      reset = _useDispatch.reset; // prevent unexpected grid selection when clicking on the button
+    reset = _useDispatch.reset;
 
-
+  // prevent unexpected grid selection when clicking on the button
   var handleMouseDown = function handleMouseDown(e) {
     e.stopPropagation();
   };
-
   var handleClick = function handleClick() {
     reset();
     onClickButton();
   };
-
   var exceedButtonTemplate = "monthGrid".concat(type === CellBarType.header ? 'Header' : 'Footer', "Exceed");
-  return h("button", {
+  return y("button", {
     type: "button",
     onMouseDown: handleMouseDown,
     onClick: handleClick,
     className: className
-  }, h(Template, {
+  }, y(Template, {
     template: exceedButtonTemplate,
     param: number
   }));
@@ -24730,20 +23924,12 @@ function MoreEventsButton(_ref) {
 
 
 
-
 function cellHeader_slicedToArray(arr, i) { return cellHeader_arrayWithHoles(arr) || cellHeader_iterableToArrayLimit(arr, i) || cellHeader_unsupportedIterableToArray(arr, i) || cellHeader_nonIterableRest(); }
-
 function cellHeader_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function cellHeader_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return cellHeader_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return cellHeader_arrayLikeToArray(o, minLen); }
-
-function cellHeader_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function cellHeader_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function cellHeader_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function cellHeader_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function cellHeader_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -24759,66 +23945,56 @@ function cellHeader_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function getDateColor(_ref) {
   var date = _ref.date,
-      theme = _ref.theme,
-      renderDate = _ref.renderDate,
-      isToday = _ref.isToday;
+    theme = _ref.theme,
+    renderDate = _ref.renderDate,
+    isToday = _ref.isToday;
   var dayIndex = date.getDay();
   var thisMonth = renderDate.getMonth();
   var isSameMonth = thisMonth === date.getMonth();
   var _theme$common = theme.common,
-      holiday = _theme$common.holiday,
-      saturday = _theme$common.saturday,
-      today = _theme$common.today,
-      dayName = _theme$common.dayName,
-      _theme$month = theme.month,
-      dayExceptThisMonth = _theme$month.dayExceptThisMonth,
-      holidayExceptThisMonth = _theme$month.holidayExceptThisMonth;
-
+    holiday = _theme$common.holiday,
+    saturday = _theme$common.saturday,
+    today = _theme$common.today,
+    dayName = _theme$common.dayName,
+    _theme$month = theme.month,
+    dayExceptThisMonth = _theme$month.dayExceptThisMonth,
+    holidayExceptThisMonth = _theme$month.holidayExceptThisMonth;
   if (isToday) {
     return today.color;
   }
-
   if (isSunday(dayIndex)) {
     return isSameMonth ? holiday.color : holidayExceptThisMonth.color;
   }
-
   if (isSaturday(dayIndex)) {
     return isSameMonth ? saturday.color : dayExceptThisMonth.color;
   }
-
   if (!isSameMonth) {
     return dayExceptThisMonth.color;
   }
-
   return dayName.color;
 }
-
 function useCellHeaderTheme() {
   var common = useCommonTheme();
   var month = useMonthTheme();
-  return F(function () {
+  return hooks_module_F(function () {
     return {
       common: common,
       month: month
     };
   }, [common, month]);
 }
-
 function CellHeader(_ref2) {
   var _ref2$type = _ref2.type,
-      type = _ref2$type === void 0 ? CellBarType.header : _ref2$type,
-      _ref2$exceedCount = _ref2.exceedCount,
-      exceedCount = _ref2$exceedCount === void 0 ? 0 : _ref2$exceedCount,
-      date = _ref2.date,
-      onClickExceedCount = _ref2.onClickExceedCount;
-
+    type = _ref2$type === void 0 ? CellBarType.header : _ref2$type,
+    _ref2$exceedCount = _ref2.exceedCount,
+    exceedCount = _ref2$exceedCount === void 0 ? 0 : _ref2$exceedCount,
+    date = _ref2.date,
+    onClickExceedCount = _ref2.onClickExceedCount;
   var _useStore = useStore(viewSelector),
-      renderDate = _useStore.renderDate;
-
+    renderDate = _useStore.renderDate;
   var _usePrimaryTimezone = usePrimaryTimezone(),
-      _usePrimaryTimezone2 = cellHeader_slicedToArray(_usePrimaryTimezone, 2),
-      getNow = _usePrimaryTimezone2[1];
-
+    _usePrimaryTimezone2 = cellHeader_slicedToArray(_usePrimaryTimezone, 2),
+    getNow = _usePrimaryTimezone2[1];
   var theme = useCellHeaderTheme();
   var height = theme.month.gridCell["".concat(type, "Height")];
   var ymd = datetime_toFormat(date, 'YYYYMMDD');
@@ -24842,23 +24018,21 @@ function CellHeader(_ref2) {
     })
   };
   var monthGridTemplate = "monthGrid".concat(capitalize(type));
-
   if (type_isNil(height)) {
     return null;
   }
-
-  return h("div", {
+  return y("div", {
     className: cls("grid-cell-".concat(type)),
     style: {
       height: height
     }
-  }, h("span", {
+  }, y("span", {
     className: cls('grid-cell-date'),
     style: gridCellDateStyle
-  }, h(Template, {
+  }, y(Template, {
     template: monthGridTemplate,
     param: templateParam
-  })), exceedCount ? h(MoreEventsButton, {
+  })), exceedCount ? y(MoreEventsButton, {
     type: type,
     number: exceedCount,
     onClickButton: onClickExceedCount,
@@ -24885,25 +24059,20 @@ function CellHeader(_ref2) {
 
 
 
+
+
+function gridCell_typeof(obj) { "@babel/helpers - typeof"; return gridCell_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, gridCell_typeof(obj); }
 function gridCell_slicedToArray(arr, i) { return gridCell_arrayWithHoles(arr) || gridCell_iterableToArrayLimit(arr, i) || gridCell_unsupportedIterableToArray(arr, i) || gridCell_nonIterableRest(); }
-
 function gridCell_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function gridCell_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return gridCell_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return gridCell_arrayLikeToArray(o, minLen); }
-
-function gridCell_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function gridCell_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function gridCell_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function gridCell_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function gridCell_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 function gridCell_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function gridCell_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? gridCell_ownKeys(Object(source), !0).forEach(function (key) { gridCell_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : gridCell_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function gridCell_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-
+function gridCell_defineProperty(obj, key, value) { key = gridCell_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function gridCell_toPropertyKey(arg) { var key = gridCell_toPrimitive(arg, "string"); return gridCell_typeof(key) === "symbol" ? key : String(key); }
+function gridCell_toPrimitive(input, hint) { if (gridCell_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (gridCell_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
@@ -24920,49 +24089,43 @@ function gridCell_defineProperty(obj, key, value) { if (key in obj) { Object.def
 
 function getSeeMorePopupSize(_ref) {
   var grid = _ref.grid,
-      offsetWidth = _ref.offsetWidth,
-      eventLength = _ref.eventLength,
-      layerSize = _ref.layerSize;
+    offsetWidth = _ref.offsetWidth,
+    eventLength = _ref.eventLength,
+    layerSize = _ref.layerSize;
   var minHeight = getSize(grid).height + MONTH_MORE_VIEW_PADDING * 2;
   var width = offsetWidth + MONTH_MORE_VIEW_PADDING * 2;
   var moreViewWidth = layerSize.width,
-      moreViewHeight = layerSize.height;
+    moreViewHeight = layerSize.height;
   var MAX_DISPLAY_EVENT_COUNT = 10;
   width = Math.max(width, MONTH_MORE_VIEW_MIN_WIDTH);
   var height = MONTH_MORE_VIEW_HEADER_HEIGHT + MONTH_MORE_VIEW_HEADER_MARGIN_BOTTOM + MONTH_MORE_VIEW_PADDING;
   var eventHeight = MONTH_EVENT_HEIGHT + MONTH_EVENT_MARGIN_TOP;
-
   if (eventLength <= MAX_DISPLAY_EVENT_COUNT) {
     height += eventHeight * eventLength;
   } else {
     height += eventHeight * MAX_DISPLAY_EVENT_COUNT;
   }
-
   if (moreViewWidth) {
     width = moreViewWidth;
   }
-
   if (moreViewHeight) {
     height = moreViewHeight;
   }
-
   if (isNaN(height) || height < minHeight) {
     height = minHeight;
   }
-
   return {
     width: width,
     height: height
   };
 }
-
 function getSeeMorePopupPosition(popupSize, appContainerSize, cellRect) {
   var containerWidth = appContainerSize.width,
-      containerHeight = appContainerSize.height,
-      containerLeft = appContainerSize.left,
-      containerTop = appContainerSize.top;
+    containerHeight = appContainerSize.height,
+    containerLeft = appContainerSize.left,
+    containerTop = appContainerSize.top;
   var popupWidth = popupSize.width,
-      popupHeight = popupSize.height;
+    popupHeight = popupSize.height;
   var containerRight = containerLeft + containerWidth;
   var containerBottom = containerTop + containerHeight;
   var left = cellRect.left + cellRect.width / 2 - popupWidth / 2;
@@ -24971,55 +24134,45 @@ function getSeeMorePopupPosition(popupSize, appContainerSize, cellRect) {
   var isRightOutOfContainer = left + popupWidth > containerRight;
   var isUpperOutOfContainer = top < containerTop;
   var isLowerOutOfContainer = top + popupHeight > containerBottom;
-
   if (isLeftOutOfContainer) {
     left = containerLeft;
   }
-
   if (isRightOutOfContainer) {
     left = containerRight - popupWidth;
   }
-
   if (isUpperOutOfContainer) {
     top = containerTop;
   }
-
   if (isLowerOutOfContainer) {
     top = containerBottom - popupHeight;
   }
-
   return {
     top: top + window.scrollY,
     left: left + window.scrollX
   };
 }
-
 function getSeeMorePopupRect(_ref2) {
   var layoutContainer = _ref2.layoutContainer,
-      cell = _ref2.cell,
-      popupSize = _ref2.popupSize;
+    cell = _ref2.cell,
+    popupSize = _ref2.popupSize;
   var containerRect = layoutContainer.getBoundingClientRect();
   var cellRect = cell.getBoundingClientRect();
   var popupPosition = getSeeMorePopupPosition(popupSize, containerRect, cellRect);
   return gridCell_objectSpread(gridCell_objectSpread({}, popupSize), popupPosition);
 }
-
 function usePopupPosition(eventLength, parentContainer, layoutContainer) {
   var _useTheme = useTheme(monthMoreViewSelector),
-      moreViewWidth = _useTheme.width,
-      moreViewHeight = _useTheme.height;
-
+    moreViewWidth = _useTheme.width,
+    moreViewHeight = _useTheme.height;
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = gridCell_slicedToArray(_useDOMNode, 2),
-      container = _useDOMNode2[0],
-      containerRefCallback = _useDOMNode2[1];
-
-  var _useState = hooks_module_y(null),
-      _useState2 = gridCell_slicedToArray(_useState, 2),
-      popupPosition = _useState2[0],
-      setPopupPosition = _useState2[1];
-
-  hooks_module_(function () {
+    _useDOMNode2 = gridCell_slicedToArray(_useDOMNode, 2),
+    container = _useDOMNode2[0],
+    containerRefCallback = _useDOMNode2[1];
+  var _useState = hooks_module_h(null),
+    _useState2 = gridCell_slicedToArray(_useState, 2),
+    popupPosition = _useState2[0],
+    setPopupPosition = _useState2[1];
+  hooks_module_p(function () {
     if (layoutContainer && parentContainer && container) {
       var popupSize = getSeeMorePopupSize({
         grid: parentContainer,
@@ -25043,29 +24196,23 @@ function usePopupPosition(eventLength, parentContainer, layoutContainer) {
     containerRefCallback: containerRefCallback
   };
 }
-
 function weekendBackgroundColorSelector(theme) {
   return theme.month.weekend.backgroundColor;
 }
-
 function gridCell_GridCell(_ref3) {
   var date = _ref3.date,
-      _ref3$events = _ref3.events,
-      events = _ref3$events === void 0 ? [] : _ref3$events,
-      style = _ref3.style,
-      parentContainer = _ref3.parentContainer,
-      contentAreaHeight = _ref3.contentAreaHeight;
+    _ref3$events = _ref3.events,
+    events = _ref3$events === void 0 ? [] : _ref3$events,
+    style = _ref3.style,
+    parentContainer = _ref3.parentContainer,
+    contentAreaHeight = _ref3.contentAreaHeight;
   var layoutContainer = useLayoutContainer();
-
   var _useDispatch = useDispatch('popup'),
-      showSeeMorePopup = _useDispatch.showSeeMorePopup;
-
+    showSeeMorePopup = _useDispatch.showSeeMorePopup;
   var backgroundColor = useTheme(weekendBackgroundColorSelector);
-
   var _usePopupPosition = usePopupPosition(events.length, parentContainer, layoutContainer),
-      popupPosition = _usePopupPosition.popupPosition,
-      containerRefCallback = _usePopupPosition.containerRefCallback;
-
+    popupPosition = _usePopupPosition.popupPosition,
+    containerRefCallback = _usePopupPosition.containerRefCallback;
   var onOpenSeeMorePopup = hooks_module_T(function () {
     if (popupPosition) {
       showSeeMorePopup({
@@ -25076,18 +24223,18 @@ function gridCell_GridCell(_ref3) {
     }
   }, [date, events, popupPosition, showSeeMorePopup]);
   var exceedCount = getExceedCount(events, contentAreaHeight, MONTH_EVENT_HEIGHT + MONTH_EVENT_MARGIN_TOP);
-  return h("div", {
+  return y("div", {
     className: cls('daygrid-cell'),
     style: gridCell_objectSpread(gridCell_objectSpread({}, style), {}, {
       backgroundColor: isWeekend(date.getDay()) ? backgroundColor : 'inherit'
     }),
     ref: containerRefCallback
-  }, h(CellHeader, {
+  }, y(CellHeader, {
     type: CellBarType.header,
     exceedCount: exceedCount,
     date: date,
     onClickExceedCount: onOpenSeeMorePopup
-  }), h(CellHeader, {
+  }), y(CellHeader, {
     type: CellBarType.footer,
     exceedCount: exceedCount,
     date: date,
@@ -25109,17 +24256,11 @@ function gridCell_GridCell(_ref3) {
 
 
 
-
 function gridRow_slicedToArray(arr, i) { return gridRow_arrayWithHoles(arr) || gridRow_iterableToArrayLimit(arr, i) || gridRow_unsupportedIterableToArray(arr, i) || gridRow_nonIterableRest(); }
-
 function gridRow_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function gridRow_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return gridRow_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return gridRow_arrayLikeToArray(o, minLen); }
-
-function gridRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function gridRow_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function gridRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function gridRow_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function gridRow_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
@@ -25129,23 +24270,20 @@ function gridRow_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 
-
-var GridRow = compat_module_g(function GridRow(_ref) {
+var GridRow = compat_module_x(function GridRow(_ref) {
   var week = _ref.week,
-      rowInfo = _ref.rowInfo,
-      _ref$gridDateEventMod = _ref.gridDateEventModelMap,
-      gridDateEventModelMap = _ref$gridDateEventMod === void 0 ? {} : _ref$gridDateEventMod,
-      contentAreaHeight = _ref.contentAreaHeight;
-
+    rowInfo = _ref.rowInfo,
+    _ref$gridDateEventMod = _ref.gridDateEventModelMap,
+    gridDateEventModelMap = _ref$gridDateEventMod === void 0 ? {} : _ref$gridDateEventMod,
+    contentAreaHeight = _ref.contentAreaHeight;
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = gridRow_slicedToArray(_useDOMNode, 2),
-      container = _useDOMNode2[0],
-      containerRefCallback = _useDOMNode2[1];
-
+    _useDOMNode2 = gridRow_slicedToArray(_useDOMNode, 2),
+    container = _useDOMNode2[0],
+    containerRefCallback = _useDOMNode2[1];
   var border = useTheme(hooks_module_T(function (theme) {
     return theme.common.border;
   }, []));
-  return h("div", {
+  return y("div", {
     className: cls('weekday-grid'),
     style: {
       borderTop: border
@@ -25154,10 +24292,10 @@ var GridRow = compat_module_g(function GridRow(_ref) {
   }, week.map(function (date, columnIndex) {
     var dayIndex = date.getDay();
     var _rowInfo$columnIndex = rowInfo[columnIndex],
-        width = _rowInfo$columnIndex.width,
-        left = _rowInfo$columnIndex.left;
+      width = _rowInfo$columnIndex.width,
+      left = _rowInfo$columnIndex.left;
     var ymd = datetime_toFormat(toStartOfDay(date), 'YYYYMMDD');
-    return h(gridCell_GridCell, {
+    return y(gridCell_GridCell, {
       key: "daygrid-cell-".concat(dayIndex),
       date: date,
       style: {
@@ -25179,17 +24317,15 @@ var GridRow = compat_module_g(function GridRow(_ref) {
 
 function GridSelectionByRow(_ref) {
   var weekDates = _ref.weekDates,
-      narrowWeekend = _ref.narrowWeekend,
-      rowIndex = _ref.rowIndex;
+    narrowWeekend = _ref.narrowWeekend,
+    rowIndex = _ref.rowIndex;
   var gridSelectionDataByRow = useStore(hooks_module_T(function (state) {
     return dayGridMonthSelectionHelper.calculateSelection(state.gridSelection.dayGridMonth, rowIndex, weekDates.length);
   }, [rowIndex, weekDates.length]));
-
   if (type_isNil(gridSelectionDataByRow)) {
     return null;
   }
-
-  return h(GridSelection, {
+  return y(GridSelection, {
     type: "month",
     gridSelectionData: gridSelectionDataByRow,
     weekDates: weekDates,
@@ -25209,26 +24345,24 @@ function GridSelectionByRow(_ref) {
 
 
 
-var MonthEvents = compat_module_g(function MonthEvents(_ref) {
+var MonthEvents = compat_module_x(function MonthEvents(_ref) {
   var contentAreaHeight = _ref.contentAreaHeight,
-      _ref$eventHeight = _ref.eventHeight,
-      eventHeight = _ref$eventHeight === void 0 ? EVENT_HEIGHT : _ref$eventHeight,
-      events = _ref.events,
-      name = _ref.name,
-      className = _ref.className;
-
+    _ref$eventHeight = _ref.eventHeight,
+    eventHeight = _ref$eventHeight === void 0 ? EVENT_HEIGHT : _ref$eventHeight,
+    events = _ref.events,
+    name = _ref.name,
+    className = _ref.className;
   var _useTheme = useTheme(monthGridCellSelector),
-      headerHeight = _useTheme.headerHeight;
-
+    headerHeight = _useTheme.headerHeight;
   var dayEvents = events.filter(isWithinHeight(contentAreaHeight, eventHeight + MONTH_EVENT_MARGIN_TOP)).map(function (uiModel) {
-    return h(HorizontalEvent, {
+    return y(HorizontalEvent, {
       key: "".concat(name, "-DayEvent-").concat(uiModel.cid()),
       uiModel: uiModel,
       eventHeight: eventHeight,
       headerHeight: headerHeight !== null && headerHeight !== void 0 ? headerHeight : MONTH_CELL_BAR_HEIGHT
     });
   });
-  return h("div", {
+  return y("div", {
     className: className
   }, dayEvents);
 });
@@ -25246,19 +24380,12 @@ var MonthEvents = compat_module_g(function MonthEvents(_ref) {
 
 
 
-
 function useDayGridMonthEventMove_slicedToArray(arr, i) { return useDayGridMonthEventMove_arrayWithHoles(arr) || useDayGridMonthEventMove_iterableToArrayLimit(arr, i) || useDayGridMonthEventMove_unsupportedIterableToArray(arr, i) || useDayGridMonthEventMove_nonIterableRest(); }
-
 function useDayGridMonthEventMove_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useDayGridMonthEventMove_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useDayGridMonthEventMove_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useDayGridMonthEventMove_arrayLikeToArray(o, minLen); }
-
-function useDayGridMonthEventMove_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useDayGridMonthEventMove_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useDayGridMonthEventMove_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useDayGridMonthEventMove_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useDayGridMonthEventMove_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -25269,38 +24396,31 @@ function useDayGridMonthEventMove_arrayWithHoles(arr) { if (Array.isArray(arr)) 
 
 function useDayGridMonthEventMove(_ref) {
   var dateMatrix = _ref.dateMatrix,
-      rowInfo = _ref.rowInfo,
-      gridPositionFinder = _ref.gridPositionFinder,
-      rowIndex = _ref.rowIndex;
+    rowInfo = _ref.rowInfo,
+    gridPositionFinder = _ref.gridPositionFinder,
+    rowIndex = _ref.rowIndex;
   var eventBus = useEventBus();
-
   var _useDraggingEvent = useDraggingEvent('dayGrid', 'move'),
-      isDraggingEnd = _useDraggingEvent.isDraggingEnd,
-      isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
-      movingEvent = _useDraggingEvent.draggingEvent,
-      clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
-
+    isDraggingEnd = _useDraggingEvent.isDraggingEnd,
+    isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
+    movingEvent = _useDraggingEvent.draggingEvent,
+    clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
   var _useCurrentPointerPos = useCurrentPointerPositionInGrid(gridPositionFinder),
-      _useCurrentPointerPos2 = useDayGridMonthEventMove_slicedToArray(_useCurrentPointerPos, 2),
-      currentGridPos = _useCurrentPointerPos2[0],
-      clearCurrentGridPos = _useCurrentPointerPos2[1];
-
-  var movingEventUIModel = F(function () {
+    _useCurrentPointerPos2 = useDayGridMonthEventMove_slicedToArray(_useCurrentPointerPos, 2),
+    currentGridPos = _useCurrentPointerPos2[0],
+    clearCurrentGridPos = _useCurrentPointerPos2[1];
+  var movingEventUIModel = hooks_module_F(function () {
     var shadowEventUIModel = null;
-
     if (movingEvent && (currentGridPos === null || currentGridPos === void 0 ? void 0 : currentGridPos.rowIndex) === rowIndex) {
       var _currentGridPos$colum, _currentGridPos$colum2;
-
       shadowEventUIModel = movingEvent;
       shadowEventUIModel.left = rowInfo[(_currentGridPos$colum = currentGridPos === null || currentGridPos === void 0 ? void 0 : currentGridPos.columnIndex) !== null && _currentGridPos$colum !== void 0 ? _currentGridPos$colum : 0].left;
       shadowEventUIModel.width = rowInfo[(_currentGridPos$colum2 = currentGridPos === null || currentGridPos === void 0 ? void 0 : currentGridPos.columnIndex) !== null && _currentGridPos$colum2 !== void 0 ? _currentGridPos$colum2 : 0].width;
     }
-
     return shadowEventUIModel;
   }, [movingEvent, currentGridPos === null || currentGridPos === void 0 ? void 0 : currentGridPos.rowIndex, currentGridPos === null || currentGridPos === void 0 ? void 0 : currentGridPos.columnIndex, rowIndex, rowInfo]);
   useWhen(function () {
     var shouldUpdate = !isDraggingCanceled && isPresent(movingEventUIModel) && isPresent(currentGridPos);
-
     if (shouldUpdate) {
       var preStartDate = movingEventUIModel.model.getStarts();
       var eventDuration = movingEventUIModel.duration();
@@ -25316,7 +24436,6 @@ function useDayGridMonthEventMove(_ref) {
         }
       });
     }
-
     clearDraggingEvent();
     clearCurrentGridPos();
   }, isDraggingEnd);
@@ -25331,21 +24450,19 @@ function useDayGridMonthEventMove(_ref) {
 
 function dayGridMonth_movingEventShadow_MovingEventShadow(_ref) {
   var dateMatrix = _ref.dateMatrix,
-      gridPositionFinder = _ref.gridPositionFinder,
-      rowInfo = _ref.rowInfo,
-      rowIndex = _ref.rowIndex;
+    gridPositionFinder = _ref.gridPositionFinder,
+    rowInfo = _ref.rowInfo,
+    rowIndex = _ref.rowIndex;
   var movingEvent = useDayGridMonthEventMove({
     dateMatrix: dateMatrix,
     rowInfo: rowInfo,
     gridPositionFinder: gridPositionFinder,
     rowIndex: rowIndex
   });
-
   if (type_isNil(movingEvent)) {
     return null;
   }
-
-  return h(HorizontalEvent, {
+  return y(HorizontalEvent, {
     uiModel: movingEvent,
     movingLeft: movingEvent.left,
     eventHeight: EVENT_HEIGHT,
@@ -25369,20 +24486,12 @@ function dayGridMonth_movingEventShadow_MovingEventShadow(_ref) {
 
 
 
-
 function useDayGridMonthEventResize_slicedToArray(arr, i) { return useDayGridMonthEventResize_arrayWithHoles(arr) || useDayGridMonthEventResize_iterableToArrayLimit(arr, i) || useDayGridMonthEventResize_unsupportedIterableToArray(arr, i) || useDayGridMonthEventResize_nonIterableRest(); }
-
 function useDayGridMonthEventResize_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function useDayGridMonthEventResize_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return useDayGridMonthEventResize_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return useDayGridMonthEventResize_arrayLikeToArray(o, minLen); }
-
-function useDayGridMonthEventResize_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function useDayGridMonthEventResize_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function useDayGridMonthEventResize_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function useDayGridMonthEventResize_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function useDayGridMonthEventResize_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -25399,46 +24508,39 @@ function getRowPosOfUIModel(uiModel, dateRow) {
     endColumnIndex: endColumnIndex
   };
 }
-
 function useDayGridMonthEventResize(_ref) {
   var dateMatrix = _ref.dateMatrix,
-      gridPositionFinder = _ref.gridPositionFinder,
-      renderedUIModels = _ref.renderedUIModels,
-      cellWidthMap = _ref.cellWidthMap,
-      rowIndex = _ref.rowIndex;
+    gridPositionFinder = _ref.gridPositionFinder,
+    renderedUIModels = _ref.renderedUIModels,
+    cellWidthMap = _ref.cellWidthMap,
+    rowIndex = _ref.rowIndex;
   var eventBus = useEventBus();
-
   var _useDraggingEvent = useDraggingEvent('dayGrid', 'resize'),
-      isDraggingEnd = _useDraggingEvent.isDraggingEnd,
-      isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
-      resizingStartUIModel = _useDraggingEvent.draggingEvent,
-      clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
-
+    isDraggingEnd = _useDraggingEvent.isDraggingEnd,
+    isDraggingCanceled = _useDraggingEvent.isDraggingCanceled,
+    resizingStartUIModel = _useDraggingEvent.draggingEvent,
+    clearDraggingEvent = _useDraggingEvent.clearDraggingEvent;
   var _useCurrentPointerPos = useCurrentPointerPositionInGrid(gridPositionFinder),
-      _useCurrentPointerPos2 = useDayGridMonthEventResize_slicedToArray(_useCurrentPointerPos, 2),
-      currentGridPos = _useCurrentPointerPos2[0],
-      clearCurrentGridPos = _useCurrentPointerPos2[1];
-
-  var _useState = hooks_module_y(null),
-      _useState2 = useDayGridMonthEventResize_slicedToArray(_useState, 2),
-      guideProps = _useState2[0],
-      setGuideProps = _useState2[1]; // Shadow -> Guide
-
+    _useCurrentPointerPos2 = useDayGridMonthEventResize_slicedToArray(_useCurrentPointerPos, 2),
+    currentGridPos = _useCurrentPointerPos2[0],
+    clearCurrentGridPos = _useCurrentPointerPos2[1];
+  var _useState = hooks_module_h(null),
+    _useState2 = useDayGridMonthEventResize_slicedToArray(_useState, 2),
+    guideProps = _useState2[0],
+    setGuideProps = _useState2[1]; // Shadow -> Guide
 
   var clearStates = hooks_module_T(function () {
     setGuideProps(null);
     clearCurrentGridPos();
     clearDraggingEvent();
   }, [clearCurrentGridPos, clearDraggingEvent]);
-  var baseResizingInfo = F(function () {
+  var baseResizingInfo = hooks_module_F(function () {
     if (type_isNil(resizingStartUIModel)) {
       return null;
     }
     /**
      * Filter UIModels that are made from the target event.
      */
-
-
     var resizeTargetUIModelRows = renderedUIModels.map(function (_ref2) {
       var uiModels = _ref2.uiModels;
       return uiModels.filter(function (uiModel) {
@@ -25461,15 +24563,15 @@ function useDayGridMonthEventResize(_ref) {
       resizeTargetUIModelRows: resizeTargetUIModelRows
     };
   }, [dateMatrix, renderedUIModels, resizingStartUIModel]);
-  var canCalculateProps = isPresent(baseResizingInfo) && isPresent(resizingStartUIModel) && isPresent(currentGridPos); // Calculate the first row of the dragging event
+  var canCalculateProps = isPresent(baseResizingInfo) && isPresent(resizingStartUIModel) && isPresent(currentGridPos);
 
-  hooks_module_(function () {
+  // Calculate the first row of the dragging event
+  hooks_module_p(function () {
     if (canCalculateProps && rowIndex === baseResizingInfo.eventStartDateRowIndex) {
       var eventStartDateRowIndex = baseResizingInfo.eventStartDateRowIndex,
-          eventStartDateColumnIndex = baseResizingInfo.eventStartDateColumnIndex;
+        eventStartDateColumnIndex = baseResizingInfo.eventStartDateColumnIndex;
       var clonedUIModel = baseResizingInfo.resizeTargetUIModelRows[eventStartDateRowIndex][0].clone();
       var height;
-
       if (eventStartDateRowIndex === currentGridPos.rowIndex) {
         height = cellWidthMap[eventStartDateColumnIndex][Math.max(eventStartDateColumnIndex, currentGridPos.columnIndex)];
       } else if (eventStartDateRowIndex > currentGridPos.rowIndex) {
@@ -25480,12 +24582,12 @@ function useDayGridMonthEventResize(_ref) {
           exceedRight: true
         });
       }
-
       setGuideProps([clonedUIModel, height]);
     }
-  }, [baseResizingInfo, canCalculateProps, cellWidthMap, currentGridPos, dateMatrix, rowIndex]); // Calculate middle rows of the dragging event
+  }, [baseResizingInfo, canCalculateProps, cellWidthMap, currentGridPos, dateMatrix, rowIndex]);
 
-  hooks_module_(function () {
+  // Calculate middle rows of the dragging event
+  hooks_module_p(function () {
     if (canCalculateProps && baseResizingInfo.eventStartDateRowIndex < rowIndex && rowIndex < currentGridPos.rowIndex) {
       var clonedUIModel = resizingStartUIModel.clone();
       clonedUIModel.setUIProps({
@@ -25495,9 +24597,10 @@ function useDayGridMonthEventResize(_ref) {
       });
       setGuideProps([clonedUIModel, '100%']);
     }
-  }, [baseResizingInfo, canCalculateProps, currentGridPos, resizingStartUIModel, rowIndex]); // Calculate the last row of the dragging event
+  }, [baseResizingInfo, canCalculateProps, currentGridPos, resizingStartUIModel, rowIndex]);
 
-  hooks_module_(function () {
+  // Calculate the last row of the dragging event
+  hooks_module_p(function () {
     if (canCalculateProps && baseResizingInfo.eventStartDateRowIndex < currentGridPos.rowIndex && rowIndex === currentGridPos.rowIndex) {
       var clonedUIModel = resizingStartUIModel.clone();
       clonedUIModel.setUIProps({
@@ -25506,9 +24609,10 @@ function useDayGridMonthEventResize(_ref) {
       });
       setGuideProps([clonedUIModel, cellWidthMap[0][currentGridPos.columnIndex]]);
     }
-  }, [baseResizingInfo, canCalculateProps, cellWidthMap, currentGridPos, resizingStartUIModel, rowIndex]); // Reset props on out of bound
+  }, [baseResizingInfo, canCalculateProps, cellWidthMap, currentGridPos, resizingStartUIModel, rowIndex]);
 
-  hooks_module_(function () {
+  // Reset props on out of bound
+  hooks_module_p(function () {
     if (canCalculateProps && rowIndex > baseResizingInfo.eventStartDateRowIndex && rowIndex > currentGridPos.rowIndex) {
       setGuideProps(null);
     }
@@ -25519,9 +24623,8 @@ function useDayGridMonthEventResize(_ref) {
        * Is current grid position is the same or later comparing to the position of the start date?
        */
       var eventStartDateColumnIndex = baseResizingInfo.eventStartDateColumnIndex,
-          eventStartDateRowIndex = baseResizingInfo.eventStartDateRowIndex;
+        eventStartDateRowIndex = baseResizingInfo.eventStartDateRowIndex;
       var shouldUpdate = !isDraggingCanceled && (currentGridPos.rowIndex === eventStartDateRowIndex && currentGridPos.columnIndex >= eventStartDateColumnIndex || currentGridPos.rowIndex > eventStartDateRowIndex);
-
       if (shouldUpdate) {
         var targetEndDate = dateMatrix[currentGridPos.rowIndex][currentGridPos.columnIndex];
         eventBus.fire('beforeUpdateEvent', {
@@ -25532,7 +24635,6 @@ function useDayGridMonthEventResize(_ref) {
         });
       }
     }
-
     clearStates();
   }, isDraggingEnd);
   return guideProps;
@@ -25551,19 +24653,12 @@ function useDayGridMonthEventResize(_ref) {
 
 
 
-
 function resizingGuideByRow_slicedToArray(arr, i) { return resizingGuideByRow_arrayWithHoles(arr) || resizingGuideByRow_iterableToArrayLimit(arr, i) || resizingGuideByRow_unsupportedIterableToArray(arr, i) || resizingGuideByRow_nonIterableRest(); }
-
 function resizingGuideByRow_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function resizingGuideByRow_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return resizingGuideByRow_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return resizingGuideByRow_arrayLikeToArray(o, minLen); }
-
-function resizingGuideByRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function resizingGuideByRow_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function resizingGuideByRow_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function resizingGuideByRow_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function resizingGuideByRow_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 
 
 
@@ -25572,10 +24667,10 @@ function resizingGuideByRow_arrayWithHoles(arr) { if (Array.isArray(arr)) return
 
 function ResizingGuideByRow(_ref) {
   var dateMatrix = _ref.dateMatrix,
-      cellWidthMap = _ref.cellWidthMap,
-      gridPositionFinder = _ref.gridPositionFinder,
-      renderedUIModels = _ref.renderedUIModels,
-      rowIndex = _ref.rowIndex;
+    cellWidthMap = _ref.cellWidthMap,
+    gridPositionFinder = _ref.gridPositionFinder,
+    renderedUIModels = _ref.renderedUIModels,
+    rowIndex = _ref.rowIndex;
   var resizingGuideProps = useDayGridMonthEventResize({
     dateMatrix: dateMatrix,
     gridPositionFinder: gridPositionFinder,
@@ -25583,18 +24678,15 @@ function ResizingGuideByRow(_ref) {
     renderedUIModels: renderedUIModels,
     rowIndex: rowIndex
   });
-
   if (type_isNil(resizingGuideProps)) {
     return null;
   }
-
   var _resizingGuideProps = resizingGuideByRow_slicedToArray(resizingGuideProps, 2),
-      uiModel = _resizingGuideProps[0],
-      resizingWidth = _resizingGuideProps[1];
-
-  return h("div", {
+    uiModel = _resizingGuideProps[0],
+    resizingWidth = _resizingGuideProps[1];
+  return y("div", {
     className: cls('weekday-events')
-  }, h(HorizontalEvent, {
+  }, y(HorizontalEvent, {
     key: "resizing-event-".concat(uiModel.cid()),
     uiModel: uiModel,
     eventHeight: MONTH_EVENT_HEIGHT,
@@ -25617,17 +24709,11 @@ function ResizingGuideByRow(_ref) {
 
 
 
-
 function dayGridMonth_slicedToArray(arr, i) { return dayGridMonth_arrayWithHoles(arr) || dayGridMonth_iterableToArrayLimit(arr, i) || dayGridMonth_unsupportedIterableToArray(arr, i) || dayGridMonth_nonIterableRest(); }
-
 function dayGridMonth_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function dayGridMonth_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return dayGridMonth_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return dayGridMonth_arrayLikeToArray(o, minLen); }
-
-function dayGridMonth_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function dayGridMonth_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function dayGridMonth_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function dayGridMonth_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function dayGridMonth_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
@@ -25651,24 +24737,18 @@ function dayGridMonth_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; 
 
 
 
-
 var TOTAL_PERCENT_HEIGHT = 100;
-
 function useCellContentAreaHeight(eventHeight) {
   var visibleEventCount = useStore(monthVisibleEventCountSelector);
-
   var _useTheme = useTheme(monthGridCellSelector),
-      themeHeaderHeight = _useTheme.headerHeight,
-      themeFooterHeight = _useTheme.footerHeight;
-
-  var ref = hooks_module_s(null);
-
-  var _useState = hooks_module_y(0),
-      _useState2 = dayGridMonth_slicedToArray(_useState, 2),
-      cellContentAreaHeight = _useState2[0],
-      setCellContentAreaHeight = _useState2[1];
-
-  hooks_module_(function () {
+    themeHeaderHeight = _useTheme.headerHeight,
+    themeFooterHeight = _useTheme.footerHeight;
+  var ref = _(null);
+  var _useState = hooks_module_h(0),
+    _useState2 = dayGridMonth_slicedToArray(_useState, 2),
+    cellContentAreaHeight = _useState2[0],
+    setCellContentAreaHeight = _useState2[1];
+  hooks_module_p(function () {
     if (ref.current) {
       var rowHeight = getSize(ref.current).height;
       var headerHeight = MONTH_CELL_PADDING_TOP + (themeHeaderHeight !== null && themeHeaderHeight !== void 0 ? themeHeaderHeight : MONTH_CELL_BAR_HEIGHT);
@@ -25683,36 +24763,31 @@ function useCellContentAreaHeight(eventHeight) {
     cellContentAreaHeight: cellContentAreaHeight
   };
 }
-
 function DayGridMonth(_ref) {
   var _ref$dateMatrix = _ref.dateMatrix,
-      dateMatrix = _ref$dateMatrix === void 0 ? [] : _ref$dateMatrix,
-      _ref$rowInfo = _ref.rowInfo,
-      rowInfo = _ref$rowInfo === void 0 ? [] : _ref$rowInfo,
-      _ref$cellWidthMap = _ref.cellWidthMap,
-      cellWidthMap = _ref$cellWidthMap === void 0 ? [] : _ref$cellWidthMap;
-
+    dateMatrix = _ref$dateMatrix === void 0 ? [] : _ref$dateMatrix,
+    _ref$rowInfo = _ref.rowInfo,
+    rowInfo = _ref$rowInfo === void 0 ? [] : _ref$rowInfo,
+    _ref$cellWidthMap = _ref.cellWidthMap,
+    cellWidthMap = _ref$cellWidthMap === void 0 ? [] : _ref$cellWidthMap;
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = dayGridMonth_slicedToArray(_useDOMNode, 2),
-      gridContainer = _useDOMNode2[0],
-      setGridContainerRef = _useDOMNode2[1];
-
-  var calendar = useStore(calendarSelector); // TODO: event height need to be dynamic
-
+    _useDOMNode2 = dayGridMonth_slicedToArray(_useDOMNode, 2),
+    gridContainer = _useDOMNode2[0],
+    setGridContainerRef = _useDOMNode2[1];
+  var calendar = useStore(calendarSelector);
+  // TODO: event height need to be dynamic
   var _useCellContentAreaHe = useCellContentAreaHeight(MONTH_EVENT_HEIGHT),
-      ref = _useCellContentAreaHe.ref,
-      cellContentAreaHeight = _useCellContentAreaHe.cellContentAreaHeight;
-
+    ref = _useCellContentAreaHe.ref,
+    cellContentAreaHeight = _useCellContentAreaHe.cellContentAreaHeight;
   var _useStore = useStore(optionsSelector),
-      eventFilter = _useStore.eventFilter,
-      monthOptions = _useStore.month,
-      isReadOnly = _useStore.isReadOnly;
-
+    eventFilter = _useStore.eventFilter,
+    monthOptions = _useStore.month,
+    isReadOnly = _useStore.isReadOnly;
   var _ref2 = monthOptions,
-      narrowWeekend = _ref2.narrowWeekend,
-      startDayOfWeek = _ref2.startDayOfWeek;
+    narrowWeekend = _ref2.narrowWeekend,
+    startDayOfWeek = _ref2.startDayOfWeek;
   var rowHeight = TOTAL_PERCENT_HEIGHT / dateMatrix.length;
-  var gridPositionFinder = F(function () {
+  var gridPositionFinder = hooks_module_F(function () {
     return createGridPositionFinder({
       container: gridContainer,
       rowsCount: dateMatrix.length,
@@ -25722,7 +24797,7 @@ function DayGridMonth(_ref) {
     });
   }, [dateMatrix, gridContainer, narrowWeekend, startDayOfWeek]);
   var calendarData = useCalendarData(calendar, eventFilter);
-  var renderedEventUIModels = F(function () {
+  var renderedEventUIModels = hooks_module_F(function () {
     return dateMatrix.map(function (week) {
       return getRenderedEventUIModels(week, calendarData, narrowWeekend);
     });
@@ -25734,49 +24809,49 @@ function DayGridMonth(_ref) {
     dateGetter: dayGridMonthSelectionHelper.getDateFromCollection,
     selectionSorter: dayGridMonthSelectionHelper.sortSelection
   });
-  return h("div", {
+  return y("div", {
     ref: setGridContainerRef,
     onMouseDown: passConditionalProp(!isReadOnly, onMouseDown),
     className: cls('month-daygrid')
   }, dateMatrix.map(function (week, rowIndex) {
     var _renderedEventUIModel = renderedEventUIModels[rowIndex],
-        uiModels = _renderedEventUIModel.uiModels,
-        gridDateEventModelMap = _renderedEventUIModel.gridDateEventModelMap;
-    return h("div", {
+      uiModels = _renderedEventUIModel.uiModels,
+      gridDateEventModelMap = _renderedEventUIModel.gridDateEventModelMap;
+    return y("div", {
       key: "dayGrid-events-".concat(rowIndex),
       className: cls('month-week-item'),
       style: {
         height: toPercent(rowHeight)
       },
       ref: ref
-    }, h("div", {
+    }, y("div", {
       className: cls('weekday')
-    }, h(GridRow, {
+    }, y(GridRow, {
       gridDateEventModelMap: gridDateEventModelMap,
       week: week,
       rowInfo: rowInfo,
       contentAreaHeight: cellContentAreaHeight
-    }), h(MonthEvents, {
+    }), y(MonthEvents, {
       name: "month",
       events: uiModels,
       contentAreaHeight: cellContentAreaHeight,
       eventHeight: MONTH_EVENT_HEIGHT,
       className: cls('weekday-events')
-    }), h(GridSelectionByRow, {
+    }), y(GridSelectionByRow, {
       weekDates: week,
       narrowWeekend: narrowWeekend,
       rowIndex: rowIndex
-    }), h(AccumulatedGridSelection, {
+    }), y(AccumulatedGridSelection, {
       rowIndex: rowIndex,
       weekDates: week,
       narrowWeekend: narrowWeekend
-    })), h(ResizingGuideByRow, {
+    })), y(ResizingGuideByRow, {
       dateMatrix: dateMatrix,
       gridPositionFinder: gridPositionFinder,
       rowIndex: rowIndex,
       cellWidthMap: cellWidthMap,
       renderedUIModels: renderedEventUIModels
-    }), h(dayGridMonth_movingEventShadow_MovingEventShadow, {
+    }), y(dayGridMonth_movingEventShadow_MovingEventShadow, {
       dateMatrix: dateMatrix,
       gridPositionFinder: gridPositionFinder,
       rowIndex: rowIndex,
@@ -25785,23 +24860,19 @@ function DayGridMonth(_ref) {
   }));
 }
 ;// CONCATENATED MODULE: ./src/components/view/month.tsx
+function month_typeof(obj) { "@babel/helpers - typeof"; return month_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, month_typeof(obj); }
 function month_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function month_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? month_ownKeys(Object(source), !0).forEach(function (key) { month_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : month_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function month_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function month_defineProperty(obj, key, value) { key = month_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function month_toPropertyKey(arg) { var key = month_toPrimitive(arg, "string"); return month_typeof(key) === "symbol" ? key : String(key); }
+function month_toPrimitive(input, hint) { if (month_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (month_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function view_month_toConsumableArray(arr) { return view_month_arrayWithoutHoles(arr) || view_month_iterableToArray(arr) || view_month_unsupportedIterableToArray(arr) || view_month_nonIterableSpread(); }
-
 function view_month_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function view_month_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return view_month_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return view_month_arrayLikeToArray(o, minLen); }
-
 function view_month_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
 function view_month_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return view_month_arrayLikeToArray(arr); }
+function view_month_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
-function view_month_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 
 
@@ -25836,14 +24907,12 @@ function view_month_arrayLikeToArray(arr, len) { if (len == null || len > arr.le
 
 function getMonthDayNames(options) {
   var _ref = options.month,
-      dayNames = _ref.dayNames,
-      startDayOfWeek = _ref.startDayOfWeek,
-      workweek = _ref.workweek;
-
+    dayNames = _ref.dayNames,
+    startDayOfWeek = _ref.startDayOfWeek,
+    workweek = _ref.workweek;
   var dayIndices = view_month_toConsumableArray(Array(7)).map(function (_, i) {
     return (startDayOfWeek + i) % 7;
   });
-
   var monthDayNames = dayIndices.map(function (i) {
     return {
       day: i,
@@ -25854,41 +24923,36 @@ function getMonthDayNames(options) {
     return workweek ? !isWeekend(dayNameInfo.day) : true;
   });
 }
-
 function Month() {
   var options = useStore(optionsSelector);
-
   var _useStore = useStore(viewSelector),
-      renderDate = _useStore.renderDate;
-
+    renderDate = _useStore.renderDate;
   var dayNames = getMonthDayNames(options);
   var monthOptions = options.month;
   var narrowWeekend = monthOptions.narrowWeekend,
-      startDayOfWeek = monthOptions.startDayOfWeek,
-      workweek = monthOptions.workweek;
-  var dateMatrix = F(function () {
+    startDayOfWeek = monthOptions.startDayOfWeek,
+    workweek = monthOptions.workweek;
+  var dateMatrix = hooks_module_F(function () {
     return createDateMatrixOfMonth(renderDate, monthOptions);
   }, [monthOptions, renderDate]);
-
-  var _useMemo = F(function () {
-    return getRowStyleInfo(dayNames.length, narrowWeekend, startDayOfWeek, workweek);
-  }, [dayNames.length, narrowWeekend, startDayOfWeek, workweek]),
-      rowStyleInfo = _useMemo.rowStyleInfo,
-      cellWidthMap = _useMemo.cellWidthMap;
-
+  var _useMemo = hooks_module_F(function () {
+      return getRowStyleInfo(dayNames.length, narrowWeekend, startDayOfWeek, workweek);
+    }, [dayNames.length, narrowWeekend, startDayOfWeek, workweek]),
+    rowStyleInfo = _useMemo.rowStyleInfo,
+    cellWidthMap = _useMemo.cellWidthMap;
   var rowInfo = rowStyleInfo.map(function (cellStyleInfo, index) {
     return month_objectSpread(month_objectSpread({}, cellStyleInfo), {}, {
       date: dateMatrix[0][index]
     });
   });
-  return h(Layout, {
+  return y(Layout, {
     className: cls('month')
-  }, h(GridHeader, {
+  }, y(GridHeader, {
     type: "month",
     dayNames: dayNames,
     options: monthOptions,
     rowStyleInfo: rowStyleInfo
-  }), h(DayGridMonth, {
+  }), y(DayGridMonth, {
     dateMatrix: dateMatrix,
     rowInfo: rowInfo,
     cellWidthMap: cellWidthMap
@@ -25911,20 +24975,12 @@ function Month() {
 
 
 
-
 function view_week_slicedToArray(arr, i) { return view_week_arrayWithHoles(arr) || view_week_iterableToArrayLimit(arr, i) || view_week_unsupportedIterableToArray(arr, i) || view_week_nonIterableRest(); }
-
 function view_week_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function view_week_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return view_week_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return view_week_arrayLikeToArray(o, minLen); }
-
-function view_week_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function view_week_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function view_week_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function view_week_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function view_week_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-
 
 
 
@@ -25952,15 +25008,12 @@ function view_week_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 function useWeekViewState() {
   var options = useStore(optionsSelector);
   var calendar = useStore(calendarSelector);
-
   var _useStore = useStore(weekViewLayoutSelector),
-      gridRowLayout = _useStore.dayGridRows,
-      lastPanelType = _useStore.lastPanelType;
-
+    gridRowLayout = _useStore.dayGridRows,
+    lastPanelType = _useStore.lastPanelType;
   var _useStore2 = useStore(viewSelector),
-      renderDate = _useStore2.renderDate;
-
-  return F(function () {
+    renderDate = _useStore2.renderDate;
+  return hooks_module_F(function () {
     return {
       options: options,
       calendar: calendar,
@@ -25970,60 +25023,51 @@ function useWeekViewState() {
     };
   }, [calendar, gridRowLayout, lastPanelType, options, renderDate]);
 }
-
 function Week() {
   var _options$week$dayName, _options$week;
-
   var _useWeekViewState = useWeekViewState(),
-      options = _useWeekViewState.options,
-      calendar = _useWeekViewState.calendar,
-      gridRowLayout = _useWeekViewState.gridRowLayout,
-      lastPanelType = _useWeekViewState.lastPanelType,
-      renderDate = _useWeekViewState.renderDate;
-
+    options = _useWeekViewState.options,
+    calendar = _useWeekViewState.calendar,
+    gridRowLayout = _useWeekViewState.gridRowLayout,
+    lastPanelType = _useWeekViewState.lastPanelType,
+    renderDate = _useWeekViewState.renderDate;
   var gridHeaderMarginLeft = useTheme(hooks_module_T(function (theme) {
     return theme.week.dayGridLeft.width;
   }, []));
   var primaryTimezoneName = useStore(primaryTimezoneSelector);
-
   var _useDOMNode = useDOMNode(),
-      _useDOMNode2 = view_week_slicedToArray(_useDOMNode, 2),
-      timePanel = _useDOMNode2[0],
-      setTimePanelRef = _useDOMNode2[1];
-
+    _useDOMNode2 = view_week_slicedToArray(_useDOMNode, 2),
+    timePanel = _useDOMNode2[0],
+    setTimePanelRef = _useDOMNode2[1];
   var weekOptions = options.week;
   var narrowWeekend = weekOptions.narrowWeekend,
-      startDayOfWeek = weekOptions.startDayOfWeek,
-      workweek = weekOptions.workweek,
-      hourStart = weekOptions.hourStart,
-      hourEnd = weekOptions.hourEnd,
-      eventView = weekOptions.eventView,
-      taskView = weekOptions.taskView;
-  var weekDates = F(function () {
+    startDayOfWeek = weekOptions.startDayOfWeek,
+    workweek = weekOptions.workweek,
+    hourStart = weekOptions.hourStart,
+    hourEnd = weekOptions.hourEnd,
+    eventView = weekOptions.eventView,
+    taskView = weekOptions.taskView;
+  var weekDates = hooks_module_F(function () {
     return getWeekDates(renderDate, weekOptions);
   }, [renderDate, weekOptions]);
   var dayNames = getDayNames(weekDates, (_options$week$dayName = (_options$week = options.week) === null || _options$week === void 0 ? void 0 : _options$week.dayNames) !== null && _options$week$dayName !== void 0 ? _options$week$dayName : []);
-
   var _getRowStyleInfo = getRowStyleInfo(weekDates.length, narrowWeekend, startDayOfWeek, workweek),
-      rowStyleInfo = _getRowStyleInfo.rowStyleInfo,
-      cellWidthMap = _getRowStyleInfo.cellWidthMap;
-
+    rowStyleInfo = _getRowStyleInfo.rowStyleInfo,
+    cellWidthMap = _getRowStyleInfo.cellWidthMap;
   var calendarData = useCalendarData(calendar, options.eventFilter);
-  var eventByPanel = F(function () {
+  var eventByPanel = hooks_module_F(function () {
     var getFilterRange = function getFilterRange() {
       if (primaryTimezoneName === 'Local') {
         return [toStartOfDay(first(weekDates)), toEndOfDay(last(weekDates))];
-      } // NOTE: Extend filter range because of timezone offset differences
+      }
 
-
+      // NOTE: Extend filter range because of timezone offset differences
       return [toStartOfDay(addDate(first(weekDates), -1)), toEndOfDay(addDate(last(weekDates), 1))];
     };
-
     var _getFilterRange = getFilterRange(),
-        _getFilterRange2 = view_week_slicedToArray(_getFilterRange, 2),
-        weekStartDate = _getFilterRange2[0],
-        weekEndDate = _getFilterRange2[1];
-
+      _getFilterRange2 = view_week_slicedToArray(_getFilterRange, 2),
+      weekStartDate = _getFilterRange2[0],
+      weekEndDate = _getFilterRange2[1];
     return getWeekViewEvents(weekDates, calendarData, {
       narrowWeekend: narrowWeekend,
       hourStart: hourStart,
@@ -26032,7 +25076,7 @@ function Week() {
       weekEndDate: weekEndDate
     });
   }, [calendarData, hourEnd, hourStart, narrowWeekend, primaryTimezoneName, weekDates]);
-  var timeGridData = F(function () {
+  var timeGridData = hooks_module_F(function () {
     return createTimeGridData(weekDates, {
       hourStart: hourStart,
       hourEnd: hourEnd,
@@ -26042,24 +25086,22 @@ function Week() {
   var activePanels = getActivePanels(taskView, eventView);
   var dayGridRows = activePanels.map(function (key) {
     var _gridRowLayout$rowTyp, _gridRowLayout$rowTyp2;
-
     if (key === 'time') {
       return null;
     }
-
     var rowType = key;
-    return h(Panel, {
+    return y(Panel, {
       name: rowType,
       key: rowType,
       resizable: rowType !== lastPanelType
-    }, rowType === 'allday' ? h(AlldayGridRow, {
+    }, rowType === 'allday' ? y(AlldayGridRow, {
       events: eventByPanel[rowType],
       rowStyleInfo: rowStyleInfo,
       gridColWidthMap: cellWidthMap,
       weekDates: weekDates,
       height: (_gridRowLayout$rowTyp = gridRowLayout[rowType]) === null || _gridRowLayout$rowTyp === void 0 ? void 0 : _gridRowLayout$rowTyp.height,
       options: weekOptions
-    }) : h(OtherGridRow, {
+    }) : y(OtherGridRow, {
       category: rowType,
       events: eventByPanel[rowType],
       weekDates: weekDates,
@@ -26068,31 +25110,31 @@ function Week() {
       gridColWidthMap: cellWidthMap
     }));
   });
-  var hasTimePanel = F(function () {
+  var hasTimePanel = hooks_module_F(function () {
     return activePanels.includes('time');
   }, [activePanels]);
   useTimeGridScrollSync(timePanel, timeGridData.rows.length);
   var stickyTop = useTimezoneLabelsTop(timePanel);
-  return h(Layout, {
+  return y(Layout, {
     className: cls('week-view'),
     autoAdjustPanels: true
-  }, h(Panel, {
+  }, y(Panel, {
     name: "week-view-day-names",
     initialHeight: WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER * 2
-  }, h(GridHeader, {
+  }, y(GridHeader, {
     type: "week",
     dayNames: dayNames,
     marginLeft: gridHeaderMarginLeft,
     options: weekOptions,
     rowStyleInfo: rowStyleInfo
-  })), dayGridRows, hasTimePanel ? h(Panel, {
+  })), dayGridRows, hasTimePanel ? y(Panel, {
     name: "time",
     autoSize: 1,
     ref: setTimePanelRef
-  }, h(TimeGrid, {
+  }, y(TimeGrid, {
     events: eventByPanel.time,
     timeGridData: timeGridData
-  }), h(TimezoneLabels, {
+  }), y(TimezoneLabels, {
     top: stickyTop
   })) : null);
 }
@@ -26111,17 +25153,16 @@ var views = {
 };
 function Main() {
   var _useStore = useStore(viewSelector),
-      currentView = _useStore.currentView;
-
-  var CurrentViewComponent = F(function () {
+    currentView = _useStore.currentView;
+  var CurrentViewComponent = hooks_module_F(function () {
     return views[currentView] || function () {
       return null;
     };
   }, [currentView]);
-  return h(CurrentViewComponent, null);
+  return y(CurrentViewComponent, null);
 }
 ;// CONCATENATED MODULE: ../../node_modules/preact-render-to-string/dist/index.mjs
-var dist_r=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|^--/i,dist_n=/[&<>"]/;function dist_o(e){var t=String(e);return dist_n.test(t)?t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"):t}var dist_a=function(e,t){return String(e).replace(/(\n+)/g,"$1"+(t||"\t"))},dist_i=function(e,t,r){return String(e).length>(t||40)||!r&&-1!==String(e).indexOf("\n")||-1!==String(e).indexOf("<")},dist_l={};function dist_s(e){var t="";for(var n in e){var o=e[n];null!=o&&""!==o&&(t&&(t+=" "),t+="-"==n[0]?n:dist_l[n]||(dist_l[n]=n.replace(/([A-Z])/g,"-$1").toLowerCase()),t+=": ",t+=o,"number"==typeof o&&!1===dist_r.test(n)&&(t+="px"),t+=";")}return t||void 0}function dist_f(e,t){for(var r in t)e[r]=t[r];return e}function dist_u(e,t){return Array.isArray(t)?t.reduce(dist_u,e):null!=t&&!1!==t&&e.push(t),e}var dist_c={shallow:!0},dist_p=[],dist_=/^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/,dist_d=/[\s\n\\/='"\0<>]/;function dist_v(){this.__d=!0}dist_m.render=dist_m;var dist_g=function(e,t){return dist_m(e,t,dist_c)},dist_h=[];function dist_m(t,r,n){r=r||{},n=n||{};var o=preact_module_l.__s;preact_module_l.__s=!0;var a=dist_x(t,r,n);return preact_module_l.__c&&preact_module_l.__c(t,dist_h),dist_h.length=0,preact_module_l.__s=o,a}function dist_x(r,n,l,c,g,h){if(null==r||"boolean"==typeof r)return"";if("object"!=typeof r)return dist_o(r);var m=l.pretty,y=m&&"string"==typeof m?m:"\t";if(Array.isArray(r)){for(var b="",S=0;S<r.length;S++)m&&S>0&&(b+="\n"),b+=dist_x(r[S],n,l,c,g,h);return b}var k,w=r.type,O=r.props,C=!1;if("function"==typeof w){if(C=!0,!l.shallow||!c&&!1!==l.renderRootComponent){if(w===p){var A=[];return dist_u(A,r.props.children),dist_x(A,n,l,!1!==l.shallowHighOrder,g,h)}var H,j=r.__c={__v:r,context:n,props:r.props,setState:dist_v,forceUpdate:dist_v,__d:!0,__h:[]};preact_module_l.__b&&preact_module_l.__b(r);var F=preact_module_l.__r;if(w.prototype&&"function"==typeof w.prototype.render){var M=w.contextType,T=M&&n[M.__c],$=null!=M?T?T.props.value:M.__:n;(j=r.__c=new w(O,$)).__v=r,j._dirty=j.__d=!0,j.props=O,null==j.state&&(j.state={}),null==j._nextState&&null==j.__s&&(j._nextState=j.__s=j.state),j.context=$,w.getDerivedStateFromProps?j.state=dist_f(dist_f({},j.state),w.getDerivedStateFromProps(j.props,j.state)):j.componentWillMount&&(j.componentWillMount(),j.state=j._nextState!==j.state?j._nextState:j.__s!==j.state?j.__s:j.state),F&&F(r),H=j.render(j.props,j.state,j.context)}else for(var L=w.contextType,E=L&&n[L.__c],D=null!=L?E?E.props.value:L.__:n,N=0;j.__d&&N++<25;)j.__d=!1,F&&F(r),H=w.call(r.__c,O,D);return j.getChildContext&&(n=dist_f(dist_f({},n),j.getChildContext())),preact_module_l.diffed&&preact_module_l.diffed(r),dist_x(H,n,l,!1!==l.shallowHighOrder,g,h)}w=(k=w).displayName||k!==Function&&k.name||function(e){var t=(Function.prototype.toString.call(e).match(/^\s*function\s+([^( ]+)/)||"")[1];if(!t){for(var r=-1,n=dist_p.length;n--;)if(dist_p[n]===e){r=n;break}r<0&&(r=dist_p.push(e)-1),t="UnnamedComponent"+r}return t}(k)}var P,R,U="<"+w;if(O){var W=Object.keys(O);l&&!0===l.sortAttributes&&W.sort();for(var q=0;q<W.length;q++){var z=W[q],I=O[z];if("children"!==z){if(!dist_d.test(z)&&(l&&l.allAttributes||"key"!==z&&"ref"!==z&&"__self"!==z&&"__source"!==z)){if("defaultValue"===z)z="value";else if("defaultChecked"===z)z="checked";else if("defaultSelected"===z)z="selected";else if("className"===z){if(void 0!==O.class)continue;z="class"}else g&&/^xlink:?./.test(z)&&(z=z.toLowerCase().replace(/^xlink:?/,"xlink:"));if("htmlFor"===z){if(O.for)continue;z="for"}"style"===z&&I&&"object"==typeof I&&(I=dist_s(I)),"a"===z[0]&&"r"===z[1]&&"boolean"==typeof I&&(I=String(I));var V=l.attributeHook&&l.attributeHook(z,I,n,l,C);if(V||""===V)U+=V;else if("dangerouslySetInnerHTML"===z)R=I&&I.__html;else if("textarea"===w&&"value"===z)P=I;else if((I||0===I||""===I)&&"function"!=typeof I){if(!(!0!==I&&""!==I||(I=z,l&&l.xml))){U=U+" "+z;continue}if("value"===z){if("select"===w){h=I;continue}"option"===w&&h==I&&void 0===O.selected&&(U+=" selected")}U=U+" "+z+'="'+dist_o(I)+'"'}}}else P=I}}if(m){var Z=U.replace(/\n\s*/," ");Z===U||~Z.indexOf("\n")?m&&~U.indexOf("\n")&&(U+="\n"):U=Z}if(U+=">",dist_d.test(w))throw new Error(w+" is not a valid HTML tag name in "+U);var B,G=dist_.test(w)||l.voidElements&&l.voidElements.test(w),J=[];if(R)m&&dist_i(R)&&(R="\n"+y+dist_a(R,y)),U+=R;else if(null!=P&&dist_u(B=[],P).length){for(var K=m&&~U.indexOf("\n"),Q=!1,X=0;X<B.length;X++){var Y=B[X];if(null!=Y&&!1!==Y){var ee=dist_x(Y,n,l,!0,"svg"===w||"foreignObject"!==w&&g,h);if(m&&!K&&dist_i(ee)&&(K=!0),ee)if(m){var te=ee.length>0&&"<"!=ee[0];Q&&te?J[J.length-1]+=ee:J.push(ee),Q=te}else J.push(ee)}}if(m&&K)for(var re=J.length;re--;)J[re]="\n"+y+dist_a(J[re],y)}if(J.length||R)U+=J.join("");else if(l&&l.xml)return U.substring(0,U.length-1)+" />";return!G||B||R?(m&&~U.indexOf("\n")&&(U+="\n"),U=U+"</"+w+">"):U=U.replace(/>$/," />"),U}dist_m.shallowRender=dist_g;/* harmony default export */ var dist = (dist_m);
+var dist_n=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|^--/i,dist_o=/^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/,dist_i=/[\s\n\\/='"\0<>]/,dist_l=/^xlink:?./,dist_a=/["&<]/;function dist_s(e){if(!1===dist_a.test(e+=""))return e;for(var t=0,r=0,n="",o="";r<e.length;r++){switch(e.charCodeAt(r)){case 34:o="&quot;";break;case 38:o="&amp;";break;case 60:o="&lt;";break;default:continue}r!==t&&(n+=e.slice(t,r)),n+=o,t=r+1}return r!==t&&(n+=e.slice(t,r)),n}var dist_f=function(e,t){return String(e).replace(/(\n+)/g,"$1"+(t||"\t"))},dist_u=function(e,t,r){return String(e).length>(t||40)||!r&&-1!==String(e).indexOf("\n")||-1!==String(e).indexOf("<")},dist_c={},dist_=/([A-Z])/g;function dist_p(e){var t="";for(var r in e){var o=e[r];null!=o&&""!==o&&(t&&(t+=" "),t+="-"==r[0]?r:dist_c[r]||(dist_c[r]=r.replace(dist_,"-$1").toLowerCase()),t="number"==typeof o&&!1===dist_n.test(r)?t+": "+o+"px;":t+": "+o+";")}return t||void 0}function dist_d(e,t){return Array.isArray(t)?t.reduce(dist_d,e):null!=t&&!1!==t&&e.push(t),e}function dist_v(){this.__d=!0}function dist_h(e,t){return{__v:e,context:t,props:e.props,setState:dist_v,forceUpdate:dist_v,__d:!0,__h:[]}}function dist_g(e,t){var r=e.contextType,n=r&&t[r.__c];return null!=r?n?n.props.value:r.__:t}var dist_y=[];function dist_m(r,n,a,c,_,v){if(null==r||"boolean"==typeof r)return"";if("object"!=typeof r)return"function"==typeof r?"":dist_s(r);var b=a.pretty,x=b&&"string"==typeof b?b:"\t";if(Array.isArray(r)){for(var k="",S=0;S<r.length;S++)b&&S>0&&(k+="\n"),k+=dist_m(r[S],n,a,c,_,v);return k}if(void 0!==r.constructor)return"";var w,C=r.type,O=r.props,j=!1;if("function"==typeof C){if(j=!0,!a.shallow||!c&&!1!==a.renderRootComponent){if(C===preact_module_){var A=[];return dist_d(A,r.props.children),dist_m(A,n,a,!1!==a.shallowHighOrder,_,v)}var F,H=r.__c=dist_h(r,n);preact_module_l.__b&&preact_module_l.__b(r);var M=preact_module_l.__r;if(C.prototype&&"function"==typeof C.prototype.render){var L=dist_g(C,n);(H=r.__c=new C(O,L)).__v=r,H._dirty=H.__d=!0,H.props=O,null==H.state&&(H.state={}),null==H._nextState&&null==H.__s&&(H._nextState=H.__s=H.state),H.context=L,C.getDerivedStateFromProps?H.state=Object.assign({},H.state,C.getDerivedStateFromProps(H.props,H.state)):H.componentWillMount&&(H.componentWillMount(),H.state=H._nextState!==H.state?H._nextState:H.__s!==H.state?H.__s:H.state),M&&M(r),F=H.render(H.props,H.state,H.context)}else for(var T=dist_g(C,n),E=0;H.__d&&E++<25;)H.__d=!1,M&&M(r),F=C.call(r.__c,O,T);return H.getChildContext&&(n=Object.assign({},n,H.getChildContext())),preact_module_l.diffed&&preact_module_l.diffed(r),dist_m(F,n,a,!1!==a.shallowHighOrder,_,v)}C=(w=C).displayName||w!==Function&&w.name||function(e){var t=(Function.prototype.toString.call(e).match(/^\s*function\s+([^( ]+)/)||"")[1];if(!t){for(var r=-1,n=dist_y.length;n--;)if(dist_y[n]===e){r=n;break}r<0&&(r=dist_y.push(e)-1),t="UnnamedComponent"+r}return t}(w)}var $,D,N="<"+C;if(O){var P=Object.keys(O);a&&!0===a.sortAttributes&&P.sort();for(var W=0;W<P.length;W++){var I=P[W],R=O[I];if("children"!==I){if(!dist_i.test(I)&&(a&&a.allAttributes||"key"!==I&&"ref"!==I&&"__self"!==I&&"__source"!==I)){if("defaultValue"===I)I="value";else if("defaultChecked"===I)I="checked";else if("defaultSelected"===I)I="selected";else if("className"===I){if(void 0!==O.class)continue;I="class"}else _&&dist_l.test(I)&&(I=I.toLowerCase().replace(/^xlink:?/,"xlink:"));if("htmlFor"===I){if(O.for)continue;I="for"}"style"===I&&R&&"object"==typeof R&&(R=dist_p(R)),"a"===I[0]&&"r"===I[1]&&"boolean"==typeof R&&(R=String(R));var U=a.attributeHook&&a.attributeHook(I,R,n,a,j);if(U||""===U)N+=U;else if("dangerouslySetInnerHTML"===I)D=R&&R.__html;else if("textarea"===C&&"value"===I)$=R;else if((R||0===R||""===R)&&"function"!=typeof R){if(!(!0!==R&&""!==R||(R=I,a&&a.xml))){N=N+" "+I;continue}if("value"===I){if("select"===C){v=R;continue}"option"===C&&v==R&&void 0===O.selected&&(N+=" selected")}N=N+" "+I+'="'+dist_s(R)+'"'}}}else $=R}}if(b){var V=N.replace(/\n\s*/," ");V===N||~V.indexOf("\n")?b&&~N.indexOf("\n")&&(N+="\n"):N=V}if(N+=">",dist_i.test(C))throw new Error(C+" is not a valid HTML tag name in "+N);var q,z=dist_o.test(C)||a.voidElements&&a.voidElements.test(C),Z=[];if(D)b&&dist_u(D)&&(D="\n"+x+dist_f(D,x)),N+=D;else if(null!=$&&dist_d(q=[],$).length){for(var B=b&&~N.indexOf("\n"),G=!1,J=0;J<q.length;J++){var K=q[J];if(null!=K&&!1!==K){var Q=dist_m(K,n,a,!0,"svg"===C||"foreignObject"!==C&&_,v);if(b&&!B&&dist_u(Q)&&(B=!0),Q)if(b){var X=Q.length>0&&"<"!=Q[0];G&&X?Z[Z.length-1]+=Q:Z.push(Q),G=X}else Z.push(Q)}}if(b&&B)for(var Y=Z.length;Y--;)Z[Y]="\n"+x+dist_f(Z[Y],x)}if(Z.length||D)N+=Z.join("");else if(a&&a.xml)return N.substring(0,N.length-1)+" />";return!z||q||D?(b&&~N.indexOf("\n")&&(N+="\n"),N=N+"</"+C+">"):N=N.replace(/>$/," />"),N}var dist_b={shallow:!0};dist_S.render=dist_S;var dist_x=function(e,t){return dist_S(e,t,dist_b)},dist_k=[];function dist_S(n,o,i){o=o||{};var l=preact_module_l.__s;preact_module_l.__s=!0;var a,s=y(preact_module_,null);return s.__k=[n],a=i&&(i.pretty||i.voidElements||i.sortAttributes||i.shallow||i.allAttributes||i.xml||i.attributeHook)?dist_m(n,o,i):dist_F(n,o,!1,void 0,s),preact_module_l.__c&&preact_module_l.__c(n,dist_k),preact_module_l.__s=l,dist_k.length=0,a}function dist_w(e){return null==e||"boolean"==typeof e?null:"string"==typeof e||"number"==typeof e||"bigint"==typeof e?y(null,null,e):e}function dist_C(e,t){return"className"===e?"class":"htmlFor"===e?"for":"defaultValue"===e?"value":"defaultChecked"===e?"checked":"defaultSelected"===e?"selected":t&&dist_l.test(e)?e.toLowerCase().replace(/^xlink:?/,"xlink:"):e}function dist_O(e,t){return"style"===e&&null!=t&&"object"==typeof t?dist_p(t):"a"===e[0]&&"r"===e[1]&&"boolean"==typeof t?String(t):t}var dist_j=Array.isArray,dist_A=Object.assign;function dist_F(r,n,l,a,f){if(null==r||!0===r||!1===r||""===r)return"";if("object"!=typeof r)return"function"==typeof r?"":dist_s(r);if(dist_j(r)){var u="";f.__k=r;for(var c=0;c<r.length;c++)u+=dist_F(r[c],n,l,a,f),r[c]=dist_w(r[c]);return u}if(void 0!==r.constructor)return"";r.__=f,preact_module_l.__b&&preact_module_l.__b(r);var _=r.type,p=r.props;if("function"==typeof _){var d;if(_===preact_module_)d=p.children;else{d=_.prototype&&"function"==typeof _.prototype.render?function(e,r){var n=e.type,o=dist_g(n,r),i=new n(e.props,o);e.__c=i,i.__v=e,i.__d=!0,i.props=e.props,null==i.state&&(i.state={}),null==i.__s&&(i.__s=i.state),i.context=o,n.getDerivedStateFromProps?i.state=dist_A({},i.state,n.getDerivedStateFromProps(i.props,i.state)):i.componentWillMount&&(i.componentWillMount(),i.state=i.__s!==i.state?i.__s:i.state);var l=preact_module_l.__r;return l&&l(e),i.render(i.props,i.state,i.context)}(r,n):function(e,r){var n,o=dist_h(e,r),i=dist_g(e.type,r);e.__c=o;for(var l=preact_module_l.__r,a=0;o.__d&&a++<25;)o.__d=!1,l&&l(e),n=e.type.call(o,e.props,i);return n}(r,n);var v=r.__c;v.getChildContext&&(n=dist_A({},n,v.getChildContext()))}var y=dist_F(d=null!=d&&d.type===preact_module_&&null==d.key?d.props.children:d,n,l,a,r);return preact_module_l.diffed&&preact_module_l.diffed(r),r.__=void 0,preact_module_l.unmount&&preact_module_l.unmount(r),y}var m,b,x="<";if(x+=_,p)for(var k in m=p.children,p){var S=p[k];if(!("key"===k||"ref"===k||"__self"===k||"__source"===k||"children"===k||"className"===k&&"class"in p||"htmlFor"===k&&"for"in p||dist_i.test(k)))if(S=dist_O(k=dist_C(k,l),S),"dangerouslySetInnerHTML"===k)b=S&&S.__html;else if("textarea"===_&&"value"===k)m=S;else if((S||0===S||""===S)&&"function"!=typeof S){if(!0===S||""===S){S=k,x=x+" "+k;continue}if("value"===k){if("select"===_){a=S;continue}"option"!==_||a!=S||"selected"in p||(x+=" selected")}x=x+" "+k+'="'+dist_s(S)+'"'}}var H=x;if(x+=">",dist_i.test(_))throw new Error(_+" is not a valid HTML tag name in "+x);var M="",L=!1;if(b)M+=b,L=!0;else if("string"==typeof m)M+=dist_s(m),L=!0;else if(dist_j(m)){r.__k=m;for(var T=0;T<m.length;T++){var E=m[T];if(m[T]=dist_w(E),null!=E&&!1!==E){var $=dist_F(E,n,"svg"===_||"foreignObject"!==_&&l,a,r);$&&(M+=$,L=!0)}}}else if(null!=m&&!1!==m&&!0!==m){r.__k=[dist_w(m)];var D=dist_F(m,n,"svg"===_||"foreignObject"!==_&&l,a,r);D&&(M+=D,L=!0)}if(preact_module_l.diffed&&preact_module_l.diffed(r),r.__=void 0,preact_module_l.unmount&&preact_module_l.unmount(r),L)x+=M;else if(dist_o.test(_))return H+" />";return x+"</"+_+">"}dist_S.shallowRender=dist_x;/* harmony default export */ var dist = (dist_S);
 //# sourceMappingURL=index.module.js.map
 
 // EXTERNAL MODULE: ../../node_modules/tui-code-snippet/request/sendHostname.js
@@ -26135,16 +25176,16 @@ var sendHostname_default = /*#__PURE__*/__webpack_require__.n(sendHostname);
 
 function CalendarContainer(_ref) {
   var theme = _ref.theme,
-      store = _ref.store,
-      eventBus = _ref.eventBus,
-      children = _ref.children;
-  return h(EventBusProvider, {
+    store = _ref.store,
+    eventBus = _ref.eventBus,
+    children = _ref.children;
+  return y(EventBusProvider, {
     value: eventBus
-  }, h(ThemeProvider, {
+  }, y(ThemeProvider, {
     store: theme
-  }, h(StoreProvider, {
+  }, y(StoreProvider, {
     store: store
-  }, h(FloatingLayerProvider, null, children))));
+  }, y(FloatingLayerProvider, null, children))));
 }
 ;// CONCATENATED MODULE: ./src/constants/statistics.ts
 var GA_TRACKING_ID = 'UA-129951699-1';
@@ -26171,78 +25212,58 @@ function eventBus_typeof(obj) { "@babel/helpers - typeof"; return eventBus_typeo
 
 
 
+
 function eventBus_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function eventBus_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function eventBus_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, eventBus_toPropertyKey(descriptor.key), descriptor); } }
 function eventBus_createClass(Constructor, protoProps, staticProps) { if (protoProps) eventBus_defineProperties(Constructor.prototype, protoProps); if (staticProps) eventBus_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function eventBus_toPropertyKey(arg) { var key = eventBus_toPrimitive(arg, "string"); return eventBus_typeof(key) === "symbol" ? key : String(key); }
+function eventBus_toPrimitive(input, hint) { if (eventBus_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (eventBus_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
-
 function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = eventBus_getPrototypeOf(object); if (object === null) break; } return object; }
-
 function eventBus_inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) eventBus_setPrototypeOf(subClass, superClass); }
-
 function eventBus_setPrototypeOf(o, p) { eventBus_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return eventBus_setPrototypeOf(o, p); }
-
 function eventBus_createSuper(Derived) { var hasNativeReflectConstruct = eventBus_isNativeReflectConstruct(); return function _createSuperInternal() { var Super = eventBus_getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = eventBus_getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return eventBus_possibleConstructorReturn(this, result); }; }
-
 function eventBus_possibleConstructorReturn(self, call) { if (call && (eventBus_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return eventBus_assertThisInitialized(self); }
-
 function eventBus_assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function eventBus_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function eventBus_getPrototypeOf(o) { eventBus_getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return eventBus_getPrototypeOf(o); }
-
 
 var EventBusImpl = /*#__PURE__*/function (_CustomEvents) {
   eventBus_inherits(EventBusImpl, _CustomEvents);
-
   var _super = eventBus_createSuper(EventBusImpl);
-
   function EventBusImpl() {
     eventBus_classCallCheck(this, EventBusImpl);
-
     return _super.apply(this, arguments);
   }
-
   eventBus_createClass(EventBusImpl, [{
     key: "on",
     value: function on(eventName, handler) {
       _get(eventBus_getPrototypeOf(EventBusImpl.prototype), "on", this).call(this, eventName, handler);
-
       return this;
     }
   }, {
     key: "off",
     value: function off(eventName, handler) {
       _get(eventBus_getPrototypeOf(EventBusImpl.prototype), "off", this).call(this, eventName, handler);
-
       return this;
     }
   }, {
     key: "fire",
     value: function fire(eventName) {
       var _get2;
-
       for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
       }
-
       (_get2 = _get(eventBus_getPrototypeOf(EventBusImpl.prototype), "fire", this)).call.apply(_get2, [this, eventName].concat(args));
-
       return this;
     }
   }, {
     key: "once",
     value: function once(eventName, handler) {
       _get(eventBus_getPrototypeOf(EventBusImpl.prototype), "once", this).call(this, eventName, handler);
-
       return this;
     }
   }]);
-
   return EventBusImpl;
 }((customEvents_default()));
 ;// CONCATENATED MODULE: ./src/factory/calendarCore.tsx
@@ -26260,45 +25281,34 @@ var EventBusImpl = /*#__PURE__*/function (_CustomEvents) {
 
 
 
-
-
-
 var calendarCore_excluded = ["dispatch"],
-    _excluded2 = ["theme", "template"];
-
+  _excluded2 = ["theme", "template"];
+function calendarCore_typeof(obj) { "@babel/helpers - typeof"; return calendarCore_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, calendarCore_typeof(obj); }
 function calendarCore_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
 function calendarCore_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? calendarCore_ownKeys(Object(source), !0).forEach(function (key) { calendarCore_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : calendarCore_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function calendarCore_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function calendarCore_defineProperty(obj, key, value) { key = calendarCore_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 function calendarCore_objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = calendarCore_objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
-
 function calendarCore_objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 
 
 
 
+
+
+
+
 function calendarCore_slicedToArray(arr, i) { return calendarCore_arrayWithHoles(arr) || calendarCore_iterableToArrayLimit(arr, i) || calendarCore_unsupportedIterableToArray(arr, i) || calendarCore_nonIterableRest(); }
-
 function calendarCore_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
 function calendarCore_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return calendarCore_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return calendarCore_arrayLikeToArray(o, minLen); }
-
-function calendarCore_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function calendarCore_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
+function calendarCore_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function calendarCore_iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
 function calendarCore_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
 function calendarCore_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function calendarCore_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function calendarCore_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, calendarCore_toPropertyKey(descriptor.key), descriptor); } }
 function calendarCore_createClass(Constructor, protoProps, staticProps) { if (protoProps) calendarCore_defineProperties(Constructor.prototype, protoProps); if (staticProps) calendarCore_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
-
+function calendarCore_toPropertyKey(arg) { var key = calendarCore_toPrimitive(arg, "string"); return calendarCore_typeof(key) === "symbol" ? key : String(key); }
+function calendarCore_toPrimitive(input, hint) { if (calendarCore_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (calendarCore_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 
 
@@ -26319,7 +25329,6 @@ function calendarCore_createClass(Constructor, protoProps, staticProps) { if (pr
  * {@link https://nhn.github.io/tui.code-snippet/latest/CustomEvents CustomEvents} document at {@link https://github.com/nhn/tui.code-snippet tui-code-snippet}
  * @typedef {CustomEvents} CustomEvents
  */
-
 /**
  * Define Calendars to group events.
  *
@@ -26331,7 +25340,6 @@ function calendarCore_createClass(Constructor, protoProps, staticProps) { if (pr
  * @property {string} backgroundColor - Background color of events.
  * @property {string} dragBackgroundColor - Background color of events during dragging.
  */
-
 /**
  * Timezone options of the calendar instance.
  *
@@ -26371,7 +25379,6 @@ function calendarCore_createClass(Constructor, protoProps, staticProps) { if (pr
  * @property {string} [zones[].tooltip] - Tooltip of the element of the display label.
  * @property {function} customOffsetCalculator - Custom offset calculator when you're not able to leverage `Intl.DateTimeFormat` API.
  */
-
 /**
  * Object to create/modify events.
  * @typedef {object} EventObject
@@ -26402,7 +25409,6 @@ function calendarCore_createClass(Constructor, protoProps, staticProps) { if (pr
  * @property {object} [customStyle] - Custom style of the event. The key of CSS property should be camelCase (e.g. {'fontSize': '12px'})
  * @property {*} [raw] - Raw data of the event. it's an arbitrary property for anything.
  */
-
 /**
  * CalendarCore class
  *
@@ -26450,26 +25456,24 @@ var CalendarCore = /*#__PURE__*/function () {
    * start and end date of weekly, monthly
    * @private
    */
+
   function CalendarCore(container) {
     var _document$querySelect, _document;
-
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
     calendarCore_classCallCheck(this, CalendarCore);
-
     // NOTE: Handling server side rendering. When container is not specified,
     this.container = isString_default()(container) ? (_document$querySelect = (_document = document) === null || _document === void 0 ? void 0 : _document.querySelector(container)) !== null && _document$querySelect !== void 0 ? _document$querySelect : null : container;
     this.theme = initThemeStore(options.theme);
     this.eventBus = new EventBusImpl();
     this.store = initCalendarStore(options);
     this.renderRange = this.calculateRenderRange(toStartOfDay());
-    addAttributeHooks(); // NOTE: To make sure the user really wants to do this. Ignore any invalid values.
+    addAttributeHooks();
 
+    // NOTE: To make sure the user really wants to do this. Ignore any invalid values.
     if (this.getStoreState().options.usageStatistics === true) {
       sendHostname_default()('calendar', GA_TRACKING_ID);
     }
   }
-
   calendarCore_createClass(CalendarCore, [{
     key: "getStoreState",
     value: function getStoreState(group) {
@@ -26482,22 +25486,20 @@ var CalendarCore = /*#__PURE__*/function () {
       var dispatchers = this.store.getState().dispatch;
       return group ? dispatchers[group] : dispatchers;
     }
+
     /**
      * Destroys the instance.
      */
-
   }, {
     key: "destroy",
     value: function destroy() {
       if (this.container) {
-        un(this.container);
+        hn(this.container);
       }
-
       this.store.clearListeners();
       this.theme.clearListeners();
       this.eventBus.off();
       removeAttributeHooks();
-
       for (var key in this) {
         if (this.hasOwnProperty(key)) {
           delete this[key];
@@ -26508,23 +25510,19 @@ var CalendarCore = /*#__PURE__*/function () {
     key: "calculateMonthRenderDate",
     value: function calculateMonthRenderDate(_ref) {
       var renderDate = _ref.renderDate,
-          offset = _ref.offset,
-          monthOptions = _ref.monthOptions;
+        offset = _ref.offset,
+        monthOptions = _ref.monthOptions;
       var newRenderDate = new date_TZDate(renderDate);
       var visibleWeeksCount = monthOptions.visibleWeeksCount;
-
       if (visibleWeeksCount > 0) {
         newRenderDate = addDate(newRenderDate, offset * 7 * visibleWeeksCount);
       } else {
         newRenderDate = addMonths(newRenderDate, offset);
       }
-
       var dateMatrix = createDateMatrixOfMonth(newRenderDate, monthOptions);
-
       var _dateMatrix = calendarCore_slicedToArray(dateMatrix, 1),
-          _dateMatrix$ = calendarCore_slicedToArray(_dateMatrix[0], 1),
-          start = _dateMatrix$[0];
-
+        _dateMatrix$ = calendarCore_slicedToArray(_dateMatrix[0], 1),
+        start = _dateMatrix$[0];
       var end = last(last(dateMatrix));
       return {
         renderDate: newRenderDate,
@@ -26538,15 +25536,13 @@ var CalendarCore = /*#__PURE__*/function () {
     key: "calculateWeekRenderDate",
     value: function calculateWeekRenderDate(_ref2) {
       var renderDate = _ref2.renderDate,
-          offset = _ref2.offset,
-          weekOptions = _ref2.weekOptions;
+        offset = _ref2.offset,
+        weekOptions = _ref2.weekOptions;
       var newRenderDate = new date_TZDate(renderDate);
       newRenderDate.addDate(offset * 7);
       var weekDates = getWeekDates(newRenderDate, weekOptions);
-
       var _weekDates = calendarCore_slicedToArray(weekDates, 1),
-          start = _weekDates[0];
-
+        start = _weekDates[0];
       var end = last(weekDates);
       return {
         renderDate: newRenderDate,
@@ -26560,7 +25556,7 @@ var CalendarCore = /*#__PURE__*/function () {
     key: "calculateDayRenderDate",
     value: function calculateDayRenderDate(_ref3) {
       var renderDate = _ref3.renderDate,
-          offset = _ref3.offset;
+        offset = _ref3.offset;
       var newRenderDate = new date_TZDate(renderDate);
       newRenderDate.addDate(offset);
       var start = toStartOfDay(newRenderDate);
@@ -26573,6 +25569,7 @@ var CalendarCore = /*#__PURE__*/function () {
         }
       };
     }
+
     /**
      * Move the rendered date to the next/prev range.
      *
@@ -26595,21 +25592,17 @@ var CalendarCore = /*#__PURE__*/function () {
      * // Move to yesterday in day view.
      * calendar.move(-1);
      */
-
   }, {
     key: "move",
     value: function move(offset) {
       if (type_isNil(offset)) {
         return;
       }
-
       var _this$getStoreState$v = this.getStoreState().view,
-          currentView = _this$getStoreState$v.currentView,
-          renderDate = _this$getStoreState$v.renderDate;
-
+        currentView = _this$getStoreState$v.currentView,
+        renderDate = _this$getStoreState$v.renderDate;
       var _this$getStoreState = this.getStoreState(),
-          options = _this$getStoreState.options;
-
+        options = _this$getStoreState.options;
       var setRenderDate = this.getStoreDispatchers().view.setRenderDate;
       var newRenderDate = new date_TZDate(renderDate);
       var calculatedRenderDate = {
@@ -26619,7 +25612,6 @@ var CalendarCore = /*#__PURE__*/function () {
           end: new date_TZDate(newRenderDate)
         }
       };
-
       if (currentView === 'month') {
         calculatedRenderDate = this.calculateMonthRenderDate({
           renderDate: renderDate,
@@ -26638,10 +25630,10 @@ var CalendarCore = /*#__PURE__*/function () {
           offset: offset
         });
       }
-
       setRenderDate(calculatedRenderDate.renderDate);
       this.renderRange = calculatedRenderDate.renderRange;
     }
+
     /**********
      * CRUD Methods
      **********/
@@ -26671,27 +25663,25 @@ var CalendarCore = /*#__PURE__*/function () {
      *   },
      * ]);
      */
-
   }, {
     key: "createEvents",
     value: function createEvents(events) {
       var _this$getStoreDispatc = this.getStoreDispatchers('calendar'),
-          createEvents = _this$getStoreDispatc.createEvents;
-
+        createEvents = _this$getStoreDispatc.createEvents;
       createEvents(events);
     }
   }, {
     key: "getEventModel",
     value: function getEventModel(eventId, calendarId) {
       var _this$getStoreState2 = this.getStoreState('calendar'),
-          events = _this$getStoreState2.events;
-
+        events = _this$getStoreState2.events;
       return events.find(function (_ref4) {
         var id = _ref4.id,
-            eventCalendarId = _ref4.calendarId;
+          eventCalendarId = _ref4.calendarId;
         return id === eventId && eventCalendarId === calendarId;
       });
     }
+
     /**
      * Get an {@link EventObject} with event's id and calendar's id.
      *
@@ -26704,14 +25694,13 @@ var CalendarCore = /*#__PURE__*/function () {
      *
      * console.log(event.title);
      */
-
   }, {
     key: "getEvent",
     value: function getEvent(eventId, calendarId) {
       var _this$getEventModel$t, _this$getEventModel;
-
       return (_this$getEventModel$t = (_this$getEventModel = this.getEventModel(eventId, calendarId)) === null || _this$getEventModel === void 0 ? void 0 : _this$getEventModel.toEventObject()) !== null && _this$getEventModel$t !== void 0 ? _this$getEventModel$t : null;
     }
+
     /**
      * Update an event.
      *
@@ -26726,15 +25715,12 @@ var CalendarCore = /*#__PURE__*/function () {
      *   calendar.updateEvent(id, calendarId, changes);
      * });
      */
-
   }, {
     key: "updateEvent",
     value: function updateEvent(eventId, calendarId, changes) {
       var _this$getStoreDispatc2 = this.getStoreDispatchers('calendar'),
-          updateEvent = _this$getStoreDispatc2.updateEvent;
-
+        updateEvent = _this$getStoreDispatc2.updateEvent;
       var event = this.getEventModel(eventId, calendarId);
-
       if (event) {
         updateEvent({
           event: event,
@@ -26742,25 +25728,24 @@ var CalendarCore = /*#__PURE__*/function () {
         });
       }
     }
+
     /**
      * Delete an event.
      *
      * @param {string} eventId - event's id to delete
      * @param {string} calendarId - The CalendarId of the event to delete
      */
-
   }, {
     key: "deleteEvent",
     value: function deleteEvent(eventId, calendarId) {
       var _this$getStoreDispatc3 = this.getStoreDispatchers('calendar'),
-          deleteEvent = _this$getStoreDispatc3.deleteEvent;
-
+        deleteEvent = _this$getStoreDispatc3.deleteEvent;
       var event = this.getEventModel(eventId, calendarId);
-
       if (event) {
         deleteEvent(event);
       }
     }
+
     /**********
      * General Methods
      **********/
@@ -26771,16 +25756,15 @@ var CalendarCore = /*#__PURE__*/function () {
      * @param {string|Array.<string>} calendarId - The calendar id or ids to change visibility
      * @param {boolean} isVisible - If set to true, show the events. If set to false, hide the events.
      */
-
   }, {
     key: "setCalendarVisibility",
     value: function setCalendarVisibility(calendarId, isVisible) {
       var _this$getStoreDispatc4 = this.getStoreDispatchers('calendar'),
-          setCalendarVisibility = _this$getStoreDispatc4.setCalendarVisibility;
-
+        setCalendarVisibility = _this$getStoreDispatc4.setCalendarVisibility;
       var calendarIds = Array.isArray(calendarId) ? calendarId : [calendarId];
       setCalendarVisibility(calendarIds, isVisible);
     }
+
     /**
      * Render the calendar.
      *
@@ -26793,50 +25777,48 @@ var CalendarCore = /*#__PURE__*/function () {
      *   calendar.render();
      * });
      */
-
   }, {
     key: "render",
     value: function render() {
       if (isPresent(this.container)) {
-        P(h(CalendarContainer, {
+        B(y(CalendarContainer, {
           theme: this.theme,
           store: this.store,
           eventBus: this.eventBus
         }, this.getComponent()), this.container);
       }
-
       return this;
     }
+
     /**
      * For SSR(Server Side Rendering), Return the HTML string of the whole calendar.
      *
      * @returns {string} HTML string
      */
-
   }, {
     key: "renderToString",
     value: function renderToString() {
-      return dist(h(CalendarContainer, {
+      return dist(y(CalendarContainer, {
         theme: this.theme,
         store: this.store,
         eventBus: this.eventBus
       }, this.getComponent()));
     }
+
     /**
      * Delete all events and clear view
      *
      * @example
      * calendar.clear();
      */
-
   }, {
     key: "clear",
     value: function clear() {
       var _this$getStoreDispatc5 = this.getStoreDispatchers('calendar'),
-          clearEvents = _this$getStoreDispatc5.clearEvents;
-
+        clearEvents = _this$getStoreDispatc5.clearEvents;
       clearEvents();
     }
+
     /**
      * Scroll to current time on today in case of daily, weekly view.
      * Nothing happens in the monthly view.
@@ -26847,7 +25829,6 @@ var CalendarCore = /*#__PURE__*/function () {
      *   calendar.scrollToNow('smooth');
      * }
      */
-
   }, {
     key: "scrollToNow",
     value: function scrollToNow() {
@@ -26858,16 +25839,13 @@ var CalendarCore = /*#__PURE__*/function () {
     key: "calculateRenderRange",
     value: function calculateRenderRange(renderDate) {
       var currentView = this.getStoreState().view.currentView;
-
       var _this$getStoreState3 = this.getStoreState(),
-          options = _this$getStoreState3.options;
-
+        options = _this$getStoreState3.options;
       var newRenderDate = new date_TZDate(renderDate);
       var newRenderRange = {
         start: new date_TZDate(newRenderDate),
         end: new date_TZDate(newRenderDate)
       };
-
       if (currentView === 'month') {
         newRenderRange = this.calculateMonthRenderDate({
           renderDate: renderDate,
@@ -26886,9 +25864,9 @@ var CalendarCore = /*#__PURE__*/function () {
           offset: 0
         }).renderRange;
       }
-
       return newRenderRange;
     }
+
     /**
      * Move to today.
      *
@@ -26897,7 +25875,6 @@ var CalendarCore = /*#__PURE__*/function () {
      *   calendar.today();
      * }
      */
-
   }, {
     key: "today",
     value: function today() {
@@ -26906,6 +25883,7 @@ var CalendarCore = /*#__PURE__*/function () {
       setRenderDate(today);
       this.renderRange = this.calculateRenderRange(today);
     }
+
     /**
      * Move to specific date.
      *
@@ -26920,17 +25898,16 @@ var CalendarCore = /*#__PURE__*/function () {
      *   }
      * });
      */
-
   }, {
     key: "setDate",
     value: function setDate(date) {
       var _this$getStoreDispatc6 = this.getStoreDispatchers('view'),
-          setRenderDate = _this$getStoreDispatc6.setRenderDate;
-
+        setRenderDate = _this$getStoreDispatc6.setRenderDate;
       var dateToChange = new date_TZDate(date);
       setRenderDate(dateToChange);
       this.renderRange = this.calculateRenderRange(dateToChange);
     }
+
     /**
      * Move the calendar forward to the next range.
      *
@@ -26943,12 +25920,12 @@ var CalendarCore = /*#__PURE__*/function () {
      *   }
      * }
      */
-
   }, {
     key: "next",
     value: function next() {
       this.move(1);
     }
+
     /**
      * Move the calendar backward to the previous range.
      *
@@ -26961,12 +25938,12 @@ var CalendarCore = /*#__PURE__*/function () {
      *   }
      * }
      */
-
   }, {
     key: "prev",
     value: function prev() {
       this.move(-1);
     }
+
     /**
      * Change color values of events belong to a certain calendar.
      *
@@ -26997,13 +25974,13 @@ var CalendarCore = /*#__PURE__*/function () {
      *     dragBackgroundColor: '#ab4642',
      * });
      */
-
   }, {
     key: "setCalendarColor",
     value: function setCalendarColor(calendarId, colorOptions) {
       var setCalendarColor = this.getStoreDispatchers().calendar.setCalendarColor;
       setCalendarColor(calendarId, colorOptions);
     }
+
     /**
      * Change current view type.
      *
@@ -27019,16 +25996,15 @@ var CalendarCore = /*#__PURE__*/function () {
      * // change to monthly view
      * calendar.changeView('month');
      */
-
   }, {
     key: "changeView",
     value: function changeView(viewName) {
       var _this$getStoreDispatc7 = this.getStoreDispatchers('view'),
-          changeView = _this$getStoreDispatc7.changeView;
-
+        changeView = _this$getStoreDispatc7.changeView;
       changeView(viewName);
       this.renderRange = this.calculateRenderRange(this.getDate());
     }
+
     /**
      * Get the DOM element of the event by event id and calendar id
      *
@@ -27041,18 +26017,16 @@ var CalendarCore = /*#__PURE__*/function () {
      *
      * console.log(element);
      */
-
   }, {
     key: "getElement",
     value: function getElement(eventId, calendarId) {
       var event = this.getEvent(eventId, calendarId);
-
       if (event && this.container) {
         return this.container.querySelector("[data-event-id=\"".concat(eventId, "\"][data-calendar-id=\"").concat(calendarId, "\"]"));
       }
-
       return null;
     }
+
     /**
      * Set the theme of the calendar.
      *
@@ -27077,144 +26051,135 @@ var CalendarCore = /*#__PURE__*/function () {
      *   },
      * });
      */
-
   }, {
     key: "setTheme",
     value: function setTheme(theme) {
       var setTheme = this.theme.getState().dispatch.setTheme;
       setTheme(theme);
     }
+
     /**
      * Get current options.
      *
      * @returns {Options} - The current options of the instance
      */
-
   }, {
     key: "getOptions",
     value: function getOptions() {
       var _this$getStoreState4 = this.getStoreState(),
-          options = _this$getStoreState4.options,
-          template = _this$getStoreState4.template;
-
+        options = _this$getStoreState4.options,
+        template = _this$getStoreState4.template;
       var _this$theme$getState = this.theme.getState(),
-          dispatch = _this$theme$getState.dispatch,
-          theme = calendarCore_objectWithoutProperties(_this$theme$getState, calendarCore_excluded);
-
+        dispatch = _this$theme$getState.dispatch,
+        theme = calendarCore_objectWithoutProperties(_this$theme$getState, calendarCore_excluded);
       return calendarCore_objectSpread(calendarCore_objectSpread({}, options), {}, {
         template: template,
         theme: theme
       });
     }
+
     /**
      * Set options of calendar. For more information, see {@link https://github.com/nhn/tui.calendar/blob/main/docs/en/apis/options.md|Options} in guide.
      *
      * @param {Options} options - The options to set
      */
-
   }, {
     key: "setOptions",
     value: function setOptions(options) {
       // destructure options here for tui.doc to generate docs correctly
       var theme = options.theme,
-          template = options.template,
-          restOptions = calendarCore_objectWithoutProperties(options, _excluded2);
-
+        template = options.template,
+        restOptions = calendarCore_objectWithoutProperties(options, _excluded2);
       var setTheme = this.theme.getState().dispatch.setTheme;
-
       var _this$getStoreDispatc8 = this.getStoreDispatchers(),
-          setOptions = _this$getStoreDispatc8.options.setOptions,
-          setTemplate = _this$getStoreDispatc8.template.setTemplate;
-
+        setOptions = _this$getStoreDispatc8.options.setOptions,
+        setTemplate = _this$getStoreDispatc8.template.setTemplate;
       if (isPresent(theme)) {
         setTheme(theme);
       }
-
       if (isPresent(template)) {
         setTemplate(template);
       }
-
       setOptions(restOptions);
     }
+
     /**
      * Get current rendered date. (see {@link TZDate} for further information)
      *
      * @returns {TZDate}
      */
-
   }, {
     key: "getDate",
     value: function getDate() {
       var renderDate = this.getStoreState().view.renderDate;
       return renderDate;
     }
+
     /**
      * Start time of rendered date range. (see {@link TZDate} for further information)
      *
      * @returns {TZDate}
      */
-
   }, {
     key: "getDateRangeStart",
     value: function getDateRangeStart() {
       return this.renderRange.start;
     }
+
     /**
      * End time of rendered date range. (see {@link TZDate} for further information)
      *
      * @returns {TZDate}
      */
-
   }, {
     key: "getDateRangeEnd",
     value: function getDateRangeEnd() {
       return this.renderRange.end;
     }
+
     /**
      * Get current view name('day', 'week', 'month').
      *
      * @returns {string} current view name ('day', 'week', 'month')
      */
-
   }, {
     key: "getViewName",
     value: function getViewName() {
       var _this$getStoreState5 = this.getStoreState('view'),
-          currentView = _this$getStoreState5.currentView;
-
+        currentView = _this$getStoreState5.currentView;
       return currentView;
     }
+
     /**
      * Set calendar list.
      *
      * @param {CalendarInfo[]} calendars - list of calendars
      */
-
   }, {
     key: "setCalendars",
     value: function setCalendars(calendars) {
       var setCalendars = this.getStoreDispatchers().calendar.setCalendars;
       setCalendars(calendars);
-    } // TODO: specify position of popup
+    }
 
+    // TODO: specify position of popup
     /**
      * Open event form popup with predefined form values.
      *
      * @param {EventObject} event - The predefined {@link EventObject} data to show in form.
      */
-
   }, {
     key: "openFormPopup",
     value: function openFormPopup(event) {
       var showFormPopup = this.getStoreDispatchers().popup.showFormPopup;
       var eventModel = new EventModel(event);
       var title = eventModel.title,
-          location = eventModel.location,
-          start = eventModel.start,
-          end = eventModel.end,
-          isAllday = eventModel.isAllday,
-          isPrivate = eventModel.isPrivate,
-          eventState = eventModel.state;
+        location = eventModel.location,
+        start = eventModel.start,
+        end = eventModel.end,
+        isAllday = eventModel.isAllday,
+        isPrivate = eventModel.isPrivate,
+        eventState = eventModel.state;
       showFormPopup({
         isCreationPopup: true,
         event: eventModel,
@@ -27237,13 +26202,10 @@ var CalendarCore = /*#__PURE__*/function () {
     key: "fire",
     value: function fire(eventName) {
       var _this$eventBus;
-
       for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
       }
-
       (_this$eventBus = this.eventBus).fire.apply(_this$eventBus, [eventName].concat(args));
-
       return this;
     }
   }, {
@@ -27265,33 +26227,24 @@ var CalendarCore = /*#__PURE__*/function () {
       return this;
     }
   }]);
-
   return CalendarCore;
 }();
 
-
 ;// CONCATENATED MODULE: ./src/factory/calendar.tsx
-function calendar_typeof(obj) { "@babel/helpers - typeof"; return calendar_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, calendar_typeof(obj); }
-
+function factory_calendar_typeof(obj) { "@babel/helpers - typeof"; return factory_calendar_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, factory_calendar_typeof(obj); }
 function calendar_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function calendar_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
+function calendar_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, factory_calendar_toPropertyKey(descriptor.key), descriptor); } }
 function calendar_createClass(Constructor, protoProps, staticProps) { if (protoProps) calendar_defineProperties(Constructor.prototype, protoProps); if (staticProps) calendar_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
+function factory_calendar_toPropertyKey(arg) { var key = factory_calendar_toPrimitive(arg, "string"); return factory_calendar_typeof(key) === "symbol" ? key : String(key); }
+function factory_calendar_toPrimitive(input, hint) { if (factory_calendar_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (factory_calendar_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 function calendar_inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) calendar_setPrototypeOf(subClass, superClass); }
-
 function calendar_setPrototypeOf(o, p) { calendar_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return calendar_setPrototypeOf(o, p); }
-
 function calendar_createSuper(Derived) { var hasNativeReflectConstruct = calendar_isNativeReflectConstruct(); return function _createSuperInternal() { var Super = calendar_getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = calendar_getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return calendar_possibleConstructorReturn(this, result); }; }
-
-function calendar_possibleConstructorReturn(self, call) { if (call && (calendar_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return calendar_assertThisInitialized(self); }
-
+function calendar_possibleConstructorReturn(self, call) { if (call && (factory_calendar_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return calendar_assertThisInitialized(self); }
 function calendar_assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function calendar_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-
 function calendar_getPrototypeOf(o) { calendar_getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return calendar_getPrototypeOf(o); }
+
 
 
 
@@ -27318,6 +26271,7 @@ function isValidViewType(viewType) {
     return type === viewType;
   });
 }
+
 /**
  * Calendar class
  *
@@ -27325,43 +26279,30 @@ function isValidViewType(viewType) {
  * @extends CalendarCore
  * @param {object} options - Calendar options. Check out {@link CalendarCore} for more information.
  */
-
-
 var Calendar = /*#__PURE__*/function (_CalendarCore) {
   calendar_inherits(Calendar, _CalendarCore);
-
   var _super = calendar_createSuper(Calendar);
-
   function Calendar(container) {
     var _this;
-
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
     calendar_classCallCheck(this, Calendar);
-
     _this = _super.call(this, container, options);
     var _options$defaultView = options.defaultView,
-        defaultView = _options$defaultView === void 0 ? 'week' : _options$defaultView;
-
+      defaultView = _options$defaultView === void 0 ? 'week' : _options$defaultView;
     if (!isValidViewType(defaultView)) {
       throw new InvalidViewTypeError(defaultView);
     }
-
     _this.render();
-
     return _this;
   }
-
   calendar_createClass(Calendar, [{
     key: "getComponent",
     value: function getComponent() {
-      return h(Main, null);
+      return y(Main, null);
     }
   }]);
-
   return Calendar;
 }(CalendarCore);
-
 
 ;// CONCATENATED MODULE: ./src/index.ts
 
