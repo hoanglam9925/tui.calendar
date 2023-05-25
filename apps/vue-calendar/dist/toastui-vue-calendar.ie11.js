@@ -5232,7 +5232,7 @@
   }
   /*!
    * TOAST UI Calendar 2nd Edition
-   * @version 2.1.3 | Tue May 16 2023
+   * @version 2.1.3 | Wed May 24 2023
    * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
    * @license MIT
    */
@@ -22203,10 +22203,15 @@
           };
           function EventDetailSectionHeader(_ref) {
             var event = _ref.event;
-            console.log({
-              event
-            });
+            _ref.userData;
+            _ref.backpackUrl;
+            _ref.templateCsvUrl;
+            event === null || event === void 0 ? void 0 : event.id;
             return y("div", {
+              className: "row"
+            }, y("div", {
+              className: "col-7"
+            }, y("div", {
               className: eventDetailSectionHeader_classNames.sectionHeader
             }, y("div", {
               className: eventDetailSectionHeader_classNames.eventTitle
@@ -22220,7 +22225,7 @@
               template: "popupDetailDate",
               param: event,
               as: "span"
-            })));
+            })))));
           }
           var SEE_MORE_POPUP_SLOT_CLASS_NAME = cls("see-more-popup-slot");
           var EVENT_FORM_POPUP_SLOT_CLASS_NAME = cls("event-form-popup-slot");
@@ -22429,7 +22434,7 @@
             }
             return [
               Math.max(top, layoutRect.top) + window.scrollY - 110,
-              Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 250 : 25)
+              Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 255 : 25)
             ];
           }
           function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
@@ -22444,7 +22449,7 @@
             };
           }
           function EventDetailPopup() {
-            var _options$allOptions, _options$allOptions2, _options$allOptions3;
+            var _options$allOptions, _options$allOptions2, _options$allOptions3, _options$allOptions4;
             var _useStore = useStore(optionsSelector), useFormPopup = _useStore.useFormPopup;
             var popupParams = useStore(eventDetailPopupParamSelector);
             var options = useStore(optionsSelector);
@@ -22536,8 +22541,10 @@
             var userData = (options === null || options === void 0 ? void 0 : (_options$allOptions = options.allOptions) === null || _options$allOptions === void 0 ? void 0 : _options$allOptions.userData) || null;
             var token = options === null || options === void 0 ? void 0 : (_options$allOptions2 = options.allOptions) === null || _options$allOptions2 === void 0 ? void 0 : _options$allOptions2.token;
             var backpackUrl = options === null || options === void 0 ? void 0 : (_options$allOptions3 = options.allOptions) === null || _options$allOptions3 === void 0 ? void 0 : _options$allOptions3.backpackUrl;
+            var templateCsvUrl = options === null || options === void 0 ? void 0 : (_options$allOptions4 = options.allOptions) === null || _options$allOptions4 === void 0 ? void 0 : _options$allOptions4.templateCsvUrl;
             var editUrl = "".concat(backpackUrl, "/collab-event/").concat(event.id, "/edit");
             var deleteURl = "".concat(backpackUrl, "/collab-event/").concat(event.id);
+            var eventId = event === null || event === void 0 ? void 0 : event.id;
             return compat_module_z(y("div", {
               role: "dialog",
               className: eventDetailPopup_classNames.popupContainer,
@@ -22546,7 +22553,10 @@
             }, y("div", {
               className: eventDetailPopup_classNames.detailContainer
             }, y(EventDetailSectionHeader, {
-              event
+              event,
+              userData,
+              backpackUrl,
+              templateCsvUrl
             }), y(EventDetailSectionDetail, {
               event,
               userData,
@@ -22581,7 +22591,53 @@
             }, y(Template, {
               template: "popupDelete",
               as: "span"
-            }))))), y("div", {
+            })))), y("div", {
+              className: "row"
+            }, y("div", {
+              className: "d-print-none with-border col d-flex justify-content-center align-items-center",
+              style: {
+                minWidth: "155px"
+              }
+            }, y("a", {
+              href: backpackUrl + '/collab-registration?event=%5B"' + eventId + '"%5D',
+              className: "btn btn-primary",
+              "data-style": "zoom-in",
+              style: {
+                width: "100%"
+              }
+            }, y("span", {
+              class: "ladda-label"
+            }, "See Registrations"))), y("div", {
+              className: "d-print-none with-border d-flex col d-flex justify-content-center align-items-center",
+              style: {
+                minWidth: "155px"
+              }
+            }, y("a", {
+              href: backpackUrl + "/registrationImportView?event_id=" + eventId,
+              className: "btn btn-primary",
+              "data-style": "zoom-in",
+              style: {
+                width: "100%"
+              }
+            }, y("span", {
+              class: "ladda-label"
+            }, "Bulk Upload (CSV)")))), y("div", {
+              className: "d-print-none with-border d-flex justify-content-center align-items-center",
+              style: {
+                minWidth: "155px",
+                marginTop: "10px",
+                marginBottom: "10px"
+              }
+            }, y("a", {
+              href: templateCsvUrl,
+              class: "btn btn-primary",
+              "data-style": "zoom-in",
+              style: {
+                width: "100%"
+              }
+            }, y("span", {
+              className: "ladda-label"
+            }, "Download Bulk Upload Template (CSV)")))), y("div", {
               className: eventDetailPopup_classNames.topLine,
               style: {
                 background: calendarColor.backgroundColor

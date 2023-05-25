@@ -160,6 +160,7 @@ export default {
       console.groupEnd();
     },
     onBeforeCreateEvent(eventData) {
+      console.log({eventData});
       const event = {
         calendarId: eventData.calendarId || '',
         id: String(Math.random()),

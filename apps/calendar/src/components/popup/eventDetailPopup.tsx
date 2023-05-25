@@ -51,11 +51,14 @@ function calculatePopupPosition(eventRect: Rect, layoutRect: Rect, popupRect: Re
   if (outLeftLayout) {
     left = eventRect.left - popupRect.width;
   }
+  // console.log({left, layoutRect: layoutRect.left, max: Math.max(left, layoutRect.left)});
 
   return [
     Math.max(top, layoutRect.top) + window.scrollY - 110,
     // Math.max(left, layoutRect.left) + window.scrollX - 225,
-    Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 250 : 25),
+    // left > layoutRect.left ? (Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 25 : -225)) : (Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 255 : 25)),
+    Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 255 : 25),
+    // layoutRect.left) + window.scrollX - (outLeftLayout ? 25 : -225),
   ];
 }
 
@@ -64,6 +67,7 @@ function calculatePopupArrowPosition(eventRect: Rect, layoutRect: Rect, popupRec
   const popupLeft = eventRect.left + eventRect.width;
 
   const isOutOfLayout = popupLeft + popupRect.width > layoutRect.left + layoutRect.width;
+  // console.log({zxc: popupLeft + popupRect.width, qwe: layoutRect.left + layoutRect.width});
   const direction = isOutOfLayout
     ? DetailPopupArrowDirection.right
     : DetailPopupArrowDirection.left;
@@ -189,14 +193,16 @@ export function EventDetailPopup() {
   const userData = options?.allOptions?.userData || null;
   const token = options?.allOptions?.token;
   const backpackUrl = options?.allOptions?.backpackUrl;
+  const templateCsvUrl = options?.allOptions?.templateCsvUrl;
 
   const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
   const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
 
+  const eventId = event?.id;
   return createPortal(
     <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
       <div className={classNames.detailContainer}>
-        <EventDetailSectionHeader event={event} />
+        <EventDetailSectionHeader event={event} userData={userData} backpackUrl={backpackUrl} templateCsvUrl={templateCsvUrl} />
         <EventDetailSectionDetail event={event} userData={userData} backpackUrl={backpackUrl} />
         {!isReadOnly && (
           <div className={classNames.sectionButton}>
@@ -218,6 +224,20 @@ export function EventDetailPopup() {
             </button>
           </div>
         )}
+        <div className="row">
+          <div className="d-print-none with-border col d-flex justify-content-center align-items-center" style={{minWidth:"155px"}}>
+            <a href={backpackUrl + '/collab-registration?event=%5B"' + eventId + '"%5D'} className="btn btn-primary" data-style="zoom-in" style={{width:"100%"}}><span class="ladda-label">See Registrations</span></a>
+          </div>
+          
+          <div className="d-print-none with-border d-flex col d-flex justify-content-center align-items-center" style={{minWidth:"155px"}}>
+            <a href={backpackUrl + '/registrationImportView?event_id=' + eventId } className="btn btn-primary" data-style="zoom-in" style={{width:"100%"}}><span class="ladda-label">Bulk Upload (CSV)</span></a>
+          </div>
+        </div>
+
+        <div className="d-print-none with-border d-flex justify-content-center align-items-center" style={{minWidth:"155px",marginTop:"10px",marginBottom:"10px"}}>
+          <a href={templateCsvUrl} class="btn btn-primary" data-style="zoom-in" style={{width:"100%"}}><span className="ladda-label">Download Bulk Upload Template (CSV)</span></a>
+        </div>
+
       </div>
       <div
         className={classNames.topLine}

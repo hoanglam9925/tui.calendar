@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Tue May 16 2023
+ * @version 2.1.3 | Wed May 24 2023
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -19529,11 +19529,16 @@ var eventDetailSectionHeader_classNames = {
   eventTitle: cls('event-title')
 };
 function EventDetailSectionHeader(_ref) {
-  var event = _ref.event;
-  console.log({
-    event: event
-  });
+  var event = _ref.event,
+    userData = _ref.userData,
+    backpackUrl = _ref.backpackUrl,
+    templateCsvUrl = _ref.templateCsvUrl;
+  var eventId = event === null || event === void 0 ? void 0 : event.id;
   return y("div", {
+    className: "row"
+  }, y("div", {
+    className: "col-7"
+  }, y("div", {
     className: eventDetailSectionHeader_classNames.sectionHeader
   }, y("div", {
     className: eventDetailSectionHeader_classNames.eventTitle
@@ -19547,7 +19552,7 @@ function EventDetailSectionHeader(_ref) {
     template: "popupDetailDate",
     param: event,
     as: "span"
-  })));
+  })))));
 }
 ;// CONCATENATED MODULE: ./src/constants/popup.ts
 
@@ -19728,14 +19733,21 @@ function calculatePopupPosition(eventRect, layoutRect, popupRect) {
   if (outLeftLayout) {
     left = eventRect.left - popupRect.width;
   }
+  // console.log({left, layoutRect: layoutRect.left, max: Math.max(left, layoutRect.left)});
+
   return [Math.max(top, layoutRect.top) + window.scrollY - 110,
   // Math.max(left, layoutRect.left) + window.scrollX - 225,
-  Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 250 : 25)];
+  // left > layoutRect.left ? (Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 25 : -225)) : (Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 255 : 25)),
+  Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 255 : 25)
+  // layoutRect.left) + window.scrollX - (outLeftLayout ? 25 : -225),
+  ];
 }
+
 function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   var top = eventRect.top + eventRect.height / 2 + window.scrollY;
   var popupLeft = eventRect.left + eventRect.width;
   var isOutOfLayout = popupLeft + popupRect.width > layoutRect.left + layoutRect.width;
+  // console.log({zxc: popupLeft + popupRect.width, qwe: layoutRect.left + layoutRect.width});
   var direction = isOutOfLayout ? DetailPopupArrowDirection.right : DetailPopupArrowDirection.left;
   top = top - 110;
   return {
@@ -19744,7 +19756,7 @@ function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   };
 }
 function EventDetailPopup() {
-  var _options$allOptions, _options$allOptions2, _options$allOptions3;
+  var _options$allOptions, _options$allOptions2, _options$allOptions3, _options$allOptions4;
   var _useStore = useStore(optionsSelector),
     useFormPopup = _useStore.useFormPopup;
   var popupParams = useStore(eventDetailPopupParamSelector);
@@ -19866,8 +19878,10 @@ function EventDetailPopup() {
   var userData = (options === null || options === void 0 ? void 0 : (_options$allOptions = options.allOptions) === null || _options$allOptions === void 0 ? void 0 : _options$allOptions.userData) || null;
   var token = options === null || options === void 0 ? void 0 : (_options$allOptions2 = options.allOptions) === null || _options$allOptions2 === void 0 ? void 0 : _options$allOptions2.token;
   var backpackUrl = options === null || options === void 0 ? void 0 : (_options$allOptions3 = options.allOptions) === null || _options$allOptions3 === void 0 ? void 0 : _options$allOptions3.backpackUrl;
+  var templateCsvUrl = options === null || options === void 0 ? void 0 : (_options$allOptions4 = options.allOptions) === null || _options$allOptions4 === void 0 ? void 0 : _options$allOptions4.templateCsvUrl;
   var editUrl = "".concat(backpackUrl, "/collab-event/").concat(event.id, "/edit");
   var deleteURl = "".concat(backpackUrl, "/collab-event/").concat(event.id);
+  var eventId = event === null || event === void 0 ? void 0 : event.id;
   return compat_module_z(y("div", {
     role: "dialog",
     className: eventDetailPopup_classNames.popupContainer,
@@ -19876,7 +19890,10 @@ function EventDetailPopup() {
   }, y("div", {
     className: eventDetailPopup_classNames.detailContainer
   }, y(EventDetailSectionHeader, {
-    event: event
+    event: event,
+    userData: userData,
+    backpackUrl: backpackUrl,
+    templateCsvUrl: templateCsvUrl
   }), y(EventDetailSectionDetail, {
     event: event,
     userData: userData,
@@ -19911,7 +19928,53 @@ function EventDetailPopup() {
   }, y(Template, {
     template: "popupDelete",
     as: "span"
-  }))))), y("div", {
+  })))), y("div", {
+    className: "row"
+  }, y("div", {
+    className: "d-print-none with-border col d-flex justify-content-center align-items-center",
+    style: {
+      minWidth: "155px"
+    }
+  }, y("a", {
+    href: backpackUrl + '/collab-registration?event=%5B"' + eventId + '"%5D',
+    className: "btn btn-primary",
+    "data-style": "zoom-in",
+    style: {
+      width: "100%"
+    }
+  }, y("span", {
+    class: "ladda-label"
+  }, "See Registrations"))), y("div", {
+    className: "d-print-none with-border d-flex col d-flex justify-content-center align-items-center",
+    style: {
+      minWidth: "155px"
+    }
+  }, y("a", {
+    href: backpackUrl + '/registrationImportView?event_id=' + eventId,
+    className: "btn btn-primary",
+    "data-style": "zoom-in",
+    style: {
+      width: "100%"
+    }
+  }, y("span", {
+    class: "ladda-label"
+  }, "Bulk Upload (CSV)")))), y("div", {
+    className: "d-print-none with-border d-flex justify-content-center align-items-center",
+    style: {
+      minWidth: "155px",
+      marginTop: "10px",
+      marginBottom: "10px"
+    }
+  }, y("a", {
+    href: templateCsvUrl,
+    class: "btn btn-primary",
+    "data-style": "zoom-in",
+    style: {
+      width: "100%"
+    }
+  }, y("span", {
+    className: "ladda-label"
+  }, "Download Bulk Upload Template (CSV)")))), y("div", {
     className: eventDetailPopup_classNames.topLine,
     style: {
       background: calendarColor.backgroundColor
