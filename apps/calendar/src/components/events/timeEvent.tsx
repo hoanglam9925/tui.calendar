@@ -99,7 +99,7 @@ function getStyles({
     borderLeft: `3px solid ${borderColor}`,
     marginLeft,
     color,
-    backgroundColor: isDraggingTarget ? dragBackgroundColor : backgroundColor,
+    background: isDraggingTarget ? dragBackgroundColor : backgroundColor,
     opacity: isDraggingTarget ? 0.5 : 1,
     zIndex: hasNextStartTime ? 1 : 0,
   };

@@ -19,7 +19,7 @@ import { allOptionSelector } from '@src/selectors/options';
 import TZDate from '@src/time/date';
 import { isNil } from '@src/utils/type';
 import swal from 'sweetalert';
-
+import $ from 'jquery';
 
 import type { StyleProp } from '@t/components/common';
 import type { Rect } from '@t/store';
@@ -40,24 +40,41 @@ const classNames = {
 };
 
 function calculatePopupPosition(eventRect: Rect, layoutRect: Rect, popupRect: Rect) {
-  let top = eventRect.top + eventRect.height / 2 - popupRect.height / 2;
-  let left = eventRect.left + eventRect.width - 225;
+  let top;
+  let left;
+
+  let $body = $('body');
+  const bodyClass = $body.attr("class");
+  const hasSidebar = bodyClass?.includes('sidebar-lg-show');
+  // has sidebar
+  if(hasSidebar) {
+    top = eventRect.top + eventRect.height / 2 - popupRect.height / 2;
+    left = eventRect.left + eventRect.width - 255;
+  }
+  // hide sidebar
+  else {
+    top = eventRect.top + eventRect.height / 2 - popupRect.height / 2;
+    left = eventRect.left + eventRect.width;
+  }
+  
 
   if (isTopOutOfLayout(top, layoutRect, popupRect)) {
     top = layoutRect.top + layoutRect.height - popupRect.height;
   }
 
-  const outLeftLayout = isLeftOutOfLayout(left, layoutRect, popupRect);
+  const popupLeft = eventRect.left + eventRect.width;
+
+  const outLeftLayout = popupLeft + popupRect.width > layoutRect.left + layoutRect.width;
+  // const outLeftLayout = isLeftOutOfLayout(left, layoutRect, popupRect);
   if (outLeftLayout) {
     left = eventRect.left - popupRect.width;
   }
-  // console.log({left, layoutRect: layoutRect.left, max: Math.max(left, layoutRect.left)});
 
   return [
     Math.max(top, layoutRect.top) + window.scrollY - 110,
     // Math.max(left, layoutRect.left) + window.scrollX - 225,
     // left > layoutRect.left ? (Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 25 : -225)) : (Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 255 : 25)),
-    Math.max(left, layoutRect.left) + window.scrollX - (outLeftLayout ? 255 : 25),
+    Math.max(left, layoutRect.left) + window.scrollX - (hasSidebar ? (outLeftLayout ? 255 : 25) : (outLeftLayout ? 25 : 25)) ,
     // layoutRect.left) + window.scrollX - (outLeftLayout ? 25 : -225),
   ];
 }
