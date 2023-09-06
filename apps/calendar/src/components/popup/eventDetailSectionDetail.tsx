@@ -136,6 +136,14 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
           </span>
         </div>
       )}
+      {eventId && (
+        <div className={classNames.detailItem}>
+          <span className="fa-solid fa-link"></span>
+          <span className={classNames.content}>
+            <b> Short url: </b> cpfv://event/{eventId}
+          </span>
+        </div>
+      )}
       
      
       

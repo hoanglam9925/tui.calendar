@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Fri May 26 2023
+ * @version 2.1.3 | Wed Sep 06 2023
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -20522,7 +20522,13 @@ function EventDetailSectionDetail(_ref) {
     className: "fa-solid fa-qrcode"
   }), y("span", {
     className: eventDetailSectionDetail_classNames.content
-  }, y("b", null, " QR Code: "), " ", currentUserData?.qr_content)), currentUserData?.description && y("div", {
+  }, y("b", null, " QR Code: "), " ", currentUserData?.qr_content)), eventId && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa-solid fa-link"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " Short url: "), " cpfv://event/", eventId)), currentUserData?.description && y("div", {
     className: eventDetailSectionDetail_classNames.detailItem
   }, y("span", {
     className: eventDetailSectionDetail_classNames.content

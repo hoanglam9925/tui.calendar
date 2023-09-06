@@ -11997,7 +11997,13 @@ function EventDetailSectionDetail({ event, userData }) {
     className: "fa-solid fa-qrcode"
   }), /* @__PURE__ */ y$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " QR Code: "), " ", currentUserData == null ? void 0 : currentUserData.qr_content)), (currentUserData == null ? void 0 : currentUserData.description) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ y$3("b", null, " QR Code: "), " ", currentUserData == null ? void 0 : currentUserData.qr_content)), eventId && /* @__PURE__ */ y$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ y$3("span", {
+    className: "fa-solid fa-link"
+  }), /* @__PURE__ */ y$3("span", {
+    className: classNames$j.content
+  }, /* @__PURE__ */ y$3("b", null, " Short url: "), " cpfv://event/", eventId)), (currentUserData == null ? void 0 : currentUserData.description) && /* @__PURE__ */ y$3("div", {
     className: classNames$j.detailItem
   }, /* @__PURE__ */ y$3("span", {
     className: classNames$j.content
