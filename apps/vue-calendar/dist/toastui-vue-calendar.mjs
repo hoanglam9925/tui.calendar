@@ -6086,7 +6086,8 @@ const DEFAULT_EVENT_COLORS = {
   color: "#000",
   backgroundColor: "#a1b56c",
   dragBackgroundColor: "#a1b56c",
-  borderColor: "#000"
+  borderColor: "#000",
+  shouldOpacity: "0"
 };
 const TIME_EVENT_CONTAINER_MARGIN_LEFT = 2;
 const COLLAPSED_DUPLICATE_EVENT_WIDTH_PX = 9;
@@ -9984,11 +9985,12 @@ function _stackTimeFromTop(idsOfDay, uiModelColl) {
   const sortedTimeEvents = uiModelColl.filter(_isNotAllday).sort(array.compare.event.asc);
   const indiceInYMD = {};
   sortedTimeEvents.forEach((timeUIModel) => {
+    var _a;
     const eventYMD = toFormat(timeUIModel.getStarts(), "YYYYMMDD");
     let topArrayInYMD = indiceInYMD[eventYMD];
     if (isUndefined_1(topArrayInYMD)) {
       topArrayInYMD = indiceInYMD[eventYMD] = [];
-      idsOfDay[eventYMD].forEach((cid) => {
+      (_a = idsOfDay[eventYMD]) == null ? void 0 : _a.forEach((cid) => {
         uiModelAlldayColl.doWhenHas(cid, (uiModel) => {
           topArrayInYMD.push(uiModel.top);
         });
@@ -10995,7 +10997,8 @@ function useCalendarColor(model) {
       color: calendar == null ? void 0 : calendar.color,
       borderColor: calendar == null ? void 0 : calendar.borderColor,
       backgroundColor: calendar == null ? void 0 : calendar.backgroundColor,
-      dragBackgroundColor: calendar == null ? void 0 : calendar.dragBackgroundColor
+      dragBackgroundColor: calendar == null ? void 0 : calendar.dragBackgroundColor,
+      shouldOpacity: calendar == null ? void 0 : calendar.shouldOpacity
     }),
     [calendar]
   );
@@ -11166,7 +11169,7 @@ function getEventItemStyle({
   calendarColor
 }) {
   const { exceedLeft, exceedRight } = uiModel;
-  const { color, backgroundColor, dragBackgroundColor, borderColor } = getEventColors(
+  const { color, backgroundColor, dragBackgroundColor, borderColor, shouldOpacity } = getEventColors(
     uiModel,
     calendarColor
   );
@@ -11178,7 +11181,7 @@ function getEventItemStyle({
     overflow: "hidden",
     height: eventHeight,
     lineHeight: toPx(eventHeight),
-    opacity: isDraggingTarget ? 0.5 : 1
+    opacity: shouldOpacity === "1" ? 0.5 : 1
   };
   const margins = getMargins(flat);
   return flat ? __spreadValues({
@@ -12023,7 +12026,7 @@ function EventDetailSectionHeader({ event, userData, backpackUrl, templateCsvUrl
   return /* @__PURE__ */ y$3("div", {
     className: "row"
   }, /* @__PURE__ */ y$3("div", {
-    className: "col-7"
+    className: "col-12"
   }, /* @__PURE__ */ y$3("div", {
     className: classNames$i.sectionHeader
   }, /* @__PURE__ */ y$3("div", {
@@ -20360,7 +20363,7 @@ function getStyles({
   const borderRadius = 2;
   const defaultMarginBottom = 2;
   const marginLeft = getMarginLeft(left);
-  const { color, backgroundColor, borderColor, dragBackgroundColor } = getEventColors(
+  const { color, backgroundColor, borderColor, dragBackgroundColor, shouldOpacity } = getEventColors(
     uiModel,
     calendarColor
   );
@@ -20374,7 +20377,7 @@ function getStyles({
     marginLeft,
     color,
     background: isDraggingTarget ? dragBackgroundColor : backgroundColor,
-    opacity: isDraggingTarget ? 0.5 : 1,
+    opacity: shouldOpacity ? 0.5 : 1,
     zIndex: hasNextStartTime ? 1 : 0
   };
   const goingDurationStyle = {

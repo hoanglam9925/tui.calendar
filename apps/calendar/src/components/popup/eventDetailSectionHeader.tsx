@@ -21,7 +21,7 @@ export function EventDetailSectionHeader({ event, userData, backpackUrl, templat
   const eventId = event?.id;
   return (
     <div className='row'>
-      <div className='col-7'>
+      <div className='col-12'>
           <div className={classNames.sectionHeader}>
             <div className={classNames.eventTitle}>
               <Template template="popupDetailTitle" param={event} as="span" />

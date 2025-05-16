@@ -5232,7 +5232,7 @@
   }
   /*!
    * TOAST UI Calendar 2nd Edition
-   * @version 2.1.3 | Wed Sep 06 2023
+   * @version 2.1.3 | Tue May 06 2025
    * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
    * @license MIT
    */
@@ -20706,7 +20706,8 @@
             color: "#000",
             backgroundColor: "#a1b56c",
             dragBackgroundColor: "#a1b56c",
-            borderColor: "#000"
+            borderColor: "#000",
+            shouldOpacity: "0"
           };
           var TIME_EVENT_CONTAINER_MARGIN_LEFT = 2;
           var COLLAPSED_DUPLICATE_EVENT_WIDTH_PX = 9;
@@ -25265,8 +25266,9 @@
               var eventYMD = datetime_toFormat(timeUIModel.getStarts(), "YYYYMMDD");
               var topArrayInYMD = indiceInYMD[eventYMD];
               if (isUndefined_default()(topArrayInYMD)) {
+                var _idsOfDay$eventYMD;
                 topArrayInYMD = indiceInYMD[eventYMD] = [];
-                idsOfDay[eventYMD].forEach(function(cid) {
+                (_idsOfDay$eventYMD = idsOfDay[eventYMD]) === null || _idsOfDay$eventYMD === void 0 ? void 0 : _idsOfDay$eventYMD.forEach(function(cid) {
                   uiModelAlldayColl.doWhenHas(cid, function(uiModel) {
                     topArrayInYMD.push(uiModel.top);
                   });
@@ -26527,7 +26529,8 @@
                 color: calendar === null || calendar === void 0 ? void 0 : calendar.color,
                 borderColor: calendar === null || calendar === void 0 ? void 0 : calendar.borderColor,
                 backgroundColor: calendar === null || calendar === void 0 ? void 0 : calendar.backgroundColor,
-                dragBackgroundColor: calendar === null || calendar === void 0 ? void 0 : calendar.dragBackgroundColor
+                dragBackgroundColor: calendar === null || calendar === void 0 ? void 0 : calendar.dragBackgroundColor,
+                shouldOpacity: calendar === null || calendar === void 0 ? void 0 : calendar.shouldOpacity
               };
             }, [calendar]);
           }
@@ -26879,7 +26882,7 @@
           function getEventItemStyle(_ref) {
             var uiModel = _ref.uiModel, flat = _ref.flat, eventHeight = _ref.eventHeight, isDraggingTarget = _ref.isDraggingTarget, calendarColor = _ref.calendarColor;
             var exceedLeft = uiModel.exceedLeft, exceedRight = uiModel.exceedRight;
-            var _getEventColors = getEventColors(uiModel, calendarColor), color = _getEventColors.color, backgroundColor = _getEventColors.backgroundColor, dragBackgroundColor = _getEventColors.dragBackgroundColor, borderColor = _getEventColors.borderColor;
+            var _getEventColors = getEventColors(uiModel, calendarColor), color = _getEventColors.color, backgroundColor = _getEventColors.backgroundColor, dragBackgroundColor = _getEventColors.dragBackgroundColor, borderColor = _getEventColors.borderColor, shouldOpacity = _getEventColors.shouldOpacity;
             var defaultItemStyle = {
               color,
               backgroundColor: isDraggingTarget ? dragBackgroundColor : backgroundColor,
@@ -26888,7 +26891,7 @@
               overflow: "hidden",
               height: eventHeight,
               lineHeight: toPx(eventHeight),
-              opacity: isDraggingTarget ? 0.5 : 1
+              opacity: shouldOpacity === "1" ? 0.5 : 1
             };
             var margins = getMargins(flat);
             return flat ? horizontalEvent_objectSpread({
@@ -28278,7 +28281,7 @@
             return y("div", {
               className: "row"
             }, y("div", {
-              className: "col-7"
+              className: "col-12"
             }, y("div", {
               className: eventDetailSectionHeader_classNames.sectionHeader
             }, y("div", {
@@ -30327,7 +30330,7 @@
             var borderRadius = 2;
             var defaultMarginBottom = 2;
             var marginLeft = getMarginLeft(left);
-            var _getEventColors = getEventColors(uiModel, calendarColor), color = _getEventColors.color, backgroundColor = _getEventColors.backgroundColor, borderColor = _getEventColors.borderColor, dragBackgroundColor = _getEventColors.dragBackgroundColor;
+            var _getEventColors = getEventColors(uiModel, calendarColor), color = _getEventColors.color, backgroundColor = _getEventColors.backgroundColor, borderColor = _getEventColors.borderColor, dragBackgroundColor = _getEventColors.dragBackgroundColor, shouldOpacity = _getEventColors.shouldOpacity;
             var containerStyle = {
               width: getContainerWidth(duplicateWidth || width, marginLeft),
               height: "calc(".concat(toPercent(Math.max(height, minHeight)), " - ").concat(defaultMarginBottom, "px)"),
@@ -30338,7 +30341,7 @@
               marginLeft,
               color,
               background: isDraggingTarget ? dragBackgroundColor : backgroundColor,
-              opacity: isDraggingTarget ? 0.5 : 1,
+              opacity: shouldOpacity ? 0.5 : 1,
               zIndex: hasNextStartTime ? 1 : 0
             };
             var goingDurationStyle = {

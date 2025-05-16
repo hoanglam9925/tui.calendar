@@ -54,7 +54,7 @@ function getEventItemStyle({
   calendarColor: CalendarColor;
 }) {
   const { exceedLeft, exceedRight } = uiModel;
-  const { color, backgroundColor, dragBackgroundColor, borderColor } = getEventColors(
+  const { color, backgroundColor, dragBackgroundColor, borderColor, shouldOpacity } = getEventColors(
     uiModel,
     calendarColor
   );
@@ -67,7 +67,7 @@ function getEventItemStyle({
     overflow: 'hidden',
     height: eventHeight,
     lineHeight: toPx(eventHeight),
-    opacity: isDraggingTarget ? 0.5 : 1,
+    opacity: shouldOpacity === '1' ? 0.5 : 1,
   };
   const margins = getMargins(flat);
 

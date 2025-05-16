@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Wed Sep 06 2023
+ * @version 2.1.3 | Tue May 06 2025
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -22227,7 +22227,8 @@ var DEFAULT_EVENT_COLORS = {
   color: '#000',
   backgroundColor: '#a1b56c',
   dragBackgroundColor: '#a1b56c',
-  borderColor: '#000'
+  borderColor: '#000',
+  shouldOpacity: '0'
 };
 var TIME_EVENT_CONTAINER_MARGIN_LEFT = 2;
 var COLLAPSED_DUPLICATE_EVENT_WIDTH_PX = 9;
@@ -27433,8 +27434,9 @@ function _stackTimeFromTop(idsOfDay, uiModelColl) {
     var eventYMD = datetime_toFormat(timeUIModel.getStarts(), 'YYYYMMDD');
     var topArrayInYMD = indiceInYMD[eventYMD];
     if (isUndefined_default()(topArrayInYMD)) {
+      var _idsOfDay$eventYMD;
       topArrayInYMD = indiceInYMD[eventYMD] = [];
-      idsOfDay[eventYMD].forEach(function (cid) {
+      (_idsOfDay$eventYMD = idsOfDay[eventYMD]) === null || _idsOfDay$eventYMD === void 0 ? void 0 : _idsOfDay$eventYMD.forEach(function (cid) {
         uiModelAlldayColl.doWhenHas(cid, function (uiModel) {
           topArrayInYMD.push(uiModel.top);
         });
@@ -28571,7 +28573,8 @@ function useCalendarColor(model) {
       color: calendar === null || calendar === void 0 ? void 0 : calendar.color,
       borderColor: calendar === null || calendar === void 0 ? void 0 : calendar.borderColor,
       backgroundColor: calendar === null || calendar === void 0 ? void 0 : calendar.backgroundColor,
-      dragBackgroundColor: calendar === null || calendar === void 0 ? void 0 : calendar.dragBackgroundColor
+      dragBackgroundColor: calendar === null || calendar === void 0 ? void 0 : calendar.dragBackgroundColor,
+      shouldOpacity: calendar === null || calendar === void 0 ? void 0 : calendar.shouldOpacity
     };
   }, [calendar]);
 }
@@ -28867,7 +28870,8 @@ function getEventItemStyle(_ref) {
     color = _getEventColors.color,
     backgroundColor = _getEventColors.backgroundColor,
     dragBackgroundColor = _getEventColors.dragBackgroundColor,
-    borderColor = _getEventColors.borderColor;
+    borderColor = _getEventColors.borderColor,
+    shouldOpacity = _getEventColors.shouldOpacity;
   var defaultItemStyle = {
     color: color,
     backgroundColor: isDraggingTarget ? dragBackgroundColor : backgroundColor,
@@ -28876,7 +28880,7 @@ function getEventItemStyle(_ref) {
     overflow: 'hidden',
     height: eventHeight,
     lineHeight: toPx(eventHeight),
-    opacity: isDraggingTarget ? 0.5 : 1
+    opacity: shouldOpacity === '1' ? 0.5 : 1
   };
   var margins = getMargins(flat);
   return flat ? horizontalEvent_objectSpread({
@@ -30255,7 +30259,7 @@ function EventDetailSectionHeader(_ref) {
   return y("div", {
     className: "row"
   }, y("div", {
-    className: "col-7"
+    className: "col-12"
   }, y("div", {
     className: eventDetailSectionHeader_classNames.sectionHeader
   }, y("div", {
@@ -32237,7 +32241,8 @@ function getStyles(_ref) {
     color = _getEventColors.color,
     backgroundColor = _getEventColors.backgroundColor,
     borderColor = _getEventColors.borderColor,
-    dragBackgroundColor = _getEventColors.dragBackgroundColor;
+    dragBackgroundColor = _getEventColors.dragBackgroundColor,
+    shouldOpacity = _getEventColors.shouldOpacity;
   var containerStyle = {
     width: getContainerWidth(duplicateWidth || width, marginLeft),
     height: "calc(".concat(toPercent(Math.max(height, minHeight)), " - ").concat(defaultMarginBottom, "px)"),
@@ -32248,7 +32253,8 @@ function getStyles(_ref) {
     marginLeft: marginLeft,
     color: color,
     background: isDraggingTarget ? dragBackgroundColor : backgroundColor,
-    opacity: isDraggingTarget ? 0.5 : 1,
+    opacity: shouldOpacity ? 0.5 : 1,
+    // opacity: isDraggingTarget ? 0.5 : 1,
     zIndex: hasNextStartTime ? 1 : 0
   };
   var goingDurationStyle = {

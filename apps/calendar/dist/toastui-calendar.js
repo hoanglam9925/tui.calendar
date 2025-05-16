@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Wed Sep 06 2023
+ * @version 2.1.3 | Tue May 06 2025
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -13859,7 +13859,8 @@ const DEFAULT_EVENT_COLORS = {
   color: '#000',
   backgroundColor: '#a1b56c',
   dragBackgroundColor: '#a1b56c',
-  borderColor: '#000'
+  borderColor: '#000',
+  shouldOpacity: '0'
 };
 const TIME_EVENT_CONTAINER_MARGIN_LEFT = 2;
 const COLLAPSED_DUPLICATE_EVENT_WIDTH_PX = 9;
@@ -18176,7 +18177,7 @@ function _stackTimeFromTop(idsOfDay, uiModelColl) {
     let topArrayInYMD = indiceInYMD[eventYMD];
     if (isUndefined_default()(topArrayInYMD)) {
       topArrayInYMD = indiceInYMD[eventYMD] = [];
-      idsOfDay[eventYMD].forEach(cid => {
+      idsOfDay[eventYMD]?.forEach(cid => {
         uiModelAlldayColl.doWhenHas(cid, uiModel => {
           topArrayInYMD.push(uiModel.top);
         });
@@ -19196,7 +19197,8 @@ function useCalendarColor(model) {
     color: calendar?.color,
     borderColor: calendar?.borderColor,
     backgroundColor: calendar?.backgroundColor,
-    dragBackgroundColor: calendar?.dragBackgroundColor
+    dragBackgroundColor: calendar?.dragBackgroundColor,
+    shouldOpacity: calendar?.shouldOpacity
   }), [calendar]);
 }
 ;// CONCATENATED MODULE: ./src/constants/keyboard.ts
@@ -19411,7 +19413,8 @@ function getEventItemStyle(_ref) {
     color,
     backgroundColor,
     dragBackgroundColor,
-    borderColor
+    borderColor,
+    shouldOpacity
   } = getEventColors(uiModel, calendarColor);
   const defaultItemStyle = {
     color,
@@ -19421,7 +19424,7 @@ function getEventItemStyle(_ref) {
     overflow: 'hidden',
     height: eventHeight,
     lineHeight: toPx(eventHeight),
-    opacity: isDraggingTarget ? 0.5 : 1
+    opacity: shouldOpacity === '1' ? 0.5 : 1
   };
   const margins = getMargins(flat);
   return flat ? {
@@ -20560,7 +20563,7 @@ function EventDetailSectionHeader(_ref) {
   return y("div", {
     className: "row"
   }, y("div", {
-    className: "col-7"
+    className: "col-12"
   }, y("div", {
     className: eventDetailSectionHeader_classNames.sectionHeader
   }, y("div", {
@@ -22234,7 +22237,8 @@ function getStyles(_ref) {
     color,
     backgroundColor,
     borderColor,
-    dragBackgroundColor
+    dragBackgroundColor,
+    shouldOpacity
   } = getEventColors(uiModel, calendarColor);
   const containerStyle = {
     width: getContainerWidth(duplicateWidth || width, marginLeft),
@@ -22246,7 +22250,8 @@ function getStyles(_ref) {
     marginLeft,
     color,
     background: isDraggingTarget ? dragBackgroundColor : backgroundColor,
-    opacity: isDraggingTarget ? 0.5 : 1,
+    opacity: shouldOpacity ? 0.5 : 1,
+    // opacity: isDraggingTarget ? 0.5 : 1,
     zIndex: hasNextStartTime ? 1 : 0
   };
   const goingDurationStyle = {
