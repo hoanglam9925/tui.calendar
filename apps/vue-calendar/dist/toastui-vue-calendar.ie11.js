@@ -5232,7 +5232,7 @@
   }
   /*!
    * TOAST UI Calendar 2nd Edition
-   * @version 2.1.3 | Fri May 16 2025
+   * @version 2.1.3 | Thu May 22 2025
    * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
    * @license MIT
    */
@@ -28281,7 +28281,31 @@
               dangerouslySetInnerHTML: {
                 __html: currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description
               }
-            }))));
+            }))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_temp_count) && y("div", {
+              className: eventDetailSectionDetail_classNames.detailItem
+            }, y("span", {
+              className: "fa fa-flag"
+            }), y("span", {
+              className: eventDetailSectionDetail_classNames.content
+            }, y("b", null, " PN Temp Count: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_temp_count)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_actual_count) && y("div", {
+              className: eventDetailSectionDetail_classNames.detailItem
+            }, y("span", {
+              className: "fa fa-flag"
+            }), y("span", {
+              className: eventDetailSectionDetail_classNames.content
+            }, y("b", null, " PN Actual Count: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_actual_count)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.first_pn_timestamp) && y("div", {
+              className: eventDetailSectionDetail_classNames.detailItem
+            }, y("span", {
+              className: "fa-regular fa-calendar"
+            }), y("span", {
+              className: eventDetailSectionDetail_classNames.content
+            }, y("b", null, " First PN Timestamp: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.first_pn_timestamp)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.last_pn_timestamp) && y("div", {
+              className: eventDetailSectionDetail_classNames.detailItem
+            }, y("span", {
+              className: "fa-regular fa-calendar"
+            }), y("span", {
+              className: eventDetailSectionDetail_classNames.content
+            }, y("b", null, " Last PN Timestamp: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.last_pn_timestamp)));
           }
           var eventDetailSectionHeader_classNames = {
             sectionHeader: cls("popup-section", "section-header"),

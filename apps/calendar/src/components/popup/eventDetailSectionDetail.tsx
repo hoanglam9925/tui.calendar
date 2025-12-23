@@ -32,51 +32,51 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
   const calendar = useCalendarById(calendarId);
   const eventId = event?.id;
   const currentUserData = userData.find((user: any) => {
-    if(user?.id == eventId) return true; 
+    if (user?.id == eventId) return true;
     return false;
   });
-  
+
   return (
-    <div className={`${classNames.sectionDetail}`} style={{maxHeight: '1000px', overflow: "auto", 'font-size': "13px"}} >
+    <div className={`${classNames.sectionDetail}`} style={{ maxHeight: '1000px', overflow: "auto", 'font-size': "13px" }} >
       {currentUserData?.qr_code && (
         <div className={classNames.detailItem}>
           <span className={classNames.content}>
-            <img style={{maxWidth: '50%', aspectRatio: 1, margin: 'auto', display: 'block', marginTop: "10px", marginBottom: "10px"}} src={currentUserData?.qr_code} />
+            <img style={{ maxWidth: '50%', aspectRatio: 1, margin: 'auto', display: 'block', marginTop: "10px", marginBottom: "10px" }} src={currentUserData?.qr_code} />
           </span>
         </div>
       )}
       {currentUserData?.image_file && (
         <div className={classNames.detailItem}>
           <span className={classNames.content}>
-            <img style={{maxWidth: '100%', aspectRatio: 1, margin: 'auto', display: 'block', marginTop: "10px", marginBottom: "10px"}} src={currentUserData?.image_file} />
+            <img style={{ maxWidth: '100%', aspectRatio: 1, margin: 'auto', display: 'block', marginTop: "10px", marginBottom: "10px" }} src={currentUserData?.image_file} />
           </span>
         </div>
       )}
 
-    <div className='row'>
-    <div className='col'>
-          
-        {currentUserData?.register_by_timestamp && (
-          <div className={classNames.detailItem}>
-            <span className='fa-regular fa-calendar' />
-            <span className={classNames.content}>
-            <b> Register By:</b> {currentUserData?.register_by_timestamp}
-              {/* <Template template="popupDetailState" param={event} as="span" /> */}
-            </span>
-          </div>
-        )}
-        {currentUserData?.registration_count >= 0 && (
-          <div className={classNames.detailItem}>
-            <span className='fa-solid fa-rotate' />
-            <span className={classNames.content}>
-            <b> Registration Count:</b> {currentUserData?.registration_count}
-              {/* <Template template="popupDetailState" param={event} as="span" /> */}
-            </span>
-          </div>
-        )}
-       
-        
-        {/* {currentUserData?.attendance_point && (
+      <div className='row'>
+        <div className='col'>
+
+          {currentUserData?.register_by_timestamp && (
+            <div className={classNames.detailItem}>
+              <span className='fa-regular fa-calendar' />
+              <span className={classNames.content}>
+                <b> Register By:</b> {currentUserData?.register_by_timestamp}
+                {/* <Template template="popupDetailState" param={event} as="span" /> */}
+              </span>
+            </div>
+          )}
+          {currentUserData?.registration_count >= 0 && (
+            <div className={classNames.detailItem}>
+              <span className='fa-solid fa-rotate' />
+              <span className={classNames.content}>
+                <b> Registration Count:</b> {currentUserData?.registration_count}
+                {/* <Template template="popupDetailState" param={event} as="span" /> */}
+              </span>
+            </div>
+          )}
+
+
+          {/* {currentUserData?.attendance_point && (
           <div className={classNames.detailItem}>
             <span className={classNames.repeatIcon} />
             <span className={classNames.content}>
@@ -84,32 +84,32 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
             </span>
           </div>
         )} */}
-        
-      </div>
 
-      <div className="col">
-        
-        {currentUserData?.slots_total && (
-          <div className={classNames.detailItem}>
-            <span className='fa-regular fa-square-plus' />
-            <span className={classNames.content}>
-            <b> Slots Total:</b> {currentUserData?.slots_total}
-              {/* <Template template="popupDetailState" param={event} as="span" /> */}
-            </span>
-          </div>
-        )}
-        {currentUserData?.slots_remain && (
-          <div className={classNames.detailItem}>
-            <span className="fa-solid fa-plus-minus"></span>
-            <span className={classNames.content}>
-            <b> Slots Remain:</b> {currentUserData?.slots_remain}
-              {/* <Template template="popupDetailState" param={event} as="span" /> */}
-            </span>
-          </div>
-        )}
+        </div>
+
+        <div className="col">
+
+          {currentUserData?.slots_total && (
+            <div className={classNames.detailItem}>
+              <span className='fa-regular fa-square-plus' />
+              <span className={classNames.content}>
+                <b> Slots Total:</b> {currentUserData?.slots_total}
+                {/* <Template template="popupDetailState" param={event} as="span" /> */}
+              </span>
+            </div>
+          )}
+          {currentUserData?.slots_remain && (
+            <div className={classNames.detailItem}>
+              <span className="fa-solid fa-plus-minus"></span>
+              <span className={classNames.content}>
+                <b> Slots Remain:</b> {currentUserData?.slots_remain}
+                {/* <Template template="popupDetailState" param={event} as="span" /> */}
+              </span>
+            </div>
+          )}
+        </div>
+
       </div>
-      
-    </div>
 
       {currentUserData?.category_relation && (
         <div className={classNames.detailItem}>
@@ -124,7 +124,7 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
         <div className={classNames.detailItem}>
           <span className="fa-solid fa-water"></span>
           <span className={classNames.content}>
-          <b> Attendance Type:</b> {currentUserData?.attendance_type}
+            <b> Attendance Type:</b> {currentUserData?.attendance_type}
           </span>
         </div>
       )}
@@ -144,20 +144,58 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
           </span>
         </div>
       )}
-      
-     
-      
+
+
+
+
       {currentUserData?.description && (
         <div className={classNames.detailItem}>
           <span className={classNames.content}>
-          <span className="fa-solid fa-circle-info"></span>
-          <b> Description:</b>
-          {/* {currentUserData?.description} */}
-          <div dangerouslySetInnerHTML={{ __html: (currentUserData?.description) }} />
+            <span className="fa-solid fa-circle-info"></span>
+            <b> Description:</b>
+            {/* {currentUserData?.description} */}
+            <div dangerouslySetInnerHTML={{ __html: (currentUserData?.description) }} />
             {/* <Template template="popupDetailState" param={event} as="span" /> */}
           </span>
         </div>
       )}
+
+      {currentUserData?.pn_temp_count && (
+        <div className={classNames.detailItem}>
+          <span className="fa fa-flag"></span>
+          <span className={classNames.content}>
+            <b> PN Temp Count: </b> {currentUserData?.pn_temp_count}
+          </span>
+        </div>
+      )}
+
+      {currentUserData?.pn_actual_count && (
+        <div className={classNames.detailItem}>
+          <span className="fa fa-flag"></span>
+          <span className={classNames.content}>
+            <b> PN Actual Count: </b> {currentUserData?.pn_actual_count}
+          </span>
+        </div>
+      )}
+
+      {currentUserData?.first_pn_timestamp && (
+        <div className={classNames.detailItem}>
+          <span className="fa-regular fa-calendar"></span>
+          <span className={classNames.content}>
+            <b> First PN Timestamp: </b> {currentUserData?.first_pn_timestamp}
+          </span>
+        </div>
+      )}
+
+      {currentUserData?.last_pn_timestamp && (
+        <div className={classNames.detailItem}>
+          <span className="fa-regular fa-calendar"></span>
+          <span className={classNames.content}>
+            <b> Last PN Timestamp: </b> {currentUserData?.last_pn_timestamp}
+          </span>
+        </div>
+      )}
+
       {/* {location && (
         <div className={classNames.detailItem}>
           <span className={classNames.locationIcon} />
@@ -208,6 +246,6 @@ export function EventDetailSectionDetail({ event, userData }: Props) {
           </span>
         </div>
       )} */}
-    </div>
+    </div >
   );
 }

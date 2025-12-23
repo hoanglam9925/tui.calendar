@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Fri May 16 2025
+ * @version 2.1.3 | Wed Dec 03 2025
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -20182,7 +20182,31 @@ function EventDetailSectionDetail(_ref) {
     dangerouslySetInnerHTML: {
       __html: currentUserData?.description
     }
-  }))));
+  }))), currentUserData?.pn_temp_count && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa fa-flag"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " PN Temp Count: "), " ", currentUserData?.pn_temp_count)), currentUserData?.pn_actual_count && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa fa-flag"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " PN Actual Count: "), " ", currentUserData?.pn_actual_count)), currentUserData?.first_pn_timestamp && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa-regular fa-calendar"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " First PN Timestamp: "), " ", currentUserData?.first_pn_timestamp)), currentUserData?.last_pn_timestamp && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa-regular fa-calendar"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " Last PN Timestamp: "), " ", currentUserData?.last_pn_timestamp)));
 }
 ;// CONCATENATED MODULE: ./src/components/popup/eventDetailSectionHeader.tsx
 
@@ -20198,7 +20222,9 @@ function EventDetailSectionHeader(_ref) {
     event,
     userData,
     backpackUrl,
-    templateCsvUrl
+    templateCsvUrl,
+    canEdit,
+    canDelete
   } = _ref;
   const eventId = event?.id;
   return y("div", {
@@ -20490,8 +20516,26 @@ function EventDetailPopup() {
             'X-CSRF-TOKEN': token
           }
         }).then(resp => {
+          if (!resp.ok) {
+            sweetalert_min_default()({
+              title: "Error",
+              text: "Failed to delete item. Please try again.",
+              icon: "error"
+            });
+            return;
+          }
           eventBus.fire('beforeDeleteEvent', event.toEventObject());
+        }).catch(error => {
+          console.debug({
+            error
+          });
+          sweetalert_min_default()({
+            title: "Error",
+            text: "Failed to delete item. Please try again.",
+            icon: "error"
+          });
         });
+        ;
       }
     });
     hideDetailPopup();
@@ -20500,6 +20544,8 @@ function EventDetailPopup() {
   const token = options?.allOptions?.token;
   const backpackUrl = options?.allOptions?.backpackUrl;
   const templateCsvUrl = options?.allOptions?.templateCsvUrl;
+  const canEdit = options?.allOptions?.canEdit;
+  const canDelete = options?.allOptions?.canDelete;
   const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
   const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
   const eventId = event?.id;
@@ -20514,7 +20560,9 @@ function EventDetailPopup() {
     event: event,
     userData: userData,
     backpackUrl: backpackUrl,
-    templateCsvUrl: templateCsvUrl
+    templateCsvUrl: templateCsvUrl,
+    canEdit: canEdit,
+    canDelete: canDelete
   }), y(EventDetailSectionDetail, {
     event: event,
     userData: userData,
@@ -20526,7 +20574,12 @@ function EventDetailPopup() {
   }, y("button", {
     type: "button",
     className: eventDetailPopup_classNames.editButton,
-    onClick: onClickEditButton
+    onClick: onClickEditButton,
+    disabled: !canEdit,
+    style: {
+      opacity: canEdit ? 1 : 0.5,
+      cursor: canEdit ? 'pointer' : 'not-allowed'
+    }
   }, y("span", {
     className: eventDetailPopup_classNames.editIcon
   }), y("span", {
@@ -20539,7 +20592,12 @@ function EventDetailPopup() {
   }), y("button", {
     type: "button",
     className: eventDetailPopup_classNames.deleteButton,
-    onClick: () => onClickDeleteButton(deleteURl, token)
+    onClick: () => onClickDeleteButton(deleteURl, token),
+    disabled: !canDelete,
+    style: {
+      opacity: canDelete ? 1 : 0.5,
+      cursor: canDelete ? 'pointer' : 'not-allowed'
+    }
   }, y("span", {
     className: eventDetailPopup_classNames.deleteIcon
   }), y("span", {

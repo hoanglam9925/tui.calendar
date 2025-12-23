@@ -31,7 +31,7 @@ var __objRest = (source, exclude) => {
 };
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Fri May 16 2025
+ * @version 2.1.3 | Wed Dec 03 2025
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -6824,14 +6824,38 @@ function EventDetailSectionDetail({ event, userData }) {
     className: "fa-solid fa-circle-info"
   }), /* @__PURE__ */ y$3("b", null, " Description:"), /* @__PURE__ */ y$3("div", {
     dangerouslySetInnerHTML: { __html: currentUserData == null ? void 0 : currentUserData.description }
-  }))));
+  }))), (currentUserData == null ? void 0 : currentUserData.pn_temp_count) && /* @__PURE__ */ y$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ y$3("span", {
+    className: "fa fa-flag"
+  }), /* @__PURE__ */ y$3("span", {
+    className: classNames$j.content
+  }, /* @__PURE__ */ y$3("b", null, " PN Temp Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_temp_count)), (currentUserData == null ? void 0 : currentUserData.pn_actual_count) && /* @__PURE__ */ y$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ y$3("span", {
+    className: "fa fa-flag"
+  }), /* @__PURE__ */ y$3("span", {
+    className: classNames$j.content
+  }, /* @__PURE__ */ y$3("b", null, " PN Actual Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_actual_count)), (currentUserData == null ? void 0 : currentUserData.first_pn_timestamp) && /* @__PURE__ */ y$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ y$3("span", {
+    className: "fa-regular fa-calendar"
+  }), /* @__PURE__ */ y$3("span", {
+    className: classNames$j.content
+  }, /* @__PURE__ */ y$3("b", null, " First PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.first_pn_timestamp)), (currentUserData == null ? void 0 : currentUserData.last_pn_timestamp) && /* @__PURE__ */ y$3("div", {
+    className: classNames$j.detailItem
+  }, /* @__PURE__ */ y$3("span", {
+    className: "fa-regular fa-calendar"
+  }), /* @__PURE__ */ y$3("span", {
+    className: classNames$j.content
+  }, /* @__PURE__ */ y$3("b", null, " Last PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.last_pn_timestamp)));
 }
 const classNames$i = {
   sectionHeader: cls("popup-section", "section-header"),
   content: cls("content"),
   eventTitle: cls("event-title")
 };
-function EventDetailSectionHeader({ event, userData, backpackUrl, templateCsvUrl }) {
+function EventDetailSectionHeader({ event, userData, backpackUrl, templateCsvUrl, canEdit, canDelete }) {
   event == null ? void 0 : event.id;
   return /* @__PURE__ */ y$3("div", {
     className: "row"
@@ -14094,7 +14118,7 @@ function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   return { top, direction };
 }
 function EventDetailPopup() {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f;
   const { useFormPopup } = useStore(optionsSelector);
   const popupParams = useStore(eventDetailPopupParamSelector);
   const options = useStore(optionsSelector);
@@ -14183,7 +14207,22 @@ function EventDetailPopup() {
             "X-CSRF-TOKEN": token2
           }
         }).then((resp) => {
+          if (!resp.ok) {
+            swal({
+              title: "Error",
+              text: "Failed to delete item. Please try again.",
+              icon: "error"
+            });
+            return;
+          }
           eventBus.fire("beforeDeleteEvent", event.toEventObject());
+        }).catch((error) => {
+          console.debug({ error });
+          swal({
+            title: "Error",
+            text: "Failed to delete item. Please try again.",
+            icon: "error"
+          });
         });
       }
     });
@@ -14193,6 +14232,8 @@ function EventDetailPopup() {
   const token = (_b = options == null ? void 0 : options.allOptions) == null ? void 0 : _b.token;
   const backpackUrl = (_c = options == null ? void 0 : options.allOptions) == null ? void 0 : _c.backpackUrl;
   const templateCsvUrl = (_d = options == null ? void 0 : options.allOptions) == null ? void 0 : _d.templateCsvUrl;
+  const canEdit = (_e = options == null ? void 0 : options.allOptions) == null ? void 0 : _e.canEdit;
+  const canDelete = (_f = options == null ? void 0 : options.allOptions) == null ? void 0 : _f.canDelete;
   const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
   const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
   const eventId = event == null ? void 0 : event.id;
@@ -14208,7 +14249,9 @@ function EventDetailPopup() {
       event,
       userData,
       backpackUrl,
-      templateCsvUrl
+      templateCsvUrl,
+      canEdit,
+      canDelete
     }), /* @__PURE__ */ y$3(EventDetailSectionDetail, {
       event,
       userData,
@@ -14220,7 +14263,9 @@ function EventDetailPopup() {
     }, /* @__PURE__ */ y$3("button", {
       type: "button",
       className: classNames$h.editButton,
-      onClick: onClickEditButton
+      onClick: onClickEditButton,
+      disabled: !canEdit,
+      style: { opacity: canEdit ? 1 : 0.5, cursor: canEdit ? "pointer" : "not-allowed" }
     }, /* @__PURE__ */ y$3("span", {
       className: classNames$h.editIcon
     }), /* @__PURE__ */ y$3("span", {
@@ -14233,7 +14278,9 @@ function EventDetailPopup() {
     }), /* @__PURE__ */ y$3("button", {
       type: "button",
       className: classNames$h.deleteButton,
-      onClick: () => onClickDeleteButton(deleteURl, token)
+      onClick: () => onClickDeleteButton(deleteURl, token),
+      disabled: !canDelete,
+      style: { opacity: canDelete ? 1 : 0.5, cursor: canDelete ? "pointer" : "not-allowed" }
     }, /* @__PURE__ */ y$3("span", {
       className: classNames$h.deleteIcon
     }), /* @__PURE__ */ y$3("span", {

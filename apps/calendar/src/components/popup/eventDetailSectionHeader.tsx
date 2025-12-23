@@ -9,6 +9,8 @@ interface Props {
   userData: any;
   backpackUrl: any;
   templateCsvUrl: any;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
 const classNames = {
@@ -17,7 +19,7 @@ const classNames = {
   eventTitle: cls('event-title'),
 };
 
-export function EventDetailSectionHeader({ event, userData, backpackUrl, templateCsvUrl }: Props) {
+export function EventDetailSectionHeader({ event, userData, backpackUrl, templateCsvUrl, canEdit, canDelete }: Props) {
   const eventId = event?.id;
   return (
     <div className='row'>

@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar 2nd Edition
- * @version 2.1.3 | Fri May 16 2025
+ * @version 2.1.3 | Wed Dec 03 2025
  * @author NHN Cloud FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -29880,7 +29880,31 @@ function EventDetailSectionDetail(_ref) {
     dangerouslySetInnerHTML: {
       __html: currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.description
     }
-  }))));
+  }))), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_temp_count) && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa fa-flag"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " PN Temp Count: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_temp_count)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_actual_count) && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa fa-flag"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " PN Actual Count: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.pn_actual_count)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.first_pn_timestamp) && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa-regular fa-calendar"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " First PN Timestamp: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.first_pn_timestamp)), (currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.last_pn_timestamp) && y("div", {
+    className: eventDetailSectionDetail_classNames.detailItem
+  }, y("span", {
+    className: "fa-regular fa-calendar"
+  }), y("span", {
+    className: eventDetailSectionDetail_classNames.content
+  }, y("b", null, " Last PN Timestamp: "), " ", currentUserData === null || currentUserData === void 0 ? void 0 : currentUserData.last_pn_timestamp)));
 }
 ;// CONCATENATED MODULE: ./src/components/popup/eventDetailSectionHeader.tsx
 
@@ -29895,7 +29919,9 @@ function EventDetailSectionHeader(_ref) {
   var event = _ref.event,
     userData = _ref.userData,
     backpackUrl = _ref.backpackUrl,
-    templateCsvUrl = _ref.templateCsvUrl;
+    templateCsvUrl = _ref.templateCsvUrl,
+    canEdit = _ref.canEdit,
+    canDelete = _ref.canDelete;
   var eventId = event === null || event === void 0 ? void 0 : event.id;
   return y("div", {
     className: "row"
@@ -30138,7 +30164,7 @@ function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   };
 }
 function EventDetailPopup() {
-  var _options$allOptions, _options$allOptions2, _options$allOptions3, _options$allOptions4;
+  var _options$allOptions, _options$allOptions2, _options$allOptions3, _options$allOptions4, _options$allOptions5, _options$allOptions6;
   var _useStore = useStore(optionsSelector),
     useFormPopup = _useStore.useFormPopup;
   var popupParams = useStore(eventDetailPopupParamSelector);
@@ -30251,8 +30277,26 @@ function EventDetailPopup() {
             'X-CSRF-TOKEN': token
           }
         }).then(function (resp) {
+          if (!resp.ok) {
+            sweetalert_min_default()({
+              title: "Error",
+              text: "Failed to delete item. Please try again.",
+              icon: "error"
+            });
+            return;
+          }
           eventBus.fire('beforeDeleteEvent', event.toEventObject());
+        }).catch(function (error) {
+          console.debug({
+            error: error
+          });
+          sweetalert_min_default()({
+            title: "Error",
+            text: "Failed to delete item. Please try again.",
+            icon: "error"
+          });
         });
+        ;
       }
     });
     hideDetailPopup();
@@ -30261,6 +30305,8 @@ function EventDetailPopup() {
   var token = options === null || options === void 0 ? void 0 : (_options$allOptions2 = options.allOptions) === null || _options$allOptions2 === void 0 ? void 0 : _options$allOptions2.token;
   var backpackUrl = options === null || options === void 0 ? void 0 : (_options$allOptions3 = options.allOptions) === null || _options$allOptions3 === void 0 ? void 0 : _options$allOptions3.backpackUrl;
   var templateCsvUrl = options === null || options === void 0 ? void 0 : (_options$allOptions4 = options.allOptions) === null || _options$allOptions4 === void 0 ? void 0 : _options$allOptions4.templateCsvUrl;
+  var canEdit = options === null || options === void 0 ? void 0 : (_options$allOptions5 = options.allOptions) === null || _options$allOptions5 === void 0 ? void 0 : _options$allOptions5.canEdit;
+  var canDelete = options === null || options === void 0 ? void 0 : (_options$allOptions6 = options.allOptions) === null || _options$allOptions6 === void 0 ? void 0 : _options$allOptions6.canDelete;
   var editUrl = "".concat(backpackUrl, "/collab-event/").concat(event.id, "/edit");
   var deleteURl = "".concat(backpackUrl, "/collab-event/").concat(event.id);
   var eventId = event === null || event === void 0 ? void 0 : event.id;
@@ -30275,7 +30321,9 @@ function EventDetailPopup() {
     event: event,
     userData: userData,
     backpackUrl: backpackUrl,
-    templateCsvUrl: templateCsvUrl
+    templateCsvUrl: templateCsvUrl,
+    canEdit: canEdit,
+    canDelete: canDelete
   }), y(EventDetailSectionDetail, {
     event: event,
     userData: userData,
@@ -30287,7 +30335,12 @@ function EventDetailPopup() {
   }, y("button", {
     type: "button",
     className: eventDetailPopup_classNames.editButton,
-    onClick: onClickEditButton
+    onClick: onClickEditButton,
+    disabled: !canEdit,
+    style: {
+      opacity: canEdit ? 1 : 0.5,
+      cursor: canEdit ? 'pointer' : 'not-allowed'
+    }
   }, y("span", {
     className: eventDetailPopup_classNames.editIcon
   }), y("span", {
@@ -30302,6 +30355,11 @@ function EventDetailPopup() {
     className: eventDetailPopup_classNames.deleteButton,
     onClick: function onClick() {
       return onClickDeleteButton(deleteURl, token);
+    },
+    disabled: !canDelete,
+    style: {
+      opacity: canDelete ? 1 : 0.5,
+      cursor: canDelete ? 'pointer' : 'not-allowed'
     }
   }, y("span", {
     className: eventDetailPopup_classNames.deleteIcon

@@ -12034,7 +12034,31 @@
       className: "fa-solid fa-circle-info"
     }), /* @__PURE__ */ y$3("b", null, " Description:"), /* @__PURE__ */ y$3("div", {
       dangerouslySetInnerHTML: { __html: currentUserData == null ? void 0 : currentUserData.description }
-    }))));
+    }))), (currentUserData == null ? void 0 : currentUserData.pn_temp_count) && /* @__PURE__ */ y$3("div", {
+      className: classNames$j.detailItem
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa fa-flag"
+    }), /* @__PURE__ */ y$3("span", {
+      className: classNames$j.content
+    }, /* @__PURE__ */ y$3("b", null, " PN Temp Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_temp_count)), (currentUserData == null ? void 0 : currentUserData.pn_actual_count) && /* @__PURE__ */ y$3("div", {
+      className: classNames$j.detailItem
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa fa-flag"
+    }), /* @__PURE__ */ y$3("span", {
+      className: classNames$j.content
+    }, /* @__PURE__ */ y$3("b", null, " PN Actual Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_actual_count)), (currentUserData == null ? void 0 : currentUserData.first_pn_timestamp) && /* @__PURE__ */ y$3("div", {
+      className: classNames$j.detailItem
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-regular fa-calendar"
+    }), /* @__PURE__ */ y$3("span", {
+      className: classNames$j.content
+    }, /* @__PURE__ */ y$3("b", null, " First PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.first_pn_timestamp)), (currentUserData == null ? void 0 : currentUserData.last_pn_timestamp) && /* @__PURE__ */ y$3("div", {
+      className: classNames$j.detailItem
+    }, /* @__PURE__ */ y$3("span", {
+      className: "fa-regular fa-calendar"
+    }), /* @__PURE__ */ y$3("span", {
+      className: classNames$j.content
+    }, /* @__PURE__ */ y$3("b", null, " Last PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.last_pn_timestamp)));
   }
   const classNames$i = {
     sectionHeader: cls("popup-section", "section-header"),

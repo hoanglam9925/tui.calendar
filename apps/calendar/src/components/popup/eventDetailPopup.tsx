@@ -199,8 +199,24 @@ export function EventDetailPopup() {
             'X-CSRF-TOKEN': token,
           },
         }).then((resp) => {
+          if (!resp.ok) {
+            swal({
+              title: "Error",
+              text: "Failed to delete item. Please try again.",
+              icon: "error",
+            });
+            return;
+          }
+          
           eventBus.fire('beforeDeleteEvent', event.toEventObject());
-        });
+        }).catch((error) => {
+          console.debug({error});
+          swal({
+            title: "Error",
+            text: "Failed to delete item. Please try again.",
+            icon: "error",
+          });
+        });;
       }		
     });
 
@@ -211,6 +227,8 @@ export function EventDetailPopup() {
   const token = options?.allOptions?.token;
   const backpackUrl = options?.allOptions?.backpackUrl;
   const templateCsvUrl = options?.allOptions?.templateCsvUrl;
+  const canEdit = options?.allOptions?.canEdit;
+  const canDelete = options?.allOptions?.canDelete;
 
   const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
   const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
@@ -219,12 +237,16 @@ export function EventDetailPopup() {
   return createPortal(
     <div role="dialog" className={classNames.popupContainer} ref={popupContainerRef} style={style}>
       <div className={classNames.detailContainer}>
-        <EventDetailSectionHeader event={event} userData={userData} backpackUrl={backpackUrl} templateCsvUrl={templateCsvUrl} />
+        <EventDetailSectionHeader event={event} userData={userData} backpackUrl={backpackUrl} templateCsvUrl={templateCsvUrl} canEdit={canEdit} canDelete={canDelete}/>
         <EventDetailSectionDetail event={event} userData={userData} backpackUrl={backpackUrl} />
         {!isReadOnly && (
           <div className={classNames.sectionButton}>
             <a href={editUrl}>
-              <button type="button" className={classNames.editButton} onClick={onClickEditButton}>
+              <button type="button" 
+                      className={classNames.editButton} 
+                      onClick={onClickEditButton} 
+                      disabled={!canEdit}
+                      style={{ opacity: canEdit ? 1 : 0.5, cursor: canEdit ? 'pointer' : 'not-allowed' }}>
                 <span className={classNames.editIcon} />
                 <span className={classNames.content}>
                   <Template template="popupEdit" as="span" />
@@ -233,7 +255,11 @@ export function EventDetailPopup() {
             </a>
             
             <div className={classNames.verticalLine} />
-            <button type="button" className={classNames.deleteButton} onClick={() => onClickDeleteButton(deleteURl, token)}>
+            <button type="button" 
+                  className={classNames.deleteButton} 
+                  onClick={() => onClickDeleteButton(deleteURl, token)}
+                  disabled={!canDelete}
+                  style={{ opacity: canDelete ? 1 : 0.5, cursor: canDelete ? 'pointer' : 'not-allowed' }}>
               <span className={classNames.deleteIcon} />
               <span className={classNames.content}>
                 <Template template="popupDelete" as="span" />
