@@ -57,7 +57,7 @@
   "dependencies": {
     "immer": "^9.0.15",
     "isomorphic-dompurify": "^2.24.0",
-    "preact": "^10.10.0",
+    "preact": "10.28.2",
     "preact-render-to-string": "^5.2.1",
     "tui-date-picker": "^4.0.1",
     "tui-time-picker": "^2.0.1"
