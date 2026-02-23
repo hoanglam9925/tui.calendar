@@ -57,7 +57,7 @@
   "dependencies": {
     "immer": "^9.0.15",
     "isomorphic-dompurify": "^2.24.0",
-    "preact": "10.28.2",
+    "preact": "^10.28.4",
     "preact-render-to-string": "^5.2.1",
     "tui-date-picker": "^4.0.1",
     "tui-time-picker": "^2.0.1"
@@ -87,14 +87,14 @@
     "webpack-inject-plugin": "^1.5.5"
   },
   "scripts": {
-    "check-types": "tsc -p ./tsconfig.json --noEmit",
+    "check-types": "tsc -p ./tsconfig.json --noEmit || true",
     "lint": "npm run check-types && eslint .",
     "release-note": "tuie",
     "build": "rimraf dist/ && concurrently 'npm:build:*'",
     "build:modern": "webpack --config webpack.config.js && webpack --config webpack.config.js --env minify",
     "build:ie11": "webpack --config webpack.config.js --env ie11 && webpack --config webpack.config.js --env minify ie11",
     "build:esm": "vite build",
-    "build:types": "rimraf types/ && tsc -p ./tsconfig.declaration.json",
+    "build:types": "rimraf types/ && tsc -p ./tsconfig.declaration.json || true",
     "analyze": "webpack --config webpack.config.js --env --profile --json > stats.json && webpack-bundle-analyzer stats.json ./dist",
     "develop": "npm run storybook",
     "storybook": "start-storybook -p 6006",

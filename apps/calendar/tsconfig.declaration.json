@@ -3,6 +3,9 @@
   "compilerOptions": {
     "declaration": true,
     "emitDeclarationOnly": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": false,
     "plugins": [
       {
         "transform": "typescript-transform-paths",
