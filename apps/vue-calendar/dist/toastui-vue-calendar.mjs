@@ -5239,44 +5239,43 @@ var __objRest = (source, exclude) => {
     }
   return target;
 };
-var n$2, l$3, u$3, t$2, r$2, o$3, f$3, e$1, c$3 = {}, s$3 = [], a$3 = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
-function h$3(n2, l2) {
+var n$2, l$3, u$3, i$3, o$3, r$2, e$1, f$3, c$3, s$3, a$3, h$3, p$3 = {}, v$3 = [], y$3 = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i, d$3 = Array.isArray;
+function w$3(n2, l2) {
   for (var u2 in l2)
     n2[u2] = l2[u2];
   return n2;
 }
-function v$3(n2) {
-  var l2 = n2.parentNode;
-  l2 && l2.removeChild(n2);
+function g$3(n2) {
+  n2 && n2.parentNode && n2.parentNode.removeChild(n2);
 }
-function y$3(l2, u2, i2) {
-  var t2, r2, o2, f2 = {};
-  for (o2 in u2)
-    "key" == o2 ? t2 = u2[o2] : "ref" == o2 ? r2 = u2[o2] : f2[o2] = u2[o2];
-  if (arguments.length > 2 && (f2.children = arguments.length > 3 ? n$2.call(arguments, 2) : i2), "function" == typeof l2 && null != l2.defaultProps)
-    for (o2 in l2.defaultProps)
-      void 0 === f2[o2] && (f2[o2] = l2.defaultProps[o2]);
-  return p$3(l2, f2, t2, r2, null);
+function _$3(l2, u2, t2) {
+  var i2, o2, r2, e2 = {};
+  for (r2 in u2)
+    "key" == r2 ? i2 = u2[r2] : "ref" == r2 ? o2 = u2[r2] : e2[r2] = u2[r2];
+  if (arguments.length > 2 && (e2.children = arguments.length > 3 ? n$2.call(arguments, 2) : t2), "function" == typeof l2 && null != l2.defaultProps)
+    for (r2 in l2.defaultProps)
+      void 0 === e2[r2] && (e2[r2] = l2.defaultProps[r2]);
+  return m$2(l2, e2, i2, o2, null);
 }
-function p$3(n2, i2, t2, r2, o2) {
-  var f2 = { type: n2, props: i2, key: t2, ref: r2, __k: null, __: null, __b: 0, __e: null, __d: void 0, __c: null, __h: null, constructor: void 0, __v: null == o2 ? ++u$3 : o2 };
-  return null == o2 && null != l$3.vnode && l$3.vnode(f2), f2;
+function m$2(n2, t2, i2, o2, r2) {
+  var e2 = { type: n2, props: t2, key: i2, ref: o2, __k: null, __: null, __b: 0, __e: null, __c: null, constructor: void 0, __v: null == r2 ? ++u$3 : r2, __i: -1, __u: 0 };
+  return null == r2 && null != l$3.vnode && l$3.vnode(e2), e2;
 }
-function _$3(n2) {
+function k$3(n2) {
   return n2.children;
 }
-function k$4(n2, l2) {
+function x$3(n2, l2) {
   this.props = n2, this.context = l2;
 }
-function b$3(n2, l2) {
+function S$2(n2, l2) {
   if (null == l2)
-    return n2.__ ? b$3(n2.__, n2.__.__k.indexOf(n2) + 1) : null;
+    return n2.__ ? S$2(n2.__, n2.__i + 1) : null;
   for (var u2; l2 < n2.__k.length; l2++)
     if (null != (u2 = n2.__k[l2]) && null != u2.__e)
       return u2.__e;
-  return "function" == typeof n2.type ? b$3(n2) : null;
+  return "function" == typeof n2.type ? S$2(n2) : null;
 }
-function g$4(n2) {
+function C$2(n2) {
   var l2, u2;
   if (null != (n2 = n2.__) && null != n2.__c) {
     for (n2.__e = n2.__c.base = null, l2 = 0; l2 < n2.__k.length; l2++)
@@ -5284,161 +5283,161 @@ function g$4(n2) {
         n2.__e = n2.__c.base = u2.__e;
         break;
       }
-    return g$4(n2);
+    return C$2(n2);
   }
 }
-function m$2(n2) {
-  (!n2.__d && (n2.__d = true) && t$2.push(n2) && !w$4.__r++ || r$2 !== l$3.debounceRendering) && ((r$2 = l$3.debounceRendering) || o$3)(w$4);
+function M$2(n2) {
+  (!n2.__d && (n2.__d = true) && i$3.push(n2) && !$$2.__r++ || o$3 != l$3.debounceRendering) && ((o$3 = l$3.debounceRendering) || r$2)($$2);
 }
-function w$4() {
-  var n2, l2, u2, i2, r2, o2, e2, c2;
-  for (t$2.sort(f$3); n2 = t$2.shift(); )
-    n2.__d && (l2 = t$2.length, i2 = void 0, r2 = void 0, e2 = (o2 = (u2 = n2).__v).__e, (c2 = u2.__P) && (i2 = [], (r2 = h$3({}, o2)).__v = o2.__v + 1, L$2(c2, o2, r2, u2.__n, void 0 !== c2.ownerSVGElement, null != o2.__h ? [e2] : null, i2, null == e2 ? b$3(o2) : e2, o2.__h), M$1(i2, o2), o2.__e != e2 && g$4(o2)), t$2.length > l2 && t$2.sort(f$3));
-  w$4.__r = 0;
+function $$2() {
+  for (var n2, u2, t2, o2, r2, f2, c2, s2 = 1; i$3.length; )
+    i$3.length > s2 && i$3.sort(e$1), n2 = i$3.shift(), s2 = i$3.length, n2.__d && (t2 = void 0, o2 = void 0, r2 = (o2 = (u2 = n2).__v).__e, f2 = [], c2 = [], u2.__P && ((t2 = w$3({}, o2)).__v = o2.__v + 1, l$3.vnode && l$3.vnode(t2), O$2(u2.__P, t2, o2, u2.__n, u2.__P.namespaceURI, 32 & o2.__u ? [r2] : null, f2, null == r2 ? S$2(o2) : r2, !!(32 & o2.__u), c2), t2.__v = o2.__v, t2.__.__k[t2.__i] = t2, N$2(f2, t2, c2), o2.__e = o2.__ = null, t2.__e != r2 && C$2(t2)));
+  $$2.__r = 0;
 }
-function x$3(n2, l2, u2, i2, t2, r2, o2, f2, e2, a2) {
-  var h2, v2, y2, d2, k2, g2, m2, w2 = i2 && i2.__k || s$3, x2 = w2.length;
-  for (u2.__k = [], h2 = 0; h2 < l2.length; h2++)
-    if (null != (d2 = u2.__k[h2] = null == (d2 = l2[h2]) || "boolean" == typeof d2 || "function" == typeof d2 ? null : "string" == typeof d2 || "number" == typeof d2 || "bigint" == typeof d2 ? p$3(null, d2, null, null, d2) : Array.isArray(d2) ? p$3(_$3, { children: d2 }, null, null, null) : d2.__b > 0 ? p$3(d2.type, d2.props, d2.key, d2.ref ? d2.ref : null, d2.__v) : d2)) {
-      if (d2.__ = u2, d2.__b = u2.__b + 1, null === (y2 = w2[h2]) || y2 && d2.key == y2.key && d2.type === y2.type)
-        w2[h2] = void 0;
-      else
-        for (v2 = 0; v2 < x2; v2++) {
-          if ((y2 = w2[v2]) && d2.key == y2.key && d2.type === y2.type) {
-            w2[v2] = void 0;
-            break;
-          }
-          y2 = null;
-        }
-      L$2(n2, d2, y2 = y2 || c$3, t2, r2, o2, f2, e2, a2), k2 = d2.__e, (v2 = d2.ref) && y2.ref != v2 && (m2 || (m2 = []), y2.ref && m2.push(y2.ref, null, d2), m2.push(v2, d2.__c || k2, d2)), null != k2 ? (null == g2 && (g2 = k2), "function" == typeof d2.type && d2.__k === y2.__k ? d2.__d = e2 = A$2(d2, e2, n2) : e2 = C$2(n2, d2, y2, w2, k2, e2), "function" == typeof u2.type && (u2.__d = e2)) : e2 && y2.__e == e2 && e2.parentNode != n2 && (e2 = b$3(y2));
-    }
-  for (u2.__e = g2, h2 = x2; h2--; )
-    null != w2[h2] && ("function" == typeof u2.type && null != w2[h2].__e && w2[h2].__e == u2.__d && (u2.__d = $$2(i2).nextSibling), S$2(w2[h2], w2[h2]));
-  if (m2)
-    for (h2 = 0; h2 < m2.length; h2++)
-      O$2(m2[h2], m2[++h2], m2[++h2]);
+function I$1(n2, l2, u2, t2, i2, o2, r2, e2, f2, c2, s2) {
+  var a2, h2, y2, d2, w2, g2, _2, m2 = t2 && t2.__k || v$3, b2 = l2.length;
+  for (f2 = P$2(u2, l2, m2, f2, b2), a2 = 0; a2 < b2; a2++)
+    null != (y2 = u2.__k[a2]) && (h2 = -1 == y2.__i ? p$3 : m2[y2.__i] || p$3, y2.__i = a2, g2 = O$2(n2, y2, h2, i2, o2, r2, e2, f2, c2, s2), d2 = y2.__e, y2.ref && h2.ref != y2.ref && (h2.ref && B$3(h2.ref, null, y2), s2.push(y2.ref, y2.__c || d2, y2)), null == w2 && null != d2 && (w2 = d2), (_2 = !!(4 & y2.__u)) || h2.__k === y2.__k ? f2 = A$4(y2, f2, n2, _2) : "function" == typeof y2.type && void 0 !== g2 ? f2 = g2 : d2 && (f2 = d2.nextSibling), y2.__u &= -7);
+  return u2.__e = w2, f2;
 }
-function A$2(n2, l2, u2) {
-  for (var i2, t2 = n2.__k, r2 = 0; t2 && r2 < t2.length; r2++)
-    (i2 = t2[r2]) && (i2.__ = n2, l2 = "function" == typeof i2.type ? A$2(i2, l2, u2) : C$2(u2, i2, i2, t2, i2.__e, l2));
+function P$2(n2, l2, u2, t2, i2) {
+  var o2, r2, e2, f2, c2, s2 = u2.length, a2 = s2, h2 = 0;
+  for (n2.__k = new Array(i2), o2 = 0; o2 < i2; o2++)
+    null != (r2 = l2[o2]) && "boolean" != typeof r2 && "function" != typeof r2 ? ("string" == typeof r2 || "number" == typeof r2 || "bigint" == typeof r2 || r2.constructor == String ? r2 = n2.__k[o2] = m$2(null, r2, null, null, null) : d$3(r2) ? r2 = n2.__k[o2] = m$2(k$3, { children: r2 }, null, null, null) : void 0 === r2.constructor && r2.__b > 0 ? r2 = n2.__k[o2] = m$2(r2.type, r2.props, r2.key, r2.ref ? r2.ref : null, r2.__v) : n2.__k[o2] = r2, f2 = o2 + h2, r2.__ = n2, r2.__b = n2.__b + 1, e2 = null, -1 != (c2 = r2.__i = L$1(r2, u2, f2, a2)) && (a2--, (e2 = u2[c2]) && (e2.__u |= 2)), null == e2 || null == e2.__v ? (-1 == c2 && (i2 > s2 ? h2-- : i2 < s2 && h2++), "function" != typeof r2.type && (r2.__u |= 4)) : c2 != f2 && (c2 == f2 - 1 ? h2-- : c2 == f2 + 1 ? h2++ : (c2 > f2 ? h2-- : h2++, r2.__u |= 4))) : n2.__k[o2] = null;
+  if (a2)
+    for (o2 = 0; o2 < s2; o2++)
+      null != (e2 = u2[o2]) && 0 == (2 & e2.__u) && (e2.__e == t2 && (t2 = S$2(e2)), D$3(e2, e2));
+  return t2;
+}
+function A$4(n2, l2, u2, t2) {
+  var i2, o2;
+  if ("function" == typeof n2.type) {
+    for (i2 = n2.__k, o2 = 0; i2 && o2 < i2.length; o2++)
+      i2[o2] && (i2[o2].__ = n2, l2 = A$4(i2[o2], l2, u2, t2));
+    return l2;
+  }
+  n2.__e != l2 && (t2 && (l2 && n2.type && !l2.parentNode && (l2 = S$2(n2)), u2.insertBefore(n2.__e, l2 || null)), l2 = n2.__e);
+  do {
+    l2 = l2 && l2.nextSibling;
+  } while (null != l2 && 8 == l2.nodeType);
   return l2;
 }
-function P$2(n2, l2) {
-  return l2 = l2 || [], null == n2 || "boolean" == typeof n2 || (Array.isArray(n2) ? n2.some(function(n3) {
-    P$2(n3, l2);
+function H$2(n2, l2) {
+  return l2 = l2 || [], null == n2 || "boolean" == typeof n2 || (d$3(n2) ? n2.some(function(n3) {
+    H$2(n3, l2);
   }) : l2.push(n2)), l2;
 }
-function C$2(n2, l2, u2, i2, t2, r2) {
-  var o2, f2, e2;
-  if (void 0 !== l2.__d)
-    o2 = l2.__d, l2.__d = void 0;
-  else if (null == u2 || t2 != r2 || null == t2.parentNode)
-    n:
-      if (null == r2 || r2.parentNode !== n2)
-        n2.appendChild(t2), o2 = null;
-      else {
-        for (f2 = r2, e2 = 0; (f2 = f2.nextSibling) && e2 < i2.length; e2 += 1)
-          if (f2 == t2)
-            break n;
-        n2.insertBefore(t2, r2), o2 = r2;
-      }
-  return void 0 !== o2 ? o2 : t2.nextSibling;
-}
-function $$2(n2) {
-  var l2, u2, i2;
-  if (null == n2.type || "string" == typeof n2.type)
-    return n2.__e;
-  if (n2.__k) {
-    for (l2 = n2.__k.length - 1; l2 >= 0; l2--)
-      if ((u2 = n2.__k[l2]) && (i2 = $$2(u2)))
-        return i2;
+function L$1(n2, l2, u2, t2) {
+  var i2, o2, r2, e2 = n2.key, f2 = n2.type, c2 = l2[u2], s2 = null != c2 && 0 == (2 & c2.__u);
+  if (null === c2 && null == e2 || s2 && e2 == c2.key && f2 == c2.type)
+    return u2;
+  if (t2 > (s2 ? 1 : 0)) {
+    for (i2 = u2 - 1, o2 = u2 + 1; i2 >= 0 || o2 < l2.length; )
+      if (null != (c2 = l2[r2 = i2 >= 0 ? i2-- : o2++]) && 0 == (2 & c2.__u) && e2 == c2.key && f2 == c2.type)
+        return r2;
   }
-  return null;
+  return -1;
 }
-function H$2(n2, l2, u2, i2, t2) {
-  var r2;
-  for (r2 in u2)
-    "children" === r2 || "key" === r2 || r2 in l2 || T$2(n2, r2, null, u2[r2], i2);
-  for (r2 in l2)
-    t2 && "function" != typeof l2[r2] || "children" === r2 || "key" === r2 || "value" === r2 || "checked" === r2 || u2[r2] === l2[r2] || T$2(n2, r2, l2[r2], u2[r2], i2);
+function T$2(n2, l2, u2) {
+  "-" == l2[0] ? n2.setProperty(l2, null == u2 ? "" : u2) : n2[l2] = null == u2 ? "" : "number" != typeof u2 || y$3.test(l2) ? u2 : u2 + "px";
 }
-function I$2(n2, l2, u2) {
-  "-" === l2[0] ? n2.setProperty(l2, null == u2 ? "" : u2) : n2[l2] = null == u2 ? "" : "number" != typeof u2 || a$3.test(l2) ? u2 : u2 + "px";
-}
-function T$2(n2, l2, u2, i2, t2) {
-  var r2;
+function j$4(n2, l2, u2, t2, i2) {
+  var o2, r2;
   n:
-    if ("style" === l2)
+    if ("style" == l2)
       if ("string" == typeof u2)
         n2.style.cssText = u2;
       else {
-        if ("string" == typeof i2 && (n2.style.cssText = i2 = ""), i2)
-          for (l2 in i2)
-            u2 && l2 in u2 || I$2(n2.style, l2, "");
+        if ("string" == typeof t2 && (n2.style.cssText = t2 = ""), t2)
+          for (l2 in t2)
+            u2 && l2 in u2 || T$2(n2.style, l2, "");
         if (u2)
           for (l2 in u2)
-            i2 && u2[l2] === i2[l2] || I$2(n2.style, l2, u2[l2]);
+            t2 && u2[l2] == t2[l2] || T$2(n2.style, l2, u2[l2]);
       }
-    else if ("o" === l2[0] && "n" === l2[1])
-      r2 = l2 !== (l2 = l2.replace(/Capture$/, "")), l2 = l2.toLowerCase() in n2 ? l2.toLowerCase().slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + r2] = u2, u2 ? i2 || n2.addEventListener(l2, r2 ? z$3 : j$4, r2) : n2.removeEventListener(l2, r2 ? z$3 : j$4, r2);
-    else if ("dangerouslySetInnerHTML" !== l2) {
-      if (t2)
+    else if ("o" == l2[0] && "n" == l2[1])
+      o2 = l2 != (l2 = l2.replace(f$3, "$1")), r2 = l2.toLowerCase(), l2 = r2 in n2 || "onFocusOut" == l2 || "onFocusIn" == l2 ? r2.slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + o2] = u2, u2 ? t2 ? u2.u = t2.u : (u2.u = c$3, n2.addEventListener(l2, o2 ? a$3 : s$3, o2)) : n2.removeEventListener(l2, o2 ? a$3 : s$3, o2);
+    else {
+      if ("http://www.w3.org/2000/svg" == i2)
         l2 = l2.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
-      else if ("width" !== l2 && "height" !== l2 && "href" !== l2 && "list" !== l2 && "form" !== l2 && "tabIndex" !== l2 && "download" !== l2 && l2 in n2)
+      else if ("width" != l2 && "height" != l2 && "href" != l2 && "list" != l2 && "form" != l2 && "tabIndex" != l2 && "download" != l2 && "rowSpan" != l2 && "colSpan" != l2 && "role" != l2 && "popover" != l2 && l2 in n2)
         try {
           n2[l2] = null == u2 ? "" : u2;
           break n;
         } catch (n3) {
         }
-      "function" == typeof u2 || (null == u2 || false === u2 && "-" !== l2[4] ? n2.removeAttribute(l2) : n2.setAttribute(l2, u2));
+      "function" == typeof u2 || (null == u2 || false === u2 && "-" != l2[4] ? n2.removeAttribute(l2) : n2.setAttribute(l2, "popover" == l2 && 1 == u2 ? "" : u2));
     }
 }
-function j$4(n2) {
-  return this.l[n2.type + false](l$3.event ? l$3.event(n2) : n2);
+function F$2(n2) {
+  return function(u2) {
+    if (this.l) {
+      var t2 = this.l[u2.type + n2];
+      if (null == u2.t)
+        u2.t = c$3++;
+      else if (u2.t < t2.u)
+        return;
+      return t2(l$3.event ? l$3.event(u2) : u2);
+    }
+  };
 }
-function z$3(n2) {
-  return this.l[n2.type + true](l$3.event ? l$3.event(n2) : n2);
-}
-function L$2(n2, u2, i2, t2, r2, o2, f2, e2, c2) {
-  var s2, a2, v2, y2, p2, d2, b2, g2, m2, w2, A2, P2, C2, $2, H2, I2 = u2.type;
+function O$2(n2, u2, t2, i2, o2, r2, e2, f2, c2, s2) {
+  var a2, h2, p2, v2, y2, _2, m2, b2, S2, C2, M2, $2, P2, A2, H2, L2, T2, j2 = u2.type;
   if (void 0 !== u2.constructor)
     return null;
-  null != i2.__h && (c2 = i2.__h, e2 = u2.__e = i2.__e, u2.__h = null, o2 = [e2]), (s2 = l$3.__b) && s2(u2);
-  try {
-    n:
-      if ("function" == typeof I2) {
-        if (g2 = u2.props, m2 = (s2 = I2.contextType) && t2[s2.__c], w2 = s2 ? m2 ? m2.props.value : s2.__ : t2, i2.__c ? b2 = (a2 = u2.__c = i2.__c).__ = a2.__E : ("prototype" in I2 && I2.prototype.render ? u2.__c = a2 = new I2(g2, w2) : (u2.__c = a2 = new k$4(g2, w2), a2.constructor = I2, a2.render = q$3), m2 && m2.sub(a2), a2.props = g2, a2.state || (a2.state = {}), a2.context = w2, a2.__n = t2, v2 = a2.__d = true, a2.__h = [], a2._sb = []), null == a2.__s && (a2.__s = a2.state), null != I2.getDerivedStateFromProps && (a2.__s == a2.state && (a2.__s = h$3({}, a2.__s)), h$3(a2.__s, I2.getDerivedStateFromProps(g2, a2.__s))), y2 = a2.props, p2 = a2.state, a2.__v = u2, v2)
-          null == I2.getDerivedStateFromProps && null != a2.componentWillMount && a2.componentWillMount(), null != a2.componentDidMount && a2.__h.push(a2.componentDidMount);
+  128 & t2.__u && (c2 = !!(32 & t2.__u), r2 = [f2 = u2.__e = t2.__e]), (a2 = l$3.__b) && a2(u2);
+  n:
+    if ("function" == typeof j2)
+      try {
+        if (b2 = u2.props, S2 = "prototype" in j2 && j2.prototype.render, C2 = (a2 = j2.contextType) && i2[a2.__c], M2 = a2 ? C2 ? C2.props.value : a2.__ : i2, t2.__c ? m2 = (h2 = u2.__c = t2.__c).__ = h2.__E : (S2 ? u2.__c = h2 = new j2(b2, M2) : (u2.__c = h2 = new x$3(b2, M2), h2.constructor = j2, h2.render = E$2), C2 && C2.sub(h2), h2.state || (h2.state = {}), h2.__n = i2, p2 = h2.__d = true, h2.__h = [], h2._sb = []), S2 && null == h2.__s && (h2.__s = h2.state), S2 && null != j2.getDerivedStateFromProps && (h2.__s == h2.state && (h2.__s = w$3({}, h2.__s)), w$3(h2.__s, j2.getDerivedStateFromProps(b2, h2.__s))), v2 = h2.props, y2 = h2.state, h2.__v = u2, p2)
+          S2 && null == j2.getDerivedStateFromProps && null != h2.componentWillMount && h2.componentWillMount(), S2 && null != h2.componentDidMount && h2.__h.push(h2.componentDidMount);
         else {
-          if (null == I2.getDerivedStateFromProps && g2 !== y2 && null != a2.componentWillReceiveProps && a2.componentWillReceiveProps(g2, w2), !a2.__e && null != a2.shouldComponentUpdate && false === a2.shouldComponentUpdate(g2, a2.__s, w2) || u2.__v === i2.__v) {
-            for (u2.__v !== i2.__v && (a2.props = g2, a2.state = a2.__s, a2.__d = false), a2.__e = false, u2.__e = i2.__e, u2.__k = i2.__k, u2.__k.forEach(function(n3) {
+          if (S2 && null == j2.getDerivedStateFromProps && b2 !== v2 && null != h2.componentWillReceiveProps && h2.componentWillReceiveProps(b2, M2), u2.__v == t2.__v || !h2.__e && null != h2.shouldComponentUpdate && false === h2.shouldComponentUpdate(b2, h2.__s, M2)) {
+            for (u2.__v != t2.__v && (h2.props = b2, h2.state = h2.__s, h2.__d = false), u2.__e = t2.__e, u2.__k = t2.__k, u2.__k.some(function(n3) {
               n3 && (n3.__ = u2);
-            }), A2 = 0; A2 < a2._sb.length; A2++)
-              a2.__h.push(a2._sb[A2]);
-            a2._sb = [], a2.__h.length && f2.push(a2);
+            }), $2 = 0; $2 < h2._sb.length; $2++)
+              h2.__h.push(h2._sb[$2]);
+            h2._sb = [], h2.__h.length && e2.push(h2);
             break n;
           }
-          null != a2.componentWillUpdate && a2.componentWillUpdate(g2, a2.__s, w2), null != a2.componentDidUpdate && a2.__h.push(function() {
-            a2.componentDidUpdate(y2, p2, d2);
+          null != h2.componentWillUpdate && h2.componentWillUpdate(b2, h2.__s, M2), S2 && null != h2.componentDidUpdate && h2.__h.push(function() {
+            h2.componentDidUpdate(v2, y2, _2);
           });
         }
-        if (a2.context = w2, a2.props = g2, a2.__P = n2, P2 = l$3.__r, C2 = 0, "prototype" in I2 && I2.prototype.render) {
-          for (a2.state = a2.__s, a2.__d = false, P2 && P2(u2), s2 = a2.render(a2.props, a2.state, a2.context), $2 = 0; $2 < a2._sb.length; $2++)
-            a2.__h.push(a2._sb[$2]);
-          a2._sb = [];
+        if (h2.context = M2, h2.props = b2, h2.__P = n2, h2.__e = false, P2 = l$3.__r, A2 = 0, S2) {
+          for (h2.state = h2.__s, h2.__d = false, P2 && P2(u2), a2 = h2.render(h2.props, h2.state, h2.context), H2 = 0; H2 < h2._sb.length; H2++)
+            h2.__h.push(h2._sb[H2]);
+          h2._sb = [];
         } else
           do {
-            a2.__d = false, P2 && P2(u2), s2 = a2.render(a2.props, a2.state, a2.context), a2.state = a2.__s;
-          } while (a2.__d && ++C2 < 25);
-        a2.state = a2.__s, null != a2.getChildContext && (t2 = h$3(h$3({}, t2), a2.getChildContext())), v2 || null == a2.getSnapshotBeforeUpdate || (d2 = a2.getSnapshotBeforeUpdate(y2, p2)), H2 = null != s2 && s2.type === _$3 && null == s2.key ? s2.props.children : s2, x$3(n2, Array.isArray(H2) ? H2 : [H2], u2, i2, t2, r2, o2, f2, e2, c2), a2.base = u2.__e, u2.__h = null, a2.__h.length && f2.push(a2), b2 && (a2.__E = a2.__ = null), a2.__e = false;
-      } else
-        null == o2 && u2.__v === i2.__v ? (u2.__k = i2.__k, u2.__e = i2.__e) : u2.__e = N$2(i2.__e, u2, i2, t2, r2, o2, f2, c2);
-    (s2 = l$3.diffed) && s2(u2);
-  } catch (n3) {
-    u2.__v = null, (c2 || null != o2) && (u2.__e = e2, u2.__h = !!c2, o2[o2.indexOf(e2)] = null), l$3.__e(n3, u2, i2);
-  }
+            h2.__d = false, P2 && P2(u2), a2 = h2.render(h2.props, h2.state, h2.context), h2.state = h2.__s;
+          } while (h2.__d && ++A2 < 25);
+        h2.state = h2.__s, null != h2.getChildContext && (i2 = w$3(w$3({}, i2), h2.getChildContext())), S2 && !p2 && null != h2.getSnapshotBeforeUpdate && (_2 = h2.getSnapshotBeforeUpdate(v2, y2)), L2 = a2, null != a2 && a2.type === k$3 && null == a2.key && (L2 = V$1(a2.props.children)), f2 = I$1(n2, d$3(L2) ? L2 : [L2], u2, t2, i2, o2, r2, e2, f2, c2, s2), h2.base = u2.__e, u2.__u &= -161, h2.__h.length && e2.push(h2), m2 && (h2.__E = h2.__ = null);
+      } catch (n3) {
+        if (u2.__v = null, c2 || null != r2)
+          if (n3.then) {
+            for (u2.__u |= c2 ? 160 : 128; f2 && 8 == f2.nodeType && f2.nextSibling; )
+              f2 = f2.nextSibling;
+            r2[r2.indexOf(f2)] = null, u2.__e = f2;
+          } else {
+            for (T2 = r2.length; T2--; )
+              g$3(r2[T2]);
+            z$2(u2);
+          }
+        else
+          u2.__e = t2.__e, u2.__k = t2.__k, n3.then || z$2(u2);
+        l$3.__e(n3, u2, t2);
+      }
+    else
+      null == r2 && u2.__v == t2.__v ? (u2.__k = t2.__k, u2.__e = t2.__e) : f2 = u2.__e = q$3(t2.__e, u2, t2, i2, o2, r2, e2, c2, s2);
+  return (a2 = l$3.diffed) && a2(u2), 128 & u2.__u ? void 0 : f2;
 }
-function M$1(n2, u2) {
+function z$2(n2) {
+  n2 && n2.__c && (n2.__c.__e = true), n2 && n2.__k && n2.__k.forEach(z$2);
+}
+function N$2(n2, u2, t2) {
+  for (var i2 = 0; i2 < t2.length; i2++)
+    B$3(t2[i2], t2[++i2], t2[++i2]);
   l$3.__c && l$3.__c(u2, n2), n2.some(function(u3) {
     try {
       n2 = u3.__h, u3.__h = [], n2.some(function(n3) {
@@ -5449,147 +5448,165 @@ function M$1(n2, u2) {
     }
   });
 }
-function N$2(l2, u2, i2, t2, r2, o2, f2, e2) {
-  var s2, a2, h2, y2 = i2.props, p2 = u2.props, d2 = u2.type, _2 = 0;
-  if ("svg" === d2 && (r2 = true), null != o2) {
-    for (; _2 < o2.length; _2++)
-      if ((s2 = o2[_2]) && "setAttribute" in s2 == !!d2 && (d2 ? s2.localName === d2 : 3 === s2.nodeType)) {
-        l2 = s2, o2[_2] = null;
+function V$1(n2) {
+  return "object" != typeof n2 || null == n2 || n2.__b && n2.__b > 0 ? n2 : d$3(n2) ? n2.map(V$1) : w$3({}, n2);
+}
+function q$3(u2, t2, i2, o2, r2, e2, f2, c2, s2) {
+  var a2, h2, v2, y2, w2, _2, m2, b2 = i2.props || p$3, k2 = t2.props, x2 = t2.type;
+  if ("svg" == x2 ? r2 = "http://www.w3.org/2000/svg" : "math" == x2 ? r2 = "http://www.w3.org/1998/Math/MathML" : r2 || (r2 = "http://www.w3.org/1999/xhtml"), null != e2) {
+    for (a2 = 0; a2 < e2.length; a2++)
+      if ((w2 = e2[a2]) && "setAttribute" in w2 == !!x2 && (x2 ? w2.localName == x2 : 3 == w2.nodeType)) {
+        u2 = w2, e2[a2] = null;
         break;
       }
   }
-  if (null == l2) {
-    if (null === d2)
-      return document.createTextNode(p2);
-    l2 = r2 ? document.createElementNS("http://www.w3.org/2000/svg", d2) : document.createElement(d2, p2.is && p2), o2 = null, e2 = false;
+  if (null == u2) {
+    if (null == x2)
+      return document.createTextNode(k2);
+    u2 = document.createElementNS(r2, x2, k2.is && k2), c2 && (l$3.__m && l$3.__m(t2, e2), c2 = false), e2 = null;
   }
-  if (null === d2)
-    y2 === p2 || e2 && l2.data === p2 || (l2.data = p2);
+  if (null == x2)
+    b2 === k2 || c2 && u2.data == k2 || (u2.data = k2);
   else {
-    if (o2 = o2 && n$2.call(l2.childNodes), a2 = (y2 = i2.props || c$3).dangerouslySetInnerHTML, h2 = p2.dangerouslySetInnerHTML, !e2) {
-      if (null != o2)
-        for (y2 = {}, _2 = 0; _2 < l2.attributes.length; _2++)
-          y2[l2.attributes[_2].name] = l2.attributes[_2].value;
-      (h2 || a2) && (h2 && (a2 && h2.__html == a2.__html || h2.__html === l2.innerHTML) || (l2.innerHTML = h2 && h2.__html || ""));
-    }
-    if (H$2(l2, p2, y2, r2, e2), h2)
-      u2.__k = [];
-    else if (_2 = u2.props.children, x$3(l2, Array.isArray(_2) ? _2 : [_2], u2, i2, t2, r2 && "foreignObject" !== d2, o2, f2, o2 ? o2[0] : i2.__k && b$3(i2, 0), e2), null != o2)
-      for (_2 = o2.length; _2--; )
-        null != o2[_2] && v$3(o2[_2]);
-    e2 || ("value" in p2 && void 0 !== (_2 = p2.value) && (_2 !== l2.value || "progress" === d2 && !_2 || "option" === d2 && _2 !== y2.value) && T$2(l2, "value", _2, y2.value, false), "checked" in p2 && void 0 !== (_2 = p2.checked) && _2 !== l2.checked && T$2(l2, "checked", _2, y2.checked, false));
+    if (e2 = e2 && n$2.call(u2.childNodes), !c2 && null != e2)
+      for (b2 = {}, a2 = 0; a2 < u2.attributes.length; a2++)
+        b2[(w2 = u2.attributes[a2]).name] = w2.value;
+    for (a2 in b2)
+      if (w2 = b2[a2], "children" == a2)
+        ;
+      else if ("dangerouslySetInnerHTML" == a2)
+        v2 = w2;
+      else if (!(a2 in k2)) {
+        if ("value" == a2 && "defaultValue" in k2 || "checked" == a2 && "defaultChecked" in k2)
+          continue;
+        j$4(u2, a2, null, w2, r2);
+      }
+    for (a2 in k2)
+      w2 = k2[a2], "children" == a2 ? y2 = w2 : "dangerouslySetInnerHTML" == a2 ? h2 = w2 : "value" == a2 ? _2 = w2 : "checked" == a2 ? m2 = w2 : c2 && "function" != typeof w2 || b2[a2] === w2 || j$4(u2, a2, w2, b2[a2], r2);
+    if (h2)
+      c2 || v2 && (h2.__html == v2.__html || h2.__html == u2.innerHTML) || (u2.innerHTML = h2.__html), t2.__k = [];
+    else if (v2 && (u2.innerHTML = ""), I$1("template" == t2.type ? u2.content : u2, d$3(y2) ? y2 : [y2], t2, i2, o2, "foreignObject" == x2 ? "http://www.w3.org/1999/xhtml" : r2, e2, f2, e2 ? e2[0] : i2.__k && S$2(i2, 0), c2, s2), null != e2)
+      for (a2 = e2.length; a2--; )
+        g$3(e2[a2]);
+    c2 || (a2 = "value", "progress" == x2 && null == _2 ? u2.removeAttribute("value") : null != _2 && (_2 !== u2[a2] || "progress" == x2 && !_2 || "option" == x2 && _2 != b2[a2]) && j$4(u2, a2, _2, b2[a2], r2), a2 = "checked", null != m2 && m2 != u2[a2] && j$4(u2, a2, m2, b2[a2], r2));
   }
-  return l2;
+  return u2;
 }
-function O$2(n2, u2, i2) {
+function B$3(n2, u2, t2) {
   try {
-    "function" == typeof n2 ? n2(u2) : n2.current = u2;
+    if ("function" == typeof n2) {
+      var i2 = "function" == typeof n2.__u;
+      i2 && n2.__u(), i2 && null == u2 || (n2.__u = n2(u2));
+    } else
+      n2.current = u2;
   } catch (n3) {
-    l$3.__e(n3, i2);
+    l$3.__e(n3, t2);
   }
 }
-function S$2(n2, u2, i2) {
-  var t2, r2;
-  if (l$3.unmount && l$3.unmount(n2), (t2 = n2.ref) && (t2.current && t2.current !== n2.__e || O$2(t2, null, u2)), null != (t2 = n2.__c)) {
-    if (t2.componentWillUnmount)
+function D$3(n2, u2, t2) {
+  var i2, o2;
+  if (l$3.unmount && l$3.unmount(n2), (i2 = n2.ref) && (i2.current && i2.current != n2.__e || B$3(i2, null, u2)), null != (i2 = n2.__c)) {
+    if (i2.componentWillUnmount)
       try {
-        t2.componentWillUnmount();
+        i2.componentWillUnmount();
       } catch (n3) {
         l$3.__e(n3, u2);
       }
-    t2.base = t2.__P = null, n2.__c = void 0;
+    i2.base = i2.__P = null;
   }
-  if (t2 = n2.__k)
-    for (r2 = 0; r2 < t2.length; r2++)
-      t2[r2] && S$2(t2[r2], u2, i2 || "function" != typeof n2.type);
-  i2 || null == n2.__e || v$3(n2.__e), n2.__ = n2.__e = n2.__d = void 0;
+  if (i2 = n2.__k)
+    for (o2 = 0; o2 < i2.length; o2++)
+      i2[o2] && D$3(i2[o2], u2, t2 || "function" != typeof n2.type);
+  t2 || g$3(n2.__e), n2.__c = n2.__ = n2.__e = void 0;
 }
-function q$3(n2, l2, u2) {
+function E$2(n2, l2, u2) {
   return this.constructor(n2, u2);
 }
-function B$3(u2, i2, t2) {
-  var r2, o2, f2;
-  l$3.__ && l$3.__(u2, i2), o2 = (r2 = "function" == typeof t2) ? null : t2 && t2.__k || i2.__k, f2 = [], L$2(i2, u2 = (!r2 && t2 || i2).__k = y$3(_$3, null, [u2]), o2 || c$3, c$3, void 0 !== i2.ownerSVGElement, !r2 && t2 ? [t2] : o2 ? null : i2.firstChild ? n$2.call(i2.childNodes) : null, f2, !r2 && t2 ? t2 : o2 ? o2.__e : i2.firstChild, r2), M$1(f2, u2);
+function G$2(u2, t2, i2) {
+  var o2, r2, e2, f2;
+  t2 == document && (t2 = document.documentElement), l$3.__ && l$3.__(u2, t2), r2 = (o2 = "function" == typeof i2) ? null : i2 && i2.__k || t2.__k, e2 = [], f2 = [], O$2(t2, u2 = (!o2 && i2 || t2).__k = _$3(k$3, null, [u2]), r2 || p$3, p$3, t2.namespaceURI, !o2 && i2 ? [i2] : r2 ? null : t2.firstChild ? n$2.call(t2.childNodes) : null, e2, !o2 && i2 ? i2 : r2 ? r2.__e : t2.firstChild, o2, f2), N$2(e2, u2, f2);
 }
-function E$1(l2, u2, i2) {
-  var t2, r2, o2, f2 = h$3({}, l2.props);
-  for (o2 in u2)
-    "key" == o2 ? t2 = u2[o2] : "ref" == o2 ? r2 = u2[o2] : f2[o2] = u2[o2];
-  return arguments.length > 2 && (f2.children = arguments.length > 3 ? n$2.call(arguments, 2) : i2), p$3(l2.type, f2, t2 || l2.key, r2 || l2.ref, null);
+function K$1(l2, u2, t2) {
+  var i2, o2, r2, e2, f2 = w$3({}, l2.props);
+  for (r2 in l2.type && l2.type.defaultProps && (e2 = l2.type.defaultProps), u2)
+    "key" == r2 ? i2 = u2[r2] : "ref" == r2 ? o2 = u2[r2] : f2[r2] = void 0 === u2[r2] && null != e2 ? e2[r2] : u2[r2];
+  return arguments.length > 2 && (f2.children = arguments.length > 3 ? n$2.call(arguments, 2) : t2), m$2(l2.type, f2, i2 || l2.key, o2 || l2.ref, null);
 }
-function F$3(n2, l2) {
-  var u2 = { __c: l2 = "__cC" + e$1++, __: n2, Consumer: function(n3, l3) {
-    return n3.children(l3);
-  }, Provider: function(n3) {
-    var u3, i2;
-    return this.getChildContext || (u3 = [], (i2 = {})[l2] = this, this.getChildContext = function() {
-      return i2;
+function Q$2(n2) {
+  function l2(n3) {
+    var u2, t2;
+    return this.getChildContext || (u2 = /* @__PURE__ */ new Set(), (t2 = {})[l2.__c] = this, this.getChildContext = function() {
+      return t2;
+    }, this.componentWillUnmount = function() {
+      u2 = null;
     }, this.shouldComponentUpdate = function(n4) {
-      this.props.value !== n4.value && u3.some(function(n5) {
-        n5.__e = true, m$2(n5);
+      this.props.value != n4.value && u2.forEach(function(n5) {
+        n5.__e = true, M$2(n5);
       });
     }, this.sub = function(n4) {
-      u3.push(n4);
+      u2.add(n4);
       var l3 = n4.componentWillUnmount;
       n4.componentWillUnmount = function() {
-        u3.splice(u3.indexOf(n4), 1), l3 && l3.call(n4);
+        u2 && u2.delete(n4), l3 && l3.call(n4);
       };
     }), n3.children;
-  } };
-  return u2.Provider.__ = u2.Consumer.contextType = u2;
+  }
+  return l2.__c = "__cC" + h$3++, l2.__ = n2, l2.Provider = l2.__l = (l2.Consumer = function(n3, l3) {
+    return n3.children(l3);
+  }).contextType = l2, l2;
 }
-n$2 = s$3.slice, l$3 = { __e: function(n2, l2, u2, i2) {
-  for (var t2, r2, o2; l2 = l2.__; )
-    if ((t2 = l2.__c) && !t2.__)
+n$2 = v$3.slice, l$3 = { __e: function(n2, l2, u2, t2) {
+  for (var i2, o2, r2; l2 = l2.__; )
+    if ((i2 = l2.__c) && !i2.__)
       try {
-        if ((r2 = t2.constructor) && null != r2.getDerivedStateFromError && (t2.setState(r2.getDerivedStateFromError(n2)), o2 = t2.__d), null != t2.componentDidCatch && (t2.componentDidCatch(n2, i2 || {}), o2 = t2.__d), o2)
-          return t2.__E = t2;
+        if ((o2 = i2.constructor) && null != o2.getDerivedStateFromError && (i2.setState(o2.getDerivedStateFromError(n2)), r2 = i2.__d), null != i2.componentDidCatch && (i2.componentDidCatch(n2, t2 || {}), r2 = i2.__d), r2)
+          return i2.__E = i2;
       } catch (l3) {
         n2 = l3;
       }
   throw n2;
-} }, u$3 = 0, k$4.prototype.setState = function(n2, l2) {
+} }, u$3 = 0, x$3.prototype.setState = function(n2, l2) {
   var u2;
-  u2 = null != this.__s && this.__s !== this.state ? this.__s : this.__s = h$3({}, this.state), "function" == typeof n2 && (n2 = n2(h$3({}, u2), this.props)), n2 && h$3(u2, n2), null != n2 && this.__v && (l2 && this._sb.push(l2), m$2(this));
-}, k$4.prototype.forceUpdate = function(n2) {
-  this.__v && (this.__e = true, n2 && this.__h.push(n2), m$2(this));
-}, k$4.prototype.render = _$3, t$2 = [], o$3 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, f$3 = function(n2, l2) {
+  u2 = null != this.__s && this.__s != this.state ? this.__s : this.__s = w$3({}, this.state), "function" == typeof n2 && (n2 = n2(w$3({}, u2), this.props)), n2 && w$3(u2, n2), null != n2 && this.__v && (l2 && this._sb.push(l2), M$2(this));
+}, x$3.prototype.forceUpdate = function(n2) {
+  this.__v && (this.__e = true, n2 && this.__h.push(n2), M$2(this));
+}, x$3.prototype.render = k$3, i$3 = [], r$2 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e$1 = function(n2, l2) {
   return n2.__v.__b - l2.__v.__b;
-}, w$4.__r = 0, e$1 = 0;
-var t$1, r$1, u$2, i$2, o$2 = 0, f$2 = [], c$2 = [], e = l$3.__b, a$2 = l$3.__r, v$2 = l$3.diffed, l$2 = l$3.__c, m$1 = l$3.unmount;
-function d$2(t2, u2) {
-  l$3.__h && l$3.__h(r$1, t2, o$2 || u2), o$2 = 0;
-  var i2 = r$1.__H || (r$1.__H = { __: [], __h: [] });
-  return t2 >= i2.__.length && i2.__.push({ __V: c$2 }), i2.__[t2];
+}, $$2.__r = 0, f$3 = /(PointerCapture)$|Capture$/i, c$3 = 0, s$3 = F$2(false), a$3 = F$2(true), h$3 = 0;
+var t$1, r$1, u$2, i$2, o$2 = 0, f$2 = [], c$2 = l$3, e = c$2.__b, a$2 = c$2.__r, v$2 = c$2.diffed, l$2 = c$2.__c, m$1 = c$2.unmount, s$2 = c$2.__;
+function p$2(n2, t2) {
+  c$2.__h && c$2.__h(r$1, n2, o$2 || t2), o$2 = 0;
+  var u2 = r$1.__H || (r$1.__H = { __: [], __h: [] });
+  return n2 >= u2.__.length && u2.__.push({}), u2.__[n2];
 }
-function h$2(n2) {
-  return o$2 = 1, s$2(B$2, n2);
+function d$2(n2) {
+  return o$2 = 1, h$2(D$2, n2);
 }
-function s$2(n2, u2, i2) {
-  var o2 = d$2(t$1++, 2);
-  if (o2.t = n2, !o2.__c && (o2.__ = [i2 ? i2(u2) : B$2(void 0, u2), function(n3) {
+function h$2(n2, u2, i2) {
+  var o2 = p$2(t$1++, 2);
+  if (o2.t = n2, !o2.__c && (o2.__ = [i2 ? i2(u2) : D$2(void 0, u2), function(n3) {
     var t2 = o2.__N ? o2.__N[0] : o2.__[0], r2 = o2.t(t2, n3);
     t2 !== r2 && (o2.__N = [r2, o2.__[1]], o2.__c.setState({}));
-  }], o2.__c = r$1, !r$1.u)) {
+  }], o2.__c = r$1, !r$1.__f)) {
     var f2 = function(n3, t2, r2) {
       if (!o2.__c.__H)
         return true;
       var u3 = o2.__c.__H.__.filter(function(n4) {
-        return n4.__c;
+        return !!n4.__c;
       });
       if (u3.every(function(n4) {
         return !n4.__N;
       }))
         return !c2 || c2.call(this, n3, t2, r2);
-      var i3 = false;
+      var i3 = o2.__c.props !== n3;
       return u3.forEach(function(n4) {
         if (n4.__N) {
           var t3 = n4.__[0];
           n4.__ = n4.__N, n4.__N = void 0, t3 !== n4.__[0] && (i3 = true);
         }
-      }), !(!i3 && o2.__c.props === n3) && (!c2 || c2.call(this, n3, t2, r2));
+      }), c2 && c2.call(this, n3, t2, r2) || i3;
     };
-    r$1.u = true;
+    r$1.__f = true;
     var c2 = r$1.shouldComponentUpdate, e2 = r$1.componentWillUpdate;
     r$1.componentWillUpdate = function(n3, t2, r2) {
       if (this.__e) {
@@ -5601,99 +5618,101 @@ function s$2(n2, u2, i2) {
   }
   return o2.__N || o2.__;
 }
-function p$2(u2, i2) {
-  var o2 = d$2(t$1++, 3);
-  !l$3.__s && z$2(o2.__H, i2) && (o2.__ = u2, o2.i = i2, r$1.__H.__h.push(o2));
+function y$2(n2, u2) {
+  var i2 = p$2(t$1++, 3);
+  !c$2.__s && C$1(i2.__H, u2) && (i2.__ = n2, i2.u = u2, r$1.__H.__h.push(i2));
 }
-function y$2(u2, i2) {
-  var o2 = d$2(t$1++, 4);
-  !l$3.__s && z$2(o2.__H, i2) && (o2.__ = u2, o2.i = i2, r$1.__h.push(o2));
+function _$2(n2, u2) {
+  var i2 = p$2(t$1++, 4);
+  !c$2.__s && C$1(i2.__H, u2) && (i2.__ = n2, i2.u = u2, r$1.__h.push(i2));
 }
-function _$2(n2) {
-  return o$2 = 5, F$2(function() {
+function A$3(n2) {
+  return o$2 = 5, T$1(function() {
     return { current: n2 };
   }, []);
 }
-function F$2(n2, r2) {
-  var u2 = d$2(t$1++, 7);
-  return z$2(u2.__H, r2) ? (u2.__V = n2(), u2.i = r2, u2.__h = n2, u2.__V) : u2.__;
+function T$1(n2, r2) {
+  var u2 = p$2(t$1++, 7);
+  return C$1(u2.__H, r2) && (u2.__ = n2(), u2.__H = r2, u2.__h = n2), u2.__;
 }
-function T$1(n2, t2) {
-  return o$2 = 8, F$2(function() {
+function q$2(n2, t2) {
+  return o$2 = 8, T$1(function() {
     return n2;
   }, t2);
 }
-function q$2(n2) {
-  var u2 = r$1.context[n2.__c], i2 = d$2(t$1++, 9);
+function x$2(n2) {
+  var u2 = r$1.context[n2.__c], i2 = p$2(t$1++, 9);
   return i2.c = n2, u2 ? (null == i2.__ && (i2.__ = true, u2.sub(r$1)), u2.props.value) : n2.__;
 }
-function b$2() {
-  for (var t2; t2 = f$2.shift(); )
-    if (t2.__P && t2.__H)
+function j$3() {
+  for (var n2; n2 = f$2.shift(); )
+    if (n2.__P && n2.__H)
       try {
-        t2.__H.__h.forEach(k$3), t2.__H.__h.forEach(w$3), t2.__H.__h = [];
-      } catch (r2) {
-        t2.__H.__h = [], l$3.__e(r2, t2.__v);
+        n2.__H.__h.forEach(z$1), n2.__H.__h.forEach(B$2), n2.__H.__h = [];
+      } catch (t2) {
+        n2.__H.__h = [], c$2.__e(t2, n2.__v);
       }
 }
-l$3.__b = function(n2) {
+c$2.__b = function(n2) {
   r$1 = null, e && e(n2);
-}, l$3.__r = function(n2) {
+}, c$2.__ = function(n2, t2) {
+  n2 && t2.__k && t2.__k.__m && (n2.__m = t2.__k.__m), s$2 && s$2(n2, t2);
+}, c$2.__r = function(n2) {
   a$2 && a$2(n2), t$1 = 0;
   var i2 = (r$1 = n2.__c).__H;
   i2 && (u$2 === r$1 ? (i2.__h = [], r$1.__h = [], i2.__.forEach(function(n3) {
-    n3.__N && (n3.__ = n3.__N), n3.__V = c$2, n3.__N = n3.i = void 0;
-  })) : (i2.__h.forEach(k$3), i2.__h.forEach(w$3), i2.__h = [])), u$2 = r$1;
-}, l$3.diffed = function(t2) {
-  v$2 && v$2(t2);
-  var o2 = t2.__c;
-  o2 && o2.__H && (o2.__H.__h.length && (1 !== f$2.push(o2) && i$2 === l$3.requestAnimationFrame || ((i$2 = l$3.requestAnimationFrame) || j$3)(b$2)), o2.__H.__.forEach(function(n2) {
-    n2.i && (n2.__H = n2.i), n2.__V !== c$2 && (n2.__ = n2.__V), n2.i = void 0, n2.__V = c$2;
+    n3.__N && (n3.__ = n3.__N), n3.u = n3.__N = void 0;
+  })) : (i2.__h.forEach(z$1), i2.__h.forEach(B$2), i2.__h = [], t$1 = 0)), u$2 = r$1;
+}, c$2.diffed = function(n2) {
+  v$2 && v$2(n2);
+  var t2 = n2.__c;
+  t2 && t2.__H && (t2.__H.__h.length && (1 !== f$2.push(t2) && i$2 === c$2.requestAnimationFrame || ((i$2 = c$2.requestAnimationFrame) || w$2)(j$3)), t2.__H.__.forEach(function(n3) {
+    n3.u && (n3.__H = n3.u), n3.u = void 0;
   })), u$2 = r$1 = null;
-}, l$3.__c = function(t2, r2) {
-  r2.some(function(t3) {
+}, c$2.__c = function(n2, t2) {
+  t2.some(function(n3) {
     try {
-      t3.__h.forEach(k$3), t3.__h = t3.__h.filter(function(n2) {
-        return !n2.__ || w$3(n2);
+      n3.__h.forEach(z$1), n3.__h = n3.__h.filter(function(n4) {
+        return !n4.__ || B$2(n4);
       });
-    } catch (u2) {
-      r2.some(function(n2) {
-        n2.__h && (n2.__h = []);
-      }), r2 = [], l$3.__e(u2, t3.__v);
+    } catch (r2) {
+      t2.some(function(n4) {
+        n4.__h && (n4.__h = []);
+      }), t2 = [], c$2.__e(r2, n3.__v);
     }
-  }), l$2 && l$2(t2, r2);
-}, l$3.unmount = function(t2) {
-  m$1 && m$1(t2);
-  var r2, u2 = t2.__c;
-  u2 && u2.__H && (u2.__H.__.forEach(function(n2) {
+  }), l$2 && l$2(n2, t2);
+}, c$2.unmount = function(n2) {
+  m$1 && m$1(n2);
+  var t2, r2 = n2.__c;
+  r2 && r2.__H && (r2.__H.__.forEach(function(n3) {
     try {
-      k$3(n2);
-    } catch (n3) {
-      r2 = n3;
+      z$1(n3);
+    } catch (n4) {
+      t2 = n4;
     }
-  }), u2.__H = void 0, r2 && l$3.__e(r2, u2.__v));
+  }), r2.__H = void 0, t2 && c$2.__e(t2, r2.__v));
 };
-var g$3 = "function" == typeof requestAnimationFrame;
-function j$3(n2) {
+var k$2 = "function" == typeof requestAnimationFrame;
+function w$2(n2) {
   var t2, r2 = function() {
-    clearTimeout(u2), g$3 && cancelAnimationFrame(t2), setTimeout(n2);
-  }, u2 = setTimeout(r2, 100);
-  g$3 && (t2 = requestAnimationFrame(r2));
+    clearTimeout(u2), k$2 && cancelAnimationFrame(t2), setTimeout(n2);
+  }, u2 = setTimeout(r2, 35);
+  k$2 && (t2 = requestAnimationFrame(r2));
 }
-function k$3(n2) {
+function z$1(n2) {
   var t2 = r$1, u2 = n2.__c;
   "function" == typeof u2 && (n2.__c = void 0, u2()), r$1 = t2;
 }
-function w$3(n2) {
+function B$2(n2) {
   var t2 = r$1;
   n2.__c = n2.__(), r$1 = t2;
 }
-function z$2(n2, t2) {
+function C$1(n2, t2) {
   return !n2 || n2.length !== t2.length || t2.some(function(t3, r2) {
     return t3 !== n2[r2];
   });
 }
-function B$2(n2, t2) {
+function D$2(n2, t2) {
   return "function" == typeof t2 ? t2(n2) : t2;
 }
 function n$1(n2) {
@@ -5716,10 +5735,10 @@ function t(n2) {
       return true;
     var t2 = Object.hasOwnProperty.call(r3, "constructor") && r3.constructor;
     return t2 === Object || "function" == typeof t2 && Function.toString.call(t2) === Z$1;
-  }(n2) || Array.isArray(n2) || !!n2[L$1] || !!(null === (r2 = n2.constructor) || void 0 === r2 ? void 0 : r2[L$1]) || s$1(n2) || v$1(n2));
+  }(n2) || Array.isArray(n2) || !!n2[L] || !!(null === (r2 = n2.constructor) || void 0 === r2 ? void 0 : r2[L]) || s$1(n2) || v$1(n2));
 }
 function i$1(n2, r2, t2) {
-  void 0 === t2 && (t2 = false), 0 === o$1(n2) ? (t2 ? Object.keys : nn$1)(n2).forEach(function(e2) {
+  void 0 === t2 && (t2 = false), 0 === o$1(n2) ? (t2 ? Object.keys : nn)(n2).forEach(function(e2) {
     t2 && "symbol" == typeof e2 || r2(e2, n2[e2], n2);
   }) : n2.forEach(function(t3, e2) {
     return r2(e2, t3, n2);
@@ -5756,7 +5775,7 @@ function l$1(n2) {
     return Array.prototype.slice.call(n2);
   var r2 = rn$1(n2);
   delete r2[Q$1];
-  for (var t2 = nn$1(r2), e2 = 0; e2 < t2.length; e2++) {
+  for (var t2 = nn(r2), e2 = 0; e2 < t2.length; e2++) {
     var i2 = t2[e2], o2 = r2[i2];
     false === o2.writable && (o2.writable = true, o2.configurable = true), (o2.get || o2.set) && (r2[i2] = { configurable: true, writable: true, enumerable: o2.enumerable, value: n2[i2] });
   }
@@ -5789,7 +5808,7 @@ function g$2(n2) {
 function O$1(n2) {
   n2 === U$1 && (U$1 = n2.l);
 }
-function w$2(n2) {
+function w$1(n2) {
   return U$1 = { p: [], l: U$1, h: n2, m: true, _: 0 };
 }
 function S$1(n2) {
@@ -5799,32 +5818,32 @@ function S$1(n2) {
 function P$1(r2, e2) {
   e2._ = e2.p.length;
   var i2 = e2.p[0], o2 = void 0 !== r2 && r2 !== i2;
-  return e2.h.O || b$1("ES5").S(e2, r2, o2), o2 ? (i2[Q$1].P && (g$2(e2), n$1(4)), t(r2) && (r2 = M(e2, r2), e2.l || x$2(e2, r2)), e2.u && b$1("Patches").M(i2[Q$1].t, r2, e2.u, e2.s)) : r2 = M(e2, i2, []), g$2(e2), e2.u && e2.v(e2.u, e2.s), r2 !== H$1 ? r2 : void 0;
+  return e2.h.O || b$1("ES5").S(e2, r2, o2), o2 ? (i2[Q$1].P && (g$2(e2), n$1(4)), t(r2) && (r2 = M$1(e2, r2), e2.l || x$1(e2, r2)), e2.u && b$1("Patches").M(i2[Q$1].t, r2, e2.u, e2.s)) : r2 = M$1(e2, i2, []), g$2(e2), e2.u && e2.v(e2.u, e2.s), r2 !== H$1 ? r2 : void 0;
 }
-function M(n2, r2, t2) {
+function M$1(n2, r2, t2) {
   if (y$1(r2))
     return r2;
   var e2 = r2[Q$1];
   if (!e2)
     return i$1(r2, function(i2, o3) {
-      return A$1(n2, e2, r2, i2, o3, t2);
+      return A$2(n2, e2, r2, i2, o3, t2);
     }, true), r2;
   if (e2.A !== n2)
     return r2;
   if (!e2.P)
-    return x$2(n2, e2.t, true), e2.t;
+    return x$1(n2, e2.t, true), e2.t;
   if (!e2.I) {
     e2.I = true, e2.A._--;
     var o2 = 4 === e2.i || 5 === e2.i ? e2.o = l$1(e2.k) : e2.o, u2 = o2, a2 = false;
     3 === e2.i && (u2 = new Set(o2), o2.clear(), a2 = true), i$1(u2, function(r3, i2) {
-      return A$1(n2, e2, o2, r3, i2, t2, a2);
-    }), x$2(n2, o2, false), t2 && n2.u && b$1("Patches").N(e2, t2, n2.u, n2.s);
+      return A$2(n2, e2, o2, r3, i2, t2, a2);
+    }), x$1(n2, o2, false), t2 && n2.u && b$1("Patches").N(e2, t2, n2.u, n2.s);
   }
   return e2.o;
 }
-function A$1(e2, i2, o2, a2, c2, s2, v2) {
+function A$2(e2, i2, o2, a2, c2, s2, v2) {
   if (r(c2)) {
-    var p2 = M(e2, c2, s2 && i2 && 3 !== i2.i && !u$1(i2.R, a2) ? s2.concat(a2) : void 0);
+    var p2 = M$1(e2, c2, s2 && i2 && 3 !== i2.i && !u$1(i2.R, a2) ? s2.concat(a2) : void 0);
     if (f$1(o2, a2, p2), !r(p2))
       return;
     e2.m = false;
@@ -5833,17 +5852,17 @@ function A$1(e2, i2, o2, a2, c2, s2, v2) {
   if (t(c2) && !y$1(c2)) {
     if (!e2.h.D && e2._ < 1)
       return;
-    M(e2, c2), i2 && i2.A.l || x$2(e2, c2);
+    M$1(e2, c2), i2 && i2.A.l || x$1(e2, c2);
   }
 }
-function x$2(n2, r2, t2) {
+function x$1(n2, r2, t2) {
   void 0 === t2 && (t2 = false), !n2.l && n2.h.D && n2.m && d$1(r2, t2);
 }
-function z$1(n2, r2) {
+function z(n2, r2) {
   var t2 = n2[Q$1];
   return (t2 ? p$1(t2) : n2)[r2];
 }
-function I$1(n2, r2) {
+function I(n2, r2) {
   if (r2 in n2)
     for (var t2 = Object.getPrototypeOf(n2); t2; ) {
       var e2 = Object.getOwnPropertyDescriptor(t2, r2);
@@ -5852,10 +5871,10 @@ function I$1(n2, r2) {
       t2 = Object.getPrototypeOf(t2);
     }
 }
-function k$2(n2) {
-  n2.P || (n2.P = true, n2.l && k$2(n2.l));
+function k$1(n2) {
+  n2.P || (n2.P = true, n2.l && k$1(n2.l));
 }
-function E(n2) {
+function E$1(n2) {
   n2.o || (n2.o = l$1(n2.t));
 }
 function N$1(n2, r2, t2) {
@@ -5867,7 +5886,7 @@ function N$1(n2, r2, t2) {
   }(r2, t2) : b$1("ES5").J(r2, t2);
   return (t2 ? t2.A : _$1()).p.push(e2), e2;
 }
-function R$1(e2) {
+function R(e2) {
   return r(e2) || n$1(22, e2), function n2(r2) {
     if (!t(r2))
       return r2;
@@ -5892,11 +5911,11 @@ function D$1(n2, r2) {
   }
   return l$1(n2);
 }
-var G, U$1, W$1 = "undefined" != typeof Symbol && "symbol" == typeof Symbol("x"), X$1 = "undefined" != typeof Map, q$1 = "undefined" != typeof Set, B$1 = "undefined" != typeof Proxy && void 0 !== Proxy.revocable && "undefined" != typeof Reflect, H$1 = W$1 ? Symbol.for("immer-nothing") : ((G = {})["immer-nothing"] = true, G), L$1 = W$1 ? Symbol.for("immer-draftable") : "__$immer_draftable", Q$1 = W$1 ? Symbol.for("immer-state") : "__$immer_state", Z$1 = "" + Object.prototype.constructor, nn$1 = "undefined" != typeof Reflect && Reflect.ownKeys ? Reflect.ownKeys : void 0 !== Object.getOwnPropertySymbols ? function(n2) {
+var G$1, U$1, W$1 = "undefined" != typeof Symbol && "symbol" == typeof Symbol("x"), X$1 = "undefined" != typeof Map, q$1 = "undefined" != typeof Set, B$1 = "undefined" != typeof Proxy && void 0 !== Proxy.revocable && "undefined" != typeof Reflect, H$1 = W$1 ? Symbol.for("immer-nothing") : ((G$1 = {})["immer-nothing"] = true, G$1), L = W$1 ? Symbol.for("immer-draftable") : "__$immer_draftable", Q$1 = W$1 ? Symbol.for("immer-state") : "__$immer_state", Z$1 = "" + Object.prototype.constructor, nn = "undefined" != typeof Reflect && Reflect.ownKeys ? Reflect.ownKeys : void 0 !== Object.getOwnPropertySymbols ? function(n2) {
   return Object.getOwnPropertyNames(n2).concat(Object.getOwnPropertySymbols(n2));
 } : Object.getOwnPropertyNames, rn$1 = Object.getOwnPropertyDescriptors || function(n2) {
   var r2 = {};
-  return nn$1(n2).forEach(function(t2) {
+  return nn(n2).forEach(function(t2) {
     r2[t2] = Object.getOwnPropertyDescriptor(n2, t2);
   }), r2;
 }, tn = {}, en$1 = { get: function(n2, r2) {
@@ -5905,30 +5924,30 @@ var G, U$1, W$1 = "undefined" != typeof Symbol && "symbol" == typeof Symbol("x")
   var e2 = p$1(n2);
   if (!u$1(e2, r2))
     return function(n3, r3, t2) {
-      var e3, i3 = I$1(r3, t2);
+      var e3, i3 = I(r3, t2);
       return i3 ? "value" in i3 ? i3.value : null === (e3 = i3.get) || void 0 === e3 ? void 0 : e3.call(n3.k) : void 0;
     }(n2, e2, r2);
   var i2 = e2[r2];
-  return n2.I || !t(i2) ? i2 : i2 === z$1(n2.t, r2) ? (E(n2), n2.o[r2] = N$1(n2.A.h, i2, n2)) : i2;
+  return n2.I || !t(i2) ? i2 : i2 === z(n2.t, r2) ? (E$1(n2), n2.o[r2] = N$1(n2.A.h, i2, n2)) : i2;
 }, has: function(n2, r2) {
   return r2 in p$1(n2);
 }, ownKeys: function(n2) {
   return Reflect.ownKeys(p$1(n2));
 }, set: function(n2, r2, t2) {
-  var e2 = I$1(p$1(n2), r2);
+  var e2 = I(p$1(n2), r2);
   if (null == e2 ? void 0 : e2.set)
     return e2.set.call(n2.k, t2), true;
   if (!n2.P) {
-    var i2 = z$1(p$1(n2), r2), o2 = null == i2 ? void 0 : i2[Q$1];
+    var i2 = z(p$1(n2), r2), o2 = null == i2 ? void 0 : i2[Q$1];
     if (o2 && o2.t === t2)
       return n2.o[r2] = t2, n2.R[r2] = false, true;
     if (c$1(t2, i2) && (void 0 !== t2 || u$1(n2.t, r2)))
       return true;
-    E(n2), k$2(n2);
+    E$1(n2), k$1(n2);
   }
   return n2.o[r2] === t2 && (void 0 !== t2 || r2 in n2.o) || Number.isNaN(t2) && Number.isNaN(n2.o[r2]) || (n2.o[r2] = t2, n2.R[r2] = true), true;
 }, deleteProperty: function(n2, r2) {
-  return void 0 !== z$1(n2.t, r2) || r2 in n2.t ? (n2.R[r2] = false, E(n2), k$2(n2)) : delete n2.R[r2], n2.o && delete n2.o[r2], true;
+  return void 0 !== z(n2.t, r2) || r2 in n2.t ? (n2.R[r2] = false, E$1(n2), k$1(n2)) : delete n2.R[r2], n2.o && delete n2.o[r2], true;
 }, getOwnPropertyDescriptor: function(n2, r2) {
   var t2 = p$1(n2), e2 = Reflect.getOwnPropertyDescriptor(t2, r2);
   return e2 ? { writable: true, configurable: 1 !== n2.i || "length" !== r2, enumerable: e2.enumerable, value: t2[r2] } : e2;
@@ -5969,7 +5988,7 @@ var un$1 = function() {
       }
       var f2;
       if ("function" != typeof i3 && n$1(6), void 0 !== o2 && "function" != typeof o2 && n$1(7), t(r3)) {
-        var c2 = w$2(e3), s2 = N$1(e3, r3, void 0), v2 = true;
+        var c2 = w$1(e3), s2 = N$1(e3, r3, void 0), v2 = true;
         try {
           f2 = i3(s2), v2 = false;
         } finally {
@@ -6008,8 +6027,8 @@ var un$1 = function() {
   }
   var i2 = e2.prototype;
   return i2.createDraft = function(e3) {
-    t(e3) || n$1(8), r(e3) && (e3 = R$1(e3));
-    var i3 = w$2(this), o2 = N$1(this, e3, void 0);
+    t(e3) || n$1(8), r(e3) && (e3 = R(e3));
+    var i3 = w$1(this), o2 = N$1(this, e3, void 0);
     return o2[Q$1].C = true, O$1(i3), o2;
   }, i2.finishDraft = function(r2, t2) {
     var e3 = r2 && r2[Q$1];
@@ -6034,14 +6053,14 @@ var un$1 = function() {
       return o2(n3, t2);
     });
   }, e2;
-}(), an = new un$1(), fn = an.produce;
-an.produceWithPatches.bind(an);
-an.setAutoFreeze.bind(an);
-an.setUseProxies.bind(an);
-an.applyPatches.bind(an);
-an.createDraft.bind(an);
-an.finishDraft.bind(an);
-var produce = fn;
+}(), an$1 = new un$1(), fn$1 = an$1.produce;
+an$1.produceWithPatches.bind(an$1);
+an$1.setAutoFreeze.bind(an$1);
+an$1.setUseProxies.bind(an$1);
+an$1.applyPatches.bind(an$1);
+an$1.createDraft.bind(an$1);
+an$1.finishDraft.bind(an$1);
+var produce = fn$1;
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
@@ -8059,16 +8078,16 @@ const SIXTY_MINUTES = 60;
 const templates = {
   milestone(model) {
     const classNames2 = cls("icon", "ic-milestone");
-    return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3(k$3, null, /* @__PURE__ */ _$3("span", {
       className: classNames2
-    }), /* @__PURE__ */ y$3("span", {
+    }), /* @__PURE__ */ _$3("span", {
       style: {
         background: model.backgroundColor
       }
     }, stripTags(model.title)));
   },
   milestoneTitle() {
-    return /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3("span", {
       className: cls("left-content")
     }, "Milestone");
   },
@@ -8076,12 +8095,12 @@ const templates = {
     return `#${model.title}`;
   },
   taskTitle() {
-    return /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3("span", {
       className: cls("left-content")
     }, "Task");
   },
   alldayTitle() {
-    return /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3("span", {
       className: cls("left-content")
     }, "All Day");
   },
@@ -8091,7 +8110,7 @@ const templates = {
   time(model) {
     const { start, title } = model;
     if (start) {
-      return /* @__PURE__ */ y$3("span", null, /* @__PURE__ */ y$3("strong", null, toFormat(start, "HH:mm")), "\xA0", /* @__PURE__ */ y$3("span", null, stripTags(title)));
+      return /* @__PURE__ */ _$3("span", null, /* @__PURE__ */ _$3("strong", null, toFormat(start, "HH:mm")), "\xA0", /* @__PURE__ */ _$3("span", null, stripTags(title)));
     }
     return stripTags(title);
   },
@@ -8112,9 +8131,9 @@ const templates = {
     const classNameDay = cls("more-title-date");
     const classNameDayLabel = cls("more-title-day");
     const dayName = capitalize(getDayName(day));
-    return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3(k$3, null, /* @__PURE__ */ _$3("span", {
       className: classNameDay
-    }, date2), /* @__PURE__ */ y$3("span", {
+    }, date2), /* @__PURE__ */ _$3("span", {
       className: classNameDayLabel
     }, dayName));
   },
@@ -8124,13 +8143,13 @@ const templates = {
   monthGridHeader(model) {
     const date2 = parseInt(model.date.split("-")[2], 10);
     const classNames2 = cls("weekday-grid-date", { "weekday-grid-date-decorator": model.isToday });
-    return /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3("span", {
       className: classNames2
     }, date2);
   },
   monthGridHeaderExceed(hiddenEvents) {
     const className2 = cls("weekday-grid-more-events");
-    return /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3("span", {
       className: className2
     }, hiddenEvents, " more");
   },
@@ -8146,9 +8165,9 @@ const templates = {
   weekDayName(model) {
     const classDate = cls("day-name__date");
     const className2 = cls("day-name__name");
-    return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3(k$3, null, /* @__PURE__ */ _$3("span", {
       className: classDate
-    }, model.date), "\xA0\xA0", /* @__PURE__ */ y$3("span", {
+    }, model.date), "\xA0\xA0", /* @__PURE__ */ _$3("span", {
       className: className2
     }, model.dayName));
   },
@@ -8157,7 +8176,7 @@ const templates = {
   },
   collapseBtnTitle() {
     const className2 = cls("collapse-btn-icon");
-    return /* @__PURE__ */ y$3("span", {
+    return /* @__PURE__ */ _$3("span", {
       className: className2
     });
   },
@@ -8284,27 +8303,27 @@ function createViewDispatchers(set) {
   };
 }
 const isSSR = isUndefined_1(window) || !window.navigator;
-const useIsomorphicLayoutEffect = isSSR ? p$2 : y$2;
+const useIsomorphicLayoutEffect = isSSR ? y$2 : _$2;
 function createStoreContext() {
-  const StoreContext = F$3(null);
+  const StoreContext = Q$2(null);
   function StoreProvider2({
     children,
     store
   }) {
-    return y$3(StoreContext.Provider, { value: store, children });
+    return _$3(StoreContext.Provider, { value: store, children });
   }
   const useStore2 = (selector, equalityFn = Object.is) => {
-    const storeCtx = q$2(StoreContext);
+    const storeCtx = x$2(StoreContext);
     if (isNil(storeCtx)) {
       throw new Error("StoreProvider is not found");
     }
-    const [, notify] = s$2((notifyCount) => notifyCount + 1, 0);
+    const [, notify] = h$2((notifyCount) => notifyCount + 1, 0);
     const state = storeCtx.getState();
-    const stateRef = _$2(state);
-    const selectorRef = _$2(selector);
-    const equalityFnRef = _$2(equalityFn);
-    const hasErrorRef = _$2(false);
-    const currentSliceRef = _$2();
+    const stateRef = A$3(state);
+    const selectorRef = A$3(selector);
+    const equalityFnRef = A$3(equalityFn);
+    const hasErrorRef = A$3(false);
+    const currentSliceRef = A$3();
     if (isUndefined_1(currentSliceRef.current)) {
       currentSliceRef.current = selector(state);
     }
@@ -8324,7 +8343,7 @@ function createStoreContext() {
       equalityFnRef.current = equalityFn;
       hasErrorRef.current = false;
     });
-    const stateBeforeSubscriptionRef = _$2(state);
+    const stateBeforeSubscriptionRef = A$3(state);
     useIsomorphicLayoutEffect(() => {
       const listener = () => {
         try {
@@ -8354,11 +8373,11 @@ function createStoreContext() {
     return hasNewStateSlice ? newStateSlice : currentSliceRef.current;
   };
   const useInternalStore2 = () => {
-    const storeCtx = q$2(StoreContext);
+    const storeCtx = x$2(StoreContext);
     if (isNil(storeCtx)) {
       throw new Error("StoreProvider is not found");
     }
-    return F$2(() => storeCtx, [storeCtx]);
+    return T$1(() => storeCtx, [storeCtx]);
   };
   return {
     StoreProvider: StoreProvider2,
@@ -8418,7 +8437,7 @@ const initCalendarStore = (options = {}) => createStore(storeCreator(options));
 const { StoreProvider, useStore, useInternalStore } = createStoreContext();
 function useDispatch(group) {
   return useStore(
-    T$1(
+    q$2(
       (state) => {
         if (!group) {
           return state.dispatch;
@@ -8440,7 +8459,7 @@ const templateSelector = topLevelStateSelector("template");
 const viewSelector = topLevelStateSelector("view");
 const optionsSelector = topLevelStateSelector("options");
 const dndSelector = topLevelStateSelector("dnd");
-/*! @license DOMPurify 3.2.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.5/LICENSE */
+/*! @license DOMPurify 3.3.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.1/LICENSE */
 const {
   entries,
   setPrototypeOf,
@@ -8468,12 +8487,18 @@ if (!seal) {
   };
 }
 if (!apply) {
-  apply = function apply2(fun, thisValue, args) {
-    return fun.apply(thisValue, args);
+  apply = function apply2(func, thisArg) {
+    for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      args[_key - 2] = arguments[_key];
+    }
+    return func.apply(thisArg, args);
   };
 }
 if (!construct) {
-  construct = function construct2(Func, args) {
+  construct = function construct2(Func) {
+    for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      args[_key2 - 1] = arguments[_key2];
+    }
     return new Func(...args);
   };
 }
@@ -8496,18 +8521,18 @@ function unapply(func) {
     if (thisArg instanceof RegExp) {
       thisArg.lastIndex = 0;
     }
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
+    for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
     }
     return apply(func, thisArg, args);
   };
 }
-function unconstruct(func) {
+function unconstruct(Func) {
   return function() {
-    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
+    for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+      args[_key4] = arguments[_key4];
     }
-    return construct(func, args);
+    return construct(Func, args);
   };
 }
 function addToSet(set, array2) {
@@ -8574,15 +8599,15 @@ function lookupGetter(object, prop) {
   }
   return fallbackValue;
 }
-const html$1 = freeze(["a", "abbr", "acronym", "address", "area", "article", "aside", "audio", "b", "bdi", "bdo", "big", "blink", "blockquote", "body", "br", "button", "canvas", "caption", "center", "cite", "code", "col", "colgroup", "content", "data", "datalist", "dd", "decorator", "del", "details", "dfn", "dialog", "dir", "div", "dl", "dt", "element", "em", "fieldset", "figcaption", "figure", "font", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "img", "input", "ins", "kbd", "label", "legend", "li", "main", "map", "mark", "marquee", "menu", "menuitem", "meter", "nav", "nobr", "ol", "optgroup", "option", "output", "p", "picture", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "section", "select", "shadow", "small", "source", "spacer", "span", "strike", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "tr", "track", "tt", "u", "ul", "var", "video", "wbr"]);
-const svg$1 = freeze(["svg", "a", "altglyph", "altglyphdef", "altglyphitem", "animatecolor", "animatemotion", "animatetransform", "circle", "clippath", "defs", "desc", "ellipse", "filter", "font", "g", "glyph", "glyphref", "hkern", "image", "line", "lineargradient", "marker", "mask", "metadata", "mpath", "path", "pattern", "polygon", "polyline", "radialgradient", "rect", "stop", "style", "switch", "symbol", "text", "textpath", "title", "tref", "tspan", "view", "vkern"]);
+const html$1 = freeze(["a", "abbr", "acronym", "address", "area", "article", "aside", "audio", "b", "bdi", "bdo", "big", "blink", "blockquote", "body", "br", "button", "canvas", "caption", "center", "cite", "code", "col", "colgroup", "content", "data", "datalist", "dd", "decorator", "del", "details", "dfn", "dialog", "dir", "div", "dl", "dt", "element", "em", "fieldset", "figcaption", "figure", "font", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "img", "input", "ins", "kbd", "label", "legend", "li", "main", "map", "mark", "marquee", "menu", "menuitem", "meter", "nav", "nobr", "ol", "optgroup", "option", "output", "p", "picture", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp", "search", "section", "select", "shadow", "slot", "small", "source", "spacer", "span", "strike", "strong", "style", "sub", "summary", "sup", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "tr", "track", "tt", "u", "ul", "var", "video", "wbr"]);
+const svg$1 = freeze(["svg", "a", "altglyph", "altglyphdef", "altglyphitem", "animatecolor", "animatemotion", "animatetransform", "circle", "clippath", "defs", "desc", "ellipse", "enterkeyhint", "exportparts", "filter", "font", "g", "glyph", "glyphref", "hkern", "image", "inputmode", "line", "lineargradient", "marker", "mask", "metadata", "mpath", "part", "path", "pattern", "polygon", "polyline", "radialgradient", "rect", "stop", "style", "switch", "symbol", "text", "textpath", "title", "tref", "tspan", "view", "vkern"]);
 const svgFilters = freeze(["feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting", "feDisplacementMap", "feDistantLight", "feDropShadow", "feFlood", "feFuncA", "feFuncB", "feFuncG", "feFuncR", "feGaussianBlur", "feImage", "feMerge", "feMergeNode", "feMorphology", "feOffset", "fePointLight", "feSpecularLighting", "feSpotLight", "feTile", "feTurbulence"]);
 const svgDisallowed = freeze(["animate", "color-profile", "cursor", "discard", "font-face", "font-face-format", "font-face-name", "font-face-src", "font-face-uri", "foreignobject", "hatch", "hatchpath", "mesh", "meshgradient", "meshpatch", "meshrow", "missing-glyph", "script", "set", "solidcolor", "unknown", "use"]);
 const mathMl$1 = freeze(["math", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi", "mlabeledtr", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mspace", "msqrt", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd", "mtext", "mtr", "munder", "munderover", "mprescripts"]);
 const mathMlDisallowed = freeze(["maction", "maligngroup", "malignmark", "mlongdiv", "mscarries", "mscarry", "msgroup", "mstack", "msline", "msrow", "semantics", "annotation", "annotation-xml", "mprescripts", "none"]);
 const text = freeze(["#text"]);
-const html = freeze(["accept", "action", "align", "alt", "autocapitalize", "autocomplete", "autopictureinpicture", "autoplay", "background", "bgcolor", "border", "capture", "cellpadding", "cellspacing", "checked", "cite", "class", "clear", "color", "cols", "colspan", "controls", "controlslist", "coords", "crossorigin", "datetime", "decoding", "default", "dir", "disabled", "disablepictureinpicture", "disableremoteplayback", "download", "draggable", "enctype", "enterkeyhint", "face", "for", "headers", "height", "hidden", "high", "href", "hreflang", "id", "inputmode", "integrity", "ismap", "kind", "label", "lang", "list", "loading", "loop", "low", "max", "maxlength", "media", "method", "min", "minlength", "multiple", "muted", "name", "nonce", "noshade", "novalidate", "nowrap", "open", "optimum", "pattern", "placeholder", "playsinline", "popover", "popovertarget", "popovertargetaction", "poster", "preload", "pubdate", "radiogroup", "readonly", "rel", "required", "rev", "reversed", "role", "rows", "rowspan", "spellcheck", "scope", "selected", "shape", "size", "sizes", "span", "srclang", "start", "src", "srcset", "step", "style", "summary", "tabindex", "title", "translate", "type", "usemap", "valign", "value", "width", "wrap", "xmlns", "slot"]);
-const svg = freeze(["accent-height", "accumulate", "additive", "alignment-baseline", "amplitude", "ascent", "attributename", "attributetype", "azimuth", "basefrequency", "baseline-shift", "begin", "bias", "by", "class", "clip", "clippathunits", "clip-path", "clip-rule", "color", "color-interpolation", "color-interpolation-filters", "color-profile", "color-rendering", "cx", "cy", "d", "dx", "dy", "diffuseconstant", "direction", "display", "divisor", "dur", "edgemode", "elevation", "end", "exponent", "fill", "fill-opacity", "fill-rule", "filter", "filterunits", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "fx", "fy", "g1", "g2", "glyph-name", "glyphref", "gradientunits", "gradienttransform", "height", "href", "id", "image-rendering", "in", "in2", "intercept", "k", "k1", "k2", "k3", "k4", "kerning", "keypoints", "keysplines", "keytimes", "lang", "lengthadjust", "letter-spacing", "kernelmatrix", "kernelunitlength", "lighting-color", "local", "marker-end", "marker-mid", "marker-start", "markerheight", "markerunits", "markerwidth", "maskcontentunits", "maskunits", "max", "mask", "media", "method", "mode", "min", "name", "numoctaves", "offset", "operator", "opacity", "order", "orient", "orientation", "origin", "overflow", "paint-order", "path", "pathlength", "patterncontentunits", "patterntransform", "patternunits", "points", "preservealpha", "preserveaspectratio", "primitiveunits", "r", "rx", "ry", "radius", "refx", "refy", "repeatcount", "repeatdur", "restart", "result", "rotate", "scale", "seed", "shape-rendering", "slope", "specularconstant", "specularexponent", "spreadmethod", "startoffset", "stddeviation", "stitchtiles", "stop-color", "stop-opacity", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke", "stroke-width", "style", "surfacescale", "systemlanguage", "tabindex", "tablevalues", "targetx", "targety", "transform", "transform-origin", "text-anchor", "text-decoration", "text-rendering", "textlength", "type", "u1", "u2", "unicode", "values", "viewbox", "visibility", "version", "vert-adv-y", "vert-origin-x", "vert-origin-y", "width", "word-spacing", "wrap", "writing-mode", "xchannelselector", "ychannelselector", "x", "x1", "x2", "xmlns", "y", "y1", "y2", "z", "zoomandpan"]);
+const html = freeze(["accept", "action", "align", "alt", "autocapitalize", "autocomplete", "autopictureinpicture", "autoplay", "background", "bgcolor", "border", "capture", "cellpadding", "cellspacing", "checked", "cite", "class", "clear", "color", "cols", "colspan", "controls", "controlslist", "coords", "crossorigin", "datetime", "decoding", "default", "dir", "disabled", "disablepictureinpicture", "disableremoteplayback", "download", "draggable", "enctype", "enterkeyhint", "exportparts", "face", "for", "headers", "height", "hidden", "high", "href", "hreflang", "id", "inert", "inputmode", "integrity", "ismap", "kind", "label", "lang", "list", "loading", "loop", "low", "max", "maxlength", "media", "method", "min", "minlength", "multiple", "muted", "name", "nonce", "noshade", "novalidate", "nowrap", "open", "optimum", "part", "pattern", "placeholder", "playsinline", "popover", "popovertarget", "popovertargetaction", "poster", "preload", "pubdate", "radiogroup", "readonly", "rel", "required", "rev", "reversed", "role", "rows", "rowspan", "spellcheck", "scope", "selected", "shape", "size", "sizes", "slot", "span", "srclang", "start", "src", "srcset", "step", "style", "summary", "tabindex", "title", "translate", "type", "usemap", "valign", "value", "width", "wrap", "xmlns", "slot"]);
+const svg = freeze(["accent-height", "accumulate", "additive", "alignment-baseline", "amplitude", "ascent", "attributename", "attributetype", "azimuth", "basefrequency", "baseline-shift", "begin", "bias", "by", "class", "clip", "clippathunits", "clip-path", "clip-rule", "color", "color-interpolation", "color-interpolation-filters", "color-profile", "color-rendering", "cx", "cy", "d", "dx", "dy", "diffuseconstant", "direction", "display", "divisor", "dur", "edgemode", "elevation", "end", "exponent", "fill", "fill-opacity", "fill-rule", "filter", "filterunits", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "fx", "fy", "g1", "g2", "glyph-name", "glyphref", "gradientunits", "gradienttransform", "height", "href", "id", "image-rendering", "in", "in2", "intercept", "k", "k1", "k2", "k3", "k4", "kerning", "keypoints", "keysplines", "keytimes", "lang", "lengthadjust", "letter-spacing", "kernelmatrix", "kernelunitlength", "lighting-color", "local", "marker-end", "marker-mid", "marker-start", "markerheight", "markerunits", "markerwidth", "maskcontentunits", "maskunits", "max", "mask", "mask-type", "media", "method", "mode", "min", "name", "numoctaves", "offset", "operator", "opacity", "order", "orient", "orientation", "origin", "overflow", "paint-order", "path", "pathlength", "patterncontentunits", "patterntransform", "patternunits", "points", "preservealpha", "preserveaspectratio", "primitiveunits", "r", "rx", "ry", "radius", "refx", "refy", "repeatcount", "repeatdur", "restart", "result", "rotate", "scale", "seed", "shape-rendering", "slope", "specularconstant", "specularexponent", "spreadmethod", "startoffset", "stddeviation", "stitchtiles", "stop-color", "stop-opacity", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke", "stroke-width", "style", "surfacescale", "systemlanguage", "tabindex", "tablevalues", "targetx", "targety", "transform", "transform-origin", "text-anchor", "text-decoration", "text-rendering", "textlength", "type", "u1", "u2", "unicode", "values", "viewbox", "visibility", "version", "vert-adv-y", "vert-origin-x", "vert-origin-y", "width", "word-spacing", "wrap", "writing-mode", "xchannelselector", "ychannelselector", "x", "x1", "x2", "xmlns", "y", "y1", "y2", "z", "zoomandpan"]);
 const mathMl = freeze(["accent", "accentunder", "align", "bevelled", "close", "columnsalign", "columnlines", "columnspan", "denomalign", "depth", "dir", "display", "displaystyle", "encoding", "fence", "frame", "height", "href", "id", "largeop", "length", "linethickness", "lspace", "lquote", "mathbackground", "mathcolor", "mathsize", "mathvariant", "maxsize", "minsize", "movablelimits", "notation", "numalign", "open", "rowalign", "rowlines", "rowspacing", "rowspan", "rspace", "rquote", "scriptlevel", "scriptminsize", "scriptsizemultiplier", "selection", "separator", "separators", "stretchy", "subscriptshift", "supscriptshift", "symmetric", "voffset", "width", "xmlns"]);
 const xml = freeze(["xlink:href", "xml:id", "xlink:title", "xml:space", "xmlns:xlink"]);
 const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm);
@@ -8591,7 +8616,7 @@ const TMPLIT_EXPR = seal(/\$\{[\w\W]*/gm);
 const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
 const ARIA_ATTR = seal(/^aria-[\-\w]+$/);
 const IS_ALLOWED_URI = seal(
-  /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+  /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
 );
 const IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 const ATTR_WHITESPACE = seal(
@@ -8669,7 +8694,7 @@ const _createHooksMap = function _createHooksMap2() {
 function createDOMPurify() {
   let window2 = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : getGlobal();
   const DOMPurify = (root) => createDOMPurify(root);
-  DOMPurify.version = "3.2.5";
+  DOMPurify.version = "3.3.1";
   DOMPurify.removed = [];
   if (!window2 || !window2.document || window2.document.nodeType !== NODE_TYPE.document || !window2.Element) {
     DOMPurify.isSupported = false;
@@ -8755,6 +8780,20 @@ function createDOMPurify() {
   }));
   let FORBID_TAGS = null;
   let FORBID_ATTR = null;
+  const EXTRA_ELEMENT_HANDLING = Object.seal(create(null, {
+    tagCheck: {
+      writable: true,
+      configurable: false,
+      enumerable: true,
+      value: null
+    },
+    attributeCheck: {
+      writable: true,
+      configurable: false,
+      enumerable: true,
+      value: null
+    }
+  }));
   let ALLOW_ARIA_ATTR = true;
   let ALLOW_DATA_ATTR = true;
   let ALLOW_UNKNOWN_PROTOCOLS = false;
@@ -8815,8 +8854,8 @@ function createDOMPurify() {
     URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, "ADD_URI_SAFE_ATTR") ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS = objectHasOwnProperty(cfg, "ADD_DATA_URI_TAGS") ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS = objectHasOwnProperty(cfg, "FORBID_CONTENTS") ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS = objectHasOwnProperty(cfg, "FORBID_TAGS") ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
-    FORBID_ATTR = objectHasOwnProperty(cfg, "FORBID_ATTR") ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
+    FORBID_TAGS = objectHasOwnProperty(cfg, "FORBID_TAGS") ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : clone({});
+    FORBID_ATTR = objectHasOwnProperty(cfg, "FORBID_ATTR") ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : clone({});
     USE_PROFILES = objectHasOwnProperty(cfg, "USE_PROFILES") ? cfg.USE_PROFILES : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false;
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false;
@@ -8877,16 +8916,24 @@ function createDOMPurify() {
       }
     }
     if (cfg.ADD_TAGS) {
-      if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
-        ALLOWED_TAGS = clone(ALLOWED_TAGS);
+      if (typeof cfg.ADD_TAGS === "function") {
+        EXTRA_ELEMENT_HANDLING.tagCheck = cfg.ADD_TAGS;
+      } else {
+        if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
+          ALLOWED_TAGS = clone(ALLOWED_TAGS);
+        }
+        addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
       }
-      addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
     }
     if (cfg.ADD_ATTR) {
-      if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
-        ALLOWED_ATTR = clone(ALLOWED_ATTR);
+      if (typeof cfg.ADD_ATTR === "function") {
+        EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
+      } else {
+        if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
+          ALLOWED_ATTR = clone(ALLOWED_ATTR);
+        }
+        addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
       }
-      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
     }
     if (cfg.ADD_URI_SAFE_ATTR) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
@@ -8896,6 +8943,12 @@ function createDOMPurify() {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
       }
       addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
+    }
+    if (cfg.ADD_FORBID_CONTENTS) {
+      if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+        FORBID_CONTENTS = clone(FORBID_CONTENTS);
+      }
+      addToSet(FORBID_CONTENTS, cfg.ADD_FORBID_CONTENTS, transformCaseFunc);
     }
     if (KEEP_CONTENT) {
       ALLOWED_TAGS["#text"] = true;
@@ -9079,7 +9132,7 @@ function createDOMPurify() {
       tagName,
       allowedTags: ALLOWED_TAGS
     });
-    if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
+    if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -9091,7 +9144,7 @@ function createDOMPurify() {
       _forceRemove(currentNode);
       return true;
     }
-    if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+    if (!(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName])) {
       if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
         if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) {
           return false;
@@ -9146,8 +9199,10 @@ function createDOMPurify() {
       ;
     else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR2, lcName))
       ;
+    else if (EXTRA_ELEMENT_HANDLING.attributeCheck instanceof Function && EXTRA_ELEMENT_HANDLING.attributeCheck(lcName, lcTag))
+      ;
     else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
-      if (_isBasicCustomElement(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)) || lcName === "is" && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value)))
+      if (_isBasicCustomElement(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName, lcTag)) || lcName === "is" && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value)))
         ;
       else {
         return false;
@@ -9193,7 +9248,8 @@ function createDOMPurify() {
         value: attrValue
       } = attr;
       const lcName = transformCaseFunc(name);
-      let value = name === "value" ? attrValue : stringTrim(attrValue);
+      const initValue = attrValue;
+      let value = name === "value" ? initValue : stringTrim(initValue);
       hookEvent.attrName = lcName;
       hookEvent.attrValue = value;
       hookEvent.keepAttr = true;
@@ -9204,15 +9260,19 @@ function createDOMPurify() {
         _removeAttribute(name, currentNode);
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
       }
-      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title|textarea)/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+      if (lcName === "attributename" && stringMatch(value, "href")) {
         _removeAttribute(name, currentNode);
         continue;
       }
       if (hookEvent.forceKeepAttr) {
         continue;
       }
-      _removeAttribute(name, currentNode);
       if (!hookEvent.keepAttr) {
+        _removeAttribute(name, currentNode);
         continue;
       }
       if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
@@ -9226,6 +9286,7 @@ function createDOMPurify() {
       }
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
+        _removeAttribute(name, currentNode);
         continue;
       }
       if (trustedTypesPolicy && typeof trustedTypes === "object" && typeof trustedTypes.getAttributeType === "function") {
@@ -9244,18 +9305,21 @@ function createDOMPurify() {
           }
         }
       }
-      try {
-        if (namespaceURI) {
-          currentNode.setAttributeNS(namespaceURI, name, value);
-        } else {
-          currentNode.setAttribute(name, value);
+      if (value !== initValue) {
+        try {
+          if (namespaceURI) {
+            currentNode.setAttributeNS(namespaceURI, name, value);
+          } else {
+            currentNode.setAttribute(name, value);
+          }
+          if (_isClobbered(currentNode)) {
+            _forceRemove(currentNode);
+          } else {
+            arrayPop(DOMPurify.removed);
+          }
+        } catch (_2) {
+          _removeAttribute(name, currentNode);
         }
-        if (_isClobbered(currentNode)) {
-          _forceRemove(currentNode);
-        } else {
-          arrayPop(DOMPurify.removed);
-        }
-      } catch (_2) {
       }
     }
     _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
@@ -9409,7 +9473,7 @@ function createDOMPurify() {
 }
 var purify = createDOMPurify();
 var purify_cjs = purify;
-var browser = window.DOMPurify || (window.DOMPurify = purify_cjs.default || purify_cjs);
+var browser = self.DOMPurify || (self.DOMPurify = purify_cjs.default || purify_cjs);
 const TEMP_TARGET_ATTRIBUTE = "data-target-temp";
 function addAttributeHooks() {
   browser.addHook("beforeSanitizeAttributes", (node) => {
@@ -9446,21 +9510,21 @@ function Template({ template, param, as: tagName = "div" }) {
     return null;
   }
   const htmlOrVnode = templateFunc(param);
-  return isString_1(htmlOrVnode) ? y$3(tagName, {
+  return isString_1(htmlOrVnode) ? _$3(tagName, {
     className: cls(`template-${template}`),
     dangerouslySetInnerHTML: {
       __html: sanitize(htmlOrVnode)
     }
-  }) : E$1(htmlOrVnode, {
+  }) : K$1(htmlOrVnode, {
     className: `${(_a = htmlOrVnode.props.className) != null ? _a : ""} ${cls(`template-${template}`)}`
   });
 }
-const EventBusContext = F$3(
+const EventBusContext = Q$2(
   null
 );
 const EventBusProvider = EventBusContext.Provider;
 const useEventBus = () => {
-  const eventBus = q$2(EventBusContext);
+  const eventBus = x$2(EventBusContext);
   if (!eventBus) {
     throw new Error("useEventBus must be used within a EventBusProvider");
   }
@@ -9481,7 +9545,7 @@ const timezonesSelector = (state) => {
 function useTZConverter() {
   const customOffsetCalculator = useStore(customOffsetCalculatorSelector);
   const hasCustomOffsetCalculator = isPresent(customOffsetCalculator);
-  return T$1(
+  return q$2(
     (timezoneName, tzDate = new TZDate()) => tzDate.tz(
       hasCustomOffsetCalculator ? customOffsetCalculator(timezoneName, tzDate.getTime()) : timezoneName
     ),
@@ -9491,7 +9555,7 @@ function useTZConverter() {
 function usePrimaryTimezone() {
   const primaryTimezoneName = useStore(primaryTimezoneSelector);
   const tzConverter = useTZConverter();
-  const getNow = T$1(
+  const getNow = q$2(
     () => tzConverter(primaryTimezoneName),
     [primaryTimezoneName, tzConverter]
   );
@@ -9548,15 +9612,15 @@ function DayName({ dayName, style, type, theme }) {
       eventBus.fire("clickDayName", { date: toFormat(dayName.dateInstance, "YYYY-MM-DD") });
     }
   };
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("day-name-item", type),
     style
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: cls({ [`holiday-${getDayName(day)}`]: isWeekend(day) }),
     style: { color },
     onClick: handleClick,
     "data-testid": `dayName-${type}-${getDayName(day)}`
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: templateType,
     param: dayName
   })));
@@ -9791,7 +9855,7 @@ function GridHeader({
   const theme = useTheme(type === "month" ? monthDayNameSelector : weekDayNameSelector);
   const _c = (_b = (_a = theme[type]) == null ? void 0 : _a.dayName) != null ? _b : {}, { backgroundColor = "white", borderLeft = null } = _c, rest = __objRest(_c, ["backgroundColor", "borderLeft"]);
   const { borderTop = null, borderBottom = null } = rest;
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     "data-testid": `grid-header-${type}`,
     className: cls("day-names", type),
     style: {
@@ -9799,10 +9863,10 @@ function GridHeader({
       borderTop,
       borderBottom
     }
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: cls("day-name-container"),
     style: { marginLeft }
-  }, dayNames.map((dayName, index) => /* @__PURE__ */ y$3(DayName, {
+  }, dayNames.map((dayName, index) => /* @__PURE__ */ _$3(DayName, {
     type,
     key: `dayNames-${dayName.day}`,
     dayName,
@@ -10534,7 +10598,7 @@ function GridSelection$1({ type, gridSelectionData, weekDates, narrowWeekend }) 
     backgroundColor,
     border
   };
-  return width > 0 ? /* @__PURE__ */ y$3("div", {
+  return width > 0 ? /* @__PURE__ */ _$3("div", {
     className: cls(type, "grid-selection"),
     style
   }) : null;
@@ -10655,7 +10719,7 @@ function AlldayGridSelection({ weekDates, narrowWeekend }) {
   if (isNil(calculatedGridSelection)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(GridSelection$1, {
+  return /* @__PURE__ */ _$3(GridSelection$1, {
     type: "allday",
     gridSelectionData: calculatedGridSelection,
     weekDates,
@@ -10667,7 +10731,7 @@ function g$1(n2, t2) {
     n2[e2] = t2[e2];
   return n2;
 }
-function C$1(n2, t2) {
+function E(n2, t2) {
   for (var e2 in n2)
     if ("__source" !== e2 && !(e2 in t2))
       return true;
@@ -10676,73 +10740,73 @@ function C$1(n2, t2) {
       return true;
   return false;
 }
-function w$1(n2) {
-  this.props = n2;
+function N(n2, t2) {
+  this.props = n2, this.context = t2;
 }
-function x$1(n2, e2) {
+function M(n2, e2) {
   function r2(n3) {
     var t2 = this.props.ref, r3 = t2 == n3.ref;
-    return !r3 && t2 && (t2.call ? t2(null) : t2.current = null), e2 ? !e2(this.props, n3) || !r3 : C$1(this.props, n3);
+    return !r3 && t2 && (t2.call ? t2(null) : t2.current = null), e2 ? !e2(this.props, n3) || !r3 : E(this.props, n3);
   }
   function u2(e3) {
-    return this.shouldComponentUpdate = r2, y$3(n2, e3);
+    return this.shouldComponentUpdate = r2, _$3(n2, e3);
   }
-  return u2.displayName = "Memo(" + (n2.displayName || n2.name) + ")", u2.prototype.isReactComponent = true, u2.__f = true, u2;
+  return u2.displayName = "Memo(" + (n2.displayName || n2.name) + ")", u2.prototype.isReactComponent = true, u2.__f = true, u2.type = n2, u2;
 }
-(w$1.prototype = new k$4()).isPureReactComponent = true, w$1.prototype.shouldComponentUpdate = function(n2, t2) {
-  return C$1(this.props, n2) || C$1(this.state, t2);
+(N.prototype = new x$3()).isPureReactComponent = true, N.prototype.shouldComponentUpdate = function(n2, t2) {
+  return E(this.props, n2) || E(this.state, t2);
 };
-var R = l$3.__b;
+var T = l$3.__b;
 l$3.__b = function(n2) {
-  n2.type && n2.type.__f && n2.ref && (n2.props.ref = n2.ref, n2.ref = null), R && R(n2);
+  n2.type && n2.type.__f && n2.ref && (n2.props.ref = n2.ref, n2.ref = null), T && T(n2);
 };
-var N = "undefined" != typeof Symbol && Symbol.for && Symbol.for("react.forward_ref") || 3911;
-function k$1(n2) {
+var A$1 = "undefined" != typeof Symbol && Symbol.for && Symbol.for("react.forward_ref") || 3911;
+function D(n2) {
   function t2(t3) {
     var e2 = g$1({}, t3);
     return delete e2.ref, n2(e2, t3.ref || null);
   }
-  return t2.$$typeof = N, t2.render = t2, t2.prototype.isReactComponent = t2.__f = true, t2.displayName = "ForwardRef(" + (n2.displayName || n2.name) + ")", t2;
+  return t2.$$typeof = A$1, t2.render = n2, t2.prototype.isReactComponent = t2.__f = true, t2.displayName = "ForwardRef(" + (n2.displayName || n2.name) + ")", t2;
 }
-var T = l$3.__e;
+var F$1 = l$3.__e;
 l$3.__e = function(n2, t2, e2, r2) {
   if (n2.then) {
     for (var u2, o2 = t2; o2 = o2.__; )
       if ((u2 = o2.__c) && u2.__c)
         return null == t2.__e && (t2.__e = e2.__e, t2.__k = e2.__k), u2.__c(n2, t2);
   }
-  T(n2, t2, e2, r2);
+  F$1(n2, t2, e2, r2);
 };
-var I = l$3.unmount;
-function L(n2, t2, e2) {
+var U = l$3.unmount;
+function V(n2, t2, e2) {
   return n2 && (n2.__c && n2.__c.__H && (n2.__c.__H.__.forEach(function(n3) {
     "function" == typeof n3.__c && n3.__c();
-  }), n2.__c.__H = null), null != (n2 = g$1({}, n2)).__c && (n2.__c.__P === e2 && (n2.__c.__P = t2), n2.__c = null), n2.__k = n2.__k && n2.__k.map(function(n3) {
-    return L(n3, t2, e2);
+  }), n2.__c.__H = null), null != (n2 = g$1({}, n2)).__c && (n2.__c.__P === e2 && (n2.__c.__P = t2), n2.__c.__e = true, n2.__c = null), n2.__k = n2.__k && n2.__k.map(function(n3) {
+    return V(n3, t2, e2);
   })), n2;
 }
-function U(n2, t2, e2) {
-  return n2 && (n2.__v = null, n2.__k = n2.__k && n2.__k.map(function(n3) {
-    return U(n3, t2, e2);
-  }), n2.__c && n2.__c.__P === t2 && (n2.__e && e2.insertBefore(n2.__e, n2.__d), n2.__c.__e = true, n2.__c.__P = e2)), n2;
+function W(n2, t2, e2) {
+  return n2 && e2 && (n2.__v = null, n2.__k = n2.__k && n2.__k.map(function(n3) {
+    return W(n3, t2, e2);
+  }), n2.__c && n2.__c.__P === t2 && (n2.__e && e2.appendChild(n2.__e), n2.__c.__e = true, n2.__c.__P = e2)), n2;
 }
-function D() {
-  this.__u = 0, this.t = null, this.__b = null;
+function P() {
+  this.__u = 0, this.o = null, this.__b = null;
 }
-function F$1(n2) {
+function j$1(n2) {
   var t2 = n2.__.__c;
   return t2 && t2.__a && t2.__a(n2);
 }
-function V() {
-  this.u = null, this.o = null;
+function B() {
+  this.i = null, this.l = null;
 }
 l$3.unmount = function(n2) {
   var t2 = n2.__c;
-  t2 && t2.__R && t2.__R(), t2 && true === n2.__h && (n2.type = null), I && I(n2);
-}, (D.prototype = new k$4()).__c = function(n2, t2) {
+  t2 && t2.__R && t2.__R(), t2 && 32 & n2.__u && (n2.type = null), U && U(n2);
+}, (P.prototype = new x$3()).__c = function(n2, t2) {
   var e2 = t2.__c, r2 = this;
-  null == r2.t && (r2.t = []), r2.t.push(e2);
-  var u2 = F$1(r2.__v), o2 = false, i2 = function() {
+  null == r2.o && (r2.o = []), r2.o.push(e2);
+  var u2 = j$1(r2.__v), o2 = false, i2 = function() {
     o2 || (o2 = true, e2.__R = null, u2 ? u2(l2) : l2());
   };
   e2.__R = i2;
@@ -10750,151 +10814,156 @@ l$3.unmount = function(n2) {
     if (!--r2.__u) {
       if (r2.state.__a) {
         var n3 = r2.state.__a;
-        r2.__v.__k[0] = U(n3, n3.__c.__P, n3.__c.__O);
+        r2.__v.__k[0] = W(n3, n3.__c.__P, n3.__c.__O);
       }
       var t3;
-      for (r2.setState({ __a: r2.__b = null }); t3 = r2.t.pop(); )
+      for (r2.setState({ __a: r2.__b = null }); t3 = r2.o.pop(); )
         t3.forceUpdate();
     }
-  }, c2 = true === t2.__h;
-  r2.__u++ || c2 || r2.setState({ __a: r2.__b = r2.__v.__k[0] }), n2.then(i2, i2);
-}, D.prototype.componentWillUnmount = function() {
-  this.t = [];
-}, D.prototype.render = function(n2, e2) {
+  };
+  r2.__u++ || 32 & t2.__u || r2.setState({ __a: r2.__b = r2.__v.__k[0] }), n2.then(i2, i2);
+}, P.prototype.componentWillUnmount = function() {
+  this.o = [];
+}, P.prototype.render = function(n2, e2) {
   if (this.__b) {
     if (this.__v.__k) {
       var r2 = document.createElement("div"), o2 = this.__v.__k[0].__c;
-      this.__v.__k[0] = L(this.__b, r2, o2.__O = o2.__P);
+      this.__v.__k[0] = V(this.__b, r2, o2.__O = o2.__P);
     }
     this.__b = null;
   }
-  var i2 = e2.__a && y$3(_$3, null, n2.fallback);
-  return i2 && (i2.__h = null), [y$3(_$3, null, e2.__a ? null : n2.children), i2];
+  var i2 = e2.__a && _$3(k$3, null, n2.fallback);
+  return i2 && (i2.__u &= -33), [_$3(k$3, null, e2.__a ? null : n2.children), i2];
 };
-var W = function(n2, t2, e2) {
-  if (++e2[1] === e2[0] && n2.o.delete(t2), n2.props.revealOrder && ("t" !== n2.props.revealOrder[0] || !n2.o.size))
-    for (e2 = n2.u; e2; ) {
+var H = function(n2, t2, e2) {
+  if (++e2[1] === e2[0] && n2.l.delete(t2), n2.props.revealOrder && ("t" !== n2.props.revealOrder[0] || !n2.l.size))
+    for (e2 = n2.i; e2; ) {
       for (; e2.length > 3; )
         e2.pop()();
       if (e2[1] < e2[0])
         break;
-      n2.u = e2 = e2[2];
+      n2.i = e2 = e2[2];
     }
 };
-function P(n2) {
+function Z(n2) {
   return this.getChildContext = function() {
     return n2.context;
   }, n2.children;
 }
-function j$1(n2) {
-  var e2 = this, r2 = n2.i;
-  e2.componentWillUnmount = function() {
-    B$3(null, e2.l), e2.l = null, e2.i = null;
-  }, e2.i && e2.i !== r2 && e2.componentWillUnmount(), n2.__v ? (e2.l || (e2.i = r2, e2.l = { nodeType: 1, parentNode: r2, childNodes: [], appendChild: function(n3) {
-    this.childNodes.push(n3), e2.i.appendChild(n3);
-  }, insertBefore: function(n3, t2) {
-    this.childNodes.push(n3), e2.i.appendChild(n3);
-  }, removeChild: function(n3) {
-    this.childNodes.splice(this.childNodes.indexOf(n3) >>> 1, 1), e2.i.removeChild(n3);
-  } }), B$3(y$3(P, { context: e2.context }, n2.__v), e2.l)) : e2.l && e2.componentWillUnmount();
+function Y(n2) {
+  var e2 = this, r2 = n2.h;
+  if (e2.componentWillUnmount = function() {
+    G$2(null, e2.v), e2.v = null, e2.h = null;
+  }, e2.h && e2.h !== r2 && e2.componentWillUnmount(), !e2.v) {
+    for (var u2 = e2.__v; null !== u2 && !u2.__m && null !== u2.__; )
+      u2 = u2.__;
+    e2.h = r2, e2.v = { nodeType: 1, parentNode: r2, childNodes: [], __k: { __m: u2.__m }, contains: function() {
+      return true;
+    }, insertBefore: function(n3, t2) {
+      this.childNodes.push(n3), e2.h.insertBefore(n3, t2);
+    }, removeChild: function(n3) {
+      this.childNodes.splice(this.childNodes.indexOf(n3) >>> 1, 1), e2.h.removeChild(n3);
+    } };
+  }
+  G$2(_$3(Z, { context: e2.context }, n2.__v), e2.v);
 }
-function z(n2, e2) {
-  var r2 = y$3(j$1, { __v: n2, i: e2 });
+function $$1(n2, e2) {
+  var r2 = _$3(Y, { __v: n2, h: e2 });
   return r2.containerInfo = e2, r2;
 }
-(V.prototype = new k$4()).__a = function(n2) {
-  var t2 = this, e2 = F$1(t2.__v), r2 = t2.o.get(n2);
+(B.prototype = new x$3()).__a = function(n2) {
+  var t2 = this, e2 = j$1(t2.__v), r2 = t2.l.get(n2);
   return r2[0]++, function(u2) {
     var o2 = function() {
-      t2.props.revealOrder ? (r2.push(u2), W(t2, n2, r2)) : u2();
+      t2.props.revealOrder ? (r2.push(u2), H(t2, n2, r2)) : u2();
     };
     e2 ? e2(o2) : o2();
   };
-}, V.prototype.render = function(n2) {
-  this.u = null, this.o = /* @__PURE__ */ new Map();
-  var t2 = P$2(n2.children);
+}, B.prototype.render = function(n2) {
+  this.i = null, this.l = /* @__PURE__ */ new Map();
+  var t2 = H$2(n2.children);
   n2.revealOrder && "b" === n2.revealOrder[0] && t2.reverse();
   for (var e2 = t2.length; e2--; )
-    this.o.set(t2[e2], this.u = [1, 0, this.u]);
+    this.l.set(t2[e2], this.i = [1, 0, this.i]);
   return n2.children;
-}, V.prototype.componentDidUpdate = V.prototype.componentDidMount = function() {
+}, B.prototype.componentDidUpdate = B.prototype.componentDidMount = function() {
   var n2 = this;
-  this.o.forEach(function(t2, e2) {
-    W(n2, e2, t2);
+  this.l.forEach(function(t2, e2) {
+    H(n2, e2, t2);
   });
 };
-var B = "undefined" != typeof Symbol && Symbol.for && Symbol.for("react.element") || 60103, H = /^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|image|letter|lighting|marker(?!H|W|U)|overline|paint|pointer|shape|stop|strikethrough|stroke|text(?!L)|transform|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/, Z = /^on(Ani|Tra|Tou|BeforeInp|Compo)/, Y = /[A-Z0-9]/g, $$1 = "undefined" != typeof document, q = function(n2) {
+var q = "undefined" != typeof Symbol && Symbol.for && Symbol.for("react.element") || 60103, G = /^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|image(!S)|letter|lighting|marker(?!H|W|U)|overline|paint|pointer|shape|stop|strikethrough|stroke|text(?!L)|transform|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/, J = /^on(Ani|Tra|Tou|BeforeInp|Compo)/, K = /[A-Z0-9]/g, Q = "undefined" != typeof document, X = function(n2) {
   return ("undefined" != typeof Symbol && "symbol" == typeof Symbol() ? /fil|che|rad/ : /fil|che|ra/).test(n2);
 };
-k$4.prototype.isReactComponent = {}, ["componentWillMount", "componentWillReceiveProps", "componentWillUpdate"].forEach(function(t2) {
-  Object.defineProperty(k$4.prototype, t2, { configurable: true, get: function() {
+x$3.prototype.isReactComponent = {}, ["componentWillMount", "componentWillReceiveProps", "componentWillUpdate"].forEach(function(t2) {
+  Object.defineProperty(x$3.prototype, t2, { configurable: true, get: function() {
     return this["UNSAFE_" + t2];
   }, set: function(n2) {
     Object.defineProperty(this, t2, { configurable: true, writable: true, value: n2 });
   } });
 });
-var K = l$3.event;
-function Q() {
+var en = l$3.event;
+function rn() {
 }
-function X() {
+function un() {
   return this.cancelBubble;
 }
-function nn() {
+function on() {
   return this.defaultPrevented;
 }
 l$3.event = function(n2) {
-  return K && (n2 = K(n2)), n2.persist = Q, n2.isPropagationStopped = X, n2.isDefaultPrevented = nn, n2.nativeEvent = n2;
+  return en && (n2 = en(n2)), n2.persist = rn, n2.isPropagationStopped = un, n2.isDefaultPrevented = on, n2.nativeEvent = n2;
 };
-var en = { enumerable: false, configurable: true, get: function() {
+var cn = { enumerable: false, configurable: true, get: function() {
   return this.class;
-} }, rn = l$3.vnode;
+} }, fn = l$3.vnode;
 l$3.vnode = function(n2) {
   "string" == typeof n2.type && function(n3) {
-    var t2 = n3.props, e2 = n3.type, u2 = {};
-    for (var o2 in t2) {
-      var i2 = t2[o2];
-      if (!("value" === o2 && "defaultValue" in t2 && null == i2 || $$1 && "children" === o2 && "noscript" === e2 || "class" === o2 || "className" === o2)) {
-        var l2 = o2.toLowerCase();
-        "defaultValue" === o2 && "value" in t2 && null == t2.value ? o2 = "value" : "download" === o2 && true === i2 ? i2 = "" : "ondoubleclick" === l2 ? o2 = "ondblclick" : "onchange" !== l2 || "input" !== e2 && "textarea" !== e2 || q(t2.type) ? "onfocus" === l2 ? o2 = "onfocusin" : "onblur" === l2 ? o2 = "onfocusout" : Z.test(o2) ? o2 = l2 : -1 === e2.indexOf("-") && H.test(o2) ? o2 = o2.replace(Y, "-$&").toLowerCase() : null === i2 && (i2 = void 0) : l2 = o2 = "oninput", "oninput" === l2 && u2[o2 = l2] && (o2 = "oninputCapture"), u2[o2] = i2;
+    var t2 = n3.props, e2 = n3.type, u2 = {}, o2 = -1 === e2.indexOf("-");
+    for (var i2 in t2) {
+      var l2 = t2[i2];
+      if (!("value" === i2 && "defaultValue" in t2 && null == l2 || Q && "children" === i2 && "noscript" === e2 || "class" === i2 || "className" === i2)) {
+        var c2 = i2.toLowerCase();
+        "defaultValue" === i2 && "value" in t2 && null == t2.value ? i2 = "value" : "download" === i2 && true === l2 ? l2 = "" : "translate" === c2 && "no" === l2 ? l2 = false : "o" === c2[0] && "n" === c2[1] ? "ondoubleclick" === c2 ? i2 = "ondblclick" : "onchange" !== c2 || "input" !== e2 && "textarea" !== e2 || X(t2.type) ? "onfocus" === c2 ? i2 = "onfocusin" : "onblur" === c2 ? i2 = "onfocusout" : J.test(i2) && (i2 = c2) : c2 = i2 = "oninput" : o2 && G.test(i2) ? i2 = i2.replace(K, "-$&").toLowerCase() : null === l2 && (l2 = void 0), "oninput" === c2 && u2[i2 = c2] && (i2 = "oninputCapture"), u2[i2] = l2;
       }
     }
-    "select" == e2 && u2.multiple && Array.isArray(u2.value) && (u2.value = P$2(t2.children).forEach(function(n4) {
+    "select" == e2 && u2.multiple && Array.isArray(u2.value) && (u2.value = H$2(t2.children).forEach(function(n4) {
       n4.props.selected = -1 != u2.value.indexOf(n4.props.value);
-    })), "select" == e2 && null != u2.defaultValue && (u2.value = P$2(t2.children).forEach(function(n4) {
+    })), "select" == e2 && null != u2.defaultValue && (u2.value = H$2(t2.children).forEach(function(n4) {
       n4.props.selected = u2.multiple ? -1 != u2.defaultValue.indexOf(n4.props.value) : u2.defaultValue == n4.props.value;
-    })), t2.class && !t2.className ? (u2.class = t2.class, Object.defineProperty(u2, "className", en)) : (t2.className && !t2.class || t2.class && t2.className) && (u2.class = u2.className = t2.className), n3.props = u2;
-  }(n2), n2.$$typeof = B, rn && rn(n2);
+    })), t2.class && !t2.className ? (u2.class = t2.class, Object.defineProperty(u2, "className", cn)) : (t2.className && !t2.class || t2.class && t2.className) && (u2.class = u2.className = t2.className), n3.props = u2;
+  }(n2), n2.$$typeof = q, fn && fn(n2);
 };
-var un = l$3.__r;
+var an = l$3.__r;
 l$3.__r = function(n2) {
-  un && un(n2), n2.__c;
+  an && an(n2), n2.__c;
 };
-var on = l$3.diffed;
+var sn = l$3.diffed;
 l$3.diffed = function(n2) {
-  on && on(n2);
+  sn && sn(n2);
   var t2 = n2.props, e2 = n2.__e;
   null != e2 && "textarea" === n2.type && "value" in t2 && t2.value !== e2.value && (e2.value = null == t2.value ? "" : t2.value);
 };
-function hn(n2) {
-  return !!n2.__k && (B$3(null, n2), true);
+function bn(n2) {
+  return !!n2.__k && (G$2(null, n2), true);
 }
 function ExceedCount({ index, exceedCount, isClicked, onClickExceedCount }) {
   const clickExceedCount = () => onClickExceedCount(index);
   const style = { display: isClicked ? "none" : "" };
-  return exceedCount && !isClicked ? /* @__PURE__ */ y$3("span", {
+  return exceedCount && !isClicked ? /* @__PURE__ */ _$3("span", {
     className: cls("weekday-exceed-in-week"),
     onClick: clickExceedCount,
     style
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "weekGridFooterExceed",
     param: exceedCount
   })) : null;
 }
 function CollapseButton({ isClicked, isClickedIndex, onClickCollapseButton }) {
-  return isClicked && isClickedIndex ? /* @__PURE__ */ y$3("span", {
+  return isClicked && isClickedIndex ? /* @__PURE__ */ _$3("span", {
     className: cls("weekday-exceed-in-week"),
     onClick: onClickCollapseButton
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "collapseBtnTitle"
   })) : null;
 }
@@ -10909,28 +10978,28 @@ function GridCell$1({
   onClickCollapseButton,
   isLastCell
 }) {
-  const { borderRight, backgroundColor } = useTheme(T$1((theme) => theme.week.dayGrid, []));
+  const { borderRight, backgroundColor } = useTheme(q$2((theme) => theme.week.dayGrid, []));
   const style = {
     width,
     left,
     borderRight: isLastCell ? "none" : borderRight,
     backgroundColor
   };
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("panel-grid"),
     style
-  }, /* @__PURE__ */ y$3(ExceedCount, {
+  }, /* @__PURE__ */ _$3(ExceedCount, {
     index,
     exceedCount,
     isClicked,
     onClickExceedCount
-  }), /* @__PURE__ */ y$3(CollapseButton, {
+  }), /* @__PURE__ */ _$3(CollapseButton, {
     isClickedIndex,
     isClicked,
     onClickCollapseButton
   }));
 }
-const GridCells = x$1(function GridCells2({
+const GridCells = M(function GridCells2({
   uiModels,
   weekDates,
   narrowWeekend,
@@ -10947,14 +11016,14 @@ const GridCells = x$1(function GridCells2({
     TOTAL_WIDTH
   );
   const lastCellIndex = weekDates.length - 1;
-  return /* @__PURE__ */ y$3(_$3, null, weekDates.map((cell, index) => {
+  return /* @__PURE__ */ _$3(k$3, null, weekDates.map((cell, index) => {
     const width = toPercent(widthList[index]);
     const left = toPercent(leftList[index]);
     const uiModelsInCell = uiModels.filter(isInGrid(cell));
     const exceedCount = getExceedCount(uiModelsInCell, height, EVENT_HEIGHT + eventTopMargin);
     const isClickedIndex = index === clickedIndex;
     const isLastCell = index === lastCellIndex;
-    return /* @__PURE__ */ y$3(GridCell$1, {
+    return /* @__PURE__ */ _$3(GridCell$1, {
       key: `panel-grid-${cell.getDate()}`,
       width,
       left,
@@ -10969,18 +11038,18 @@ const GridCells = x$1(function GridCells2({
   }));
 });
 function HorizontalEventResizeIcon({ onMouseDown }) {
-  return /* @__PURE__ */ y$3("span", {
+  return /* @__PURE__ */ _$3("span", {
     className: `${cls("weekday-resize-handle")} ${cls("handle-y")}`,
     onMouseDown,
     "data-testid": "horizontal-event-resize-icon"
-  }, /* @__PURE__ */ y$3("i", {
+  }, /* @__PURE__ */ _$3("i", {
     className: `${cls("icon")} ${cls("ic-handle-y")}`
   }));
 }
-const LayoutContainerContext = F$3(null);
+const LayoutContainerContext = Q$2(null);
 const LayoutContainerProvider = LayoutContainerContext.Provider;
 const useLayoutContainer = () => {
-  const ref = q$2(LayoutContainerContext);
+  const ref = x$2(LayoutContainerContext);
   if (isUndefined_1(ref)) {
     throw new Error("LayoutContainerProvider is not found");
   }
@@ -10996,7 +11065,7 @@ const DRAGGING_TYPE_CREATORS = {
 };
 function useCalendarById(calendarId) {
   return useStore(
-    T$1(
+    q$2(
       (state) => state.calendar.calendars.find((cal) => cal.id === calendarId),
       [calendarId]
     )
@@ -11005,7 +11074,7 @@ function useCalendarById(calendarId) {
 function useCalendarColor(model) {
   var _a;
   const calendar = useCalendarById((_a = model == null ? void 0 : model.calendarId) != null ? _a : null);
-  return F$2(
+  return T$1(
     () => ({
       color: calendar == null ? void 0 : calendar.color,
       borderColor: calendar == null ? void 0 : calendar.borderColor,
@@ -11026,13 +11095,13 @@ const KEYCODE = {
 const MINIMUM_DRAG_MOUSE_DISTANCE = 3;
 function useTransientUpdate(selector, subscriber) {
   const store = useInternalStore();
-  const selectorRef = _$2(selector);
-  const subscriberRef = _$2(subscriber);
-  p$2(() => {
+  const selectorRef = A$3(selector);
+  const subscriberRef = A$3(subscriber);
+  y$2(() => {
     selectorRef.current = selector;
     subscriberRef.current = subscriber;
   }, [selector, subscriber]);
-  p$2(
+  y$2(
     () => store.subscribe(
       (slice) => subscriberRef.current(slice),
       (state) => selectorRef.current(state)
@@ -11052,15 +11121,15 @@ function isMouseMoved(initX, initY, x2, y2) {
 function useDrag(draggingItemType, { onInit, onDragStart, onDrag, onMouseUp, onPressESCKey } = {}) {
   const { initDrag, setDragging, cancelDrag, reset } = useDispatch("dnd");
   const store = useInternalStore();
-  const dndSliceRef = _$2(store.getState().dnd);
+  const dndSliceRef = A$3(store.getState().dnd);
   useTransientUpdate(dndSelector, (dndState) => {
     dndSliceRef.current = dndState;
   });
-  const [isStarted, setStarted] = h$2(false);
-  const handleMouseMoveRef = _$2(null);
-  const handleMouseUpRef = _$2(null);
-  const handleKeyDownRef = _$2(null);
-  const handleMouseDown = T$1(
+  const [isStarted, setStarted] = d$2(false);
+  const handleMouseMoveRef = A$3(null);
+  const handleMouseUpRef = A$3(null);
+  const handleKeyDownRef = A$3(null);
+  const handleMouseDown = q$2(
     (e2) => {
       if (!isLeftClick(e2.button)) {
         return;
@@ -11081,7 +11150,7 @@ function useDrag(draggingItemType, { onInit, onDragStart, onDrag, onMouseUp, onP
     },
     [onInit, draggingItemType, initDrag]
   );
-  const handleMouseMove = T$1(
+  const handleMouseMove = q$2(
     (e2) => {
       const {
         initX,
@@ -11107,7 +11176,7 @@ function useDrag(draggingItemType, { onInit, onDragStart, onDrag, onMouseUp, onP
     },
     [draggingItemType, onDrag, onDragStart, setDragging, reset]
   );
-  const handleMouseUp = T$1(
+  const handleMouseUp = q$2(
     (e2) => {
       e2.stopPropagation();
       if (isStarted) {
@@ -11118,7 +11187,7 @@ function useDrag(draggingItemType, { onInit, onDragStart, onDrag, onMouseUp, onP
     },
     [isStarted, onMouseUp, reset]
   );
-  const handleKeyDown = T$1(
+  const handleKeyDown = q$2(
     (e2) => {
       if (isKeyPressed(e2, KEY.ESCAPE)) {
         setStarted(false);
@@ -11128,12 +11197,12 @@ function useDrag(draggingItemType, { onInit, onDragStart, onDrag, onMouseUp, onP
     },
     [onPressESCKey, cancelDrag]
   );
-  p$2(() => {
+  y$2(() => {
     handleMouseMoveRef.current = handleMouseMove;
     handleMouseUpRef.current = handleMouseUp;
     handleKeyDownRef.current = handleKeyDown;
   }, [handleKeyDown, handleMouseMove, handleMouseUp]);
-  p$2(() => {
+  y$2(() => {
     const wrappedHandleMouseMove = (e2) => {
       var _a;
       return (_a = handleMouseMoveRef.current) == null ? void 0 : _a.call(handleMouseMoveRef, e2);
@@ -11249,8 +11318,8 @@ function HorizontalEvent({
   const layoutContainer = useLayoutContainer();
   const eventBus = useEventBus();
   const calendarColor = useCalendarColor(uiModel.model);
-  const [isDraggingTarget, setIsDraggingTarget] = h$2(false);
-  const eventContainerRef = _$2(null);
+  const [isDraggingTarget, setIsDraggingTarget] = d$2(false);
+  const eventContainerRef = A$3(null);
   const { isReadOnly, id, calendarId } = uiModel.model;
   const isDraggingGuideEvent = isPresent(resizingWidth) || isPresent(movingLeft);
   const isDraggableEvent2 = !isReadOnlyCalendar && !isReadOnly && !isDraggingGuideEvent;
@@ -11269,7 +11338,7 @@ function HorizontalEvent({
       setIsDraggingTarget(false);
     }
   });
-  p$2(() => {
+  y$2(() => {
     if (!isDraggingGuideEvent) {
       eventBus.fire("afterRenderEvent", uiModel.model.toEventObject());
     }
@@ -11330,7 +11399,7 @@ function HorizontalEvent({
     isDraggingTarget,
     calendarColor
   });
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("weekday-event-block", {
       "weekday-exceed-left": uiModel.exceedLeft,
       "weekday-exceed-right": uiModel.exceedRight
@@ -11340,31 +11409,31 @@ function HorizontalEvent({
     "data-calendar-id": calendarId,
     "data-event-id": id,
     ref: eventContainerRef
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: classNames$k.eventBody,
     style: __spreadProps(__spreadValues({}, eventItemStyle), {
       background: isDotEvent ? null : eventItemStyle.backgroundColor,
       borderLeft: isDotEvent ? null : eventItemStyle.borderLeft
     }),
     onMouseDown: handleMoveStart
-  }, isDotEvent ? /* @__PURE__ */ y$3("span", {
+  }, isDotEvent ? /* @__PURE__ */ _$3("span", {
     className: classNames$k.eventDot,
     style: { background: eventItemStyle.backgroundColor }
-  }) : null, /* @__PURE__ */ y$3("span", {
+  }) : null, /* @__PURE__ */ _$3("span", {
     className: classNames$k.eventTitle
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: uiModel.model.category,
     param: uiModel.model
-  })), !shouldHideResizeHandler ? /* @__PURE__ */ y$3(HorizontalEventResizeIcon, {
+  })), !shouldHideResizeHandler ? /* @__PURE__ */ _$3(HorizontalEventResizeIcon, {
     onMouseDown: handleResizeStart
   }) : null));
 }
 function useWhen(callback, condition) {
-  const callbackRef = _$2(callback);
-  p$2(() => {
+  const callbackRef = A$3(callback);
+  y$2(() => {
     callbackRef.current = callback;
   }, [callback]);
-  p$2(() => {
+  y$2(() => {
     const invoke = () => callbackRef.current();
     if (condition) {
       invoke();
@@ -11372,7 +11441,7 @@ function useWhen(callback, condition) {
   }, [condition]);
 }
 function useCurrentPointerPositionInGrid(gridPositionFinder) {
-  const [currentGridPos, setCurrentGridPos] = h$2(null);
+  const [currentGridPos, setCurrentGridPos] = d$2(null);
   useTransientUpdate(dndSelector, (dndState) => {
     if (isPresent(dndState.x) && isPresent(dndState.y)) {
       const gridPosition = gridPositionFinder({
@@ -11384,7 +11453,7 @@ function useCurrentPointerPositionInGrid(gridPositionFinder) {
       }
     }
   });
-  const clearCurrentGridPos = T$1(() => setCurrentGridPos(null), []);
+  const clearCurrentGridPos = q$2(() => setCurrentGridPos(null), []);
   return [currentGridPos, clearCurrentGridPos];
 }
 const getTargetEventId = (itemType, area, behavior) => {
@@ -11397,9 +11466,9 @@ const getTargetEventId = (itemType, area, behavior) => {
   return isEventDraggingType(itemType) ? last(itemType.split("/")) : null;
 };
 function useDraggingEvent(area, behavior) {
-  const [isDraggingEnd, setIsDraggingEnd] = h$2(false);
-  const [isDraggingCanceled, setIsDraggingCanceled] = h$2(false);
-  const [draggingEvent, setDraggingEvent] = h$2(null);
+  const [isDraggingEnd, setIsDraggingEnd] = d$2(false);
+  const [isDraggingCanceled, setIsDraggingCanceled] = d$2(false);
+  const [draggingEvent, setDraggingEvent] = d$2(null);
   useTransientUpdate(dndSelector, ({ draggingItemType, draggingEventUIModel, draggingState }) => {
     const targetEventId = getTargetEventId(draggingItemType, area, behavior);
     const hasMatchingTargetEvent = Number(targetEventId) === (draggingEventUIModel == null ? void 0 : draggingEventUIModel.cid());
@@ -11433,21 +11502,21 @@ function useAlldayGridRowEventMove({ rowStyleInfo, gridPositionFinder }) {
     draggingEvent: movingEvent,
     clearDraggingEvent
   } = useDraggingEvent("dayGrid", "move");
-  const startGridXRef = _$2(null);
+  const startGridXRef = A$3(null);
   const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
   const { columnIndex } = currentGridPos != null ? currentGridPos : {};
-  const targetEventStartGridX = F$2(
+  const targetEventStartGridX = T$1(
     () => isNil(movingEvent) ? null : rowStyleInfo.findIndex(({ left }) => left === movingEvent.left),
     [rowStyleInfo, movingEvent]
   );
-  const currentMovingLeft = F$2(() => {
+  const currentMovingLeft = T$1(() => {
     if (isNil(columnIndex) || isNil(startGridXRef.current) || isNil(targetEventStartGridX)) {
       return null;
     }
     const newColumnIndex = targetEventStartGridX + columnIndex - startGridXRef.current;
     return newColumnIndex < 0 ? -rowStyleInfo[-newColumnIndex].left : rowStyleInfo[newColumnIndex].left;
   }, [columnIndex, rowStyleInfo, targetEventStartGridX]);
-  p$2(() => {
+  y$2(() => {
     if (isNil(startGridXRef.current) && isPresent(columnIndex)) {
       startGridXRef.current = columnIndex;
     }
@@ -11472,7 +11541,7 @@ function useAlldayGridRowEventMove({ rowStyleInfo, gridPositionFinder }) {
     clearCurrentGridPos();
     startGridXRef.current = null;
   }, isDraggingEnd);
-  return F$2(
+  return T$1(
     () => ({
       movingEvent,
       movingLeft: currentMovingLeft
@@ -11491,7 +11560,7 @@ function MovingEventShadow$2({
   if (isNil(movingEvent)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(HorizontalEvent, {
+  return /* @__PURE__ */ _$3(HorizontalEvent, {
     uiModel: movingEvent,
     eventHeight: EVENT_HEIGHT,
     headerHeight: 0,
@@ -11517,13 +11586,13 @@ function useAlldayGridRowEventResize({
   } = useDraggingEvent("dayGrid", "resize");
   const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
   const { columnIndex } = currentGridPos != null ? currentGridPos : {};
-  const targetEventGridIndices = F$2(() => {
+  const targetEventGridIndices = T$1(() => {
     if (resizingEvent) {
       return getEventColIndex(resizingEvent, weekDates);
     }
     return { start: -1, end: -1 };
   }, [weekDates, resizingEvent]);
-  const resizingWidth = F$2(() => {
+  const resizingWidth = T$1(() => {
     if (targetEventGridIndices.start > -1 && isPresent(columnIndex)) {
       return gridColWidthMap[targetEventGridIndices.start][columnIndex];
     }
@@ -11541,7 +11610,7 @@ function useAlldayGridRowEventResize({
     clearCurrentGridPos();
     clearDraggingEvent();
   }, isDraggingEnd);
-  return F$2(
+  return T$1(
     () => ({
       resizingEvent,
       resizingWidth
@@ -11558,7 +11627,7 @@ function ResizingEventShadow({ weekDates, gridColWidthMap, gridPositionFinder })
   if (isNil(resizingEvent)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(HorizontalEvent, {
+  return /* @__PURE__ */ _$3(HorizontalEvent, {
     uiModel: resizingEvent,
     eventHeight: EVENT_HEIGHT,
     headerHeight: 0,
@@ -11566,8 +11635,8 @@ function ResizingEventShadow({ weekDates, gridColWidthMap, gridPositionFinder })
   });
 }
 function useDOMNode() {
-  const [node, setNode] = h$2(null);
-  const setNodeRef = T$1((ref) => {
+  const [node, setNode] = d$2(null);
+  const setNodeRef = q$2((ref) => {
     if (ref) {
       setNode(ref);
     }
@@ -11575,10 +11644,10 @@ function useDOMNode() {
   return [node, setNodeRef];
 }
 function useGridRowHeightController(maxTop, category) {
-  const [clickedIndex, setClickedIndex] = h$2(0);
-  const [isClickedCount, setClickedCount] = h$2(false);
+  const [clickedIndex, setClickedIndex] = d$2(0);
+  const [isClickedCount, setClickedCount] = d$2(false);
   const { updateDayGridRowHeight } = useDispatch("weekViewLayout");
-  const onClickExceedCount = T$1(
+  const onClickExceedCount = q$2(
     (index) => {
       setClickedCount(true);
       setClickedIndex(index);
@@ -11589,7 +11658,7 @@ function useGridRowHeightController(maxTop, category) {
     },
     [category, maxTop, updateDayGridRowHeight]
   );
-  const onClickCollapseButton = T$1(() => {
+  const onClickCollapseButton = q$2(() => {
     setClickedCount(false);
     updateDayGridRowHeight({
       rowName: category,
@@ -11626,14 +11695,14 @@ function useClickPrevention({
   onDblClick,
   delay = 300
 }) {
-  const cancelCallback = _$2(noop);
+  const cancelCallback = A$3(noop);
   const registerCancel = (fn2) => {
     cancelCallback.current = fn2;
   };
   const cancelScheduledWork = () => {
     cancelCallback.current();
   };
-  p$2(() => cancelScheduledWork, []);
+  y$2(() => cancelScheduledWork, []);
   const handleClick = (e2) => {
     cancelScheduledWork();
     requestTimeout(onClick.bind(null, e2), delay, registerCancel);
@@ -11666,12 +11735,12 @@ function useGridSelection({
   const { hideAllPopup, showFormPopup } = useDispatch("popup");
   const eventBus = useEventBus();
   const layoutContainer = useLayoutContainer();
-  const [initMousePosition, setInitMousePosition] = h$2(null);
-  const [initGridPosition, setInitGridPosition] = h$2(null);
-  const isSelectingGridRef = _$2(false);
-  const gridSelectionRef = _$2(null);
+  const [initMousePosition, setInitMousePosition] = d$2(null);
+  const [initGridPosition, setInitGridPosition] = d$2(null);
+  const isSelectingGridRef = A$3(false);
+  const gridSelectionRef = A$3(null);
   useTransientUpdate(
-    T$1((state) => state.gridSelection[type], [type]),
+    q$2((state) => state.gridSelection[type], [type]),
     (gridSelection) => {
       gridSelectionRef.current = gridSelection;
     }
@@ -11755,7 +11824,7 @@ function useGridSelection({
       });
     }
   };
-  const clearGridSelection = T$1(() => {
+  const clearGridSelection = q$2(() => {
     setInitMousePosition(null);
     setInitGridPosition(null);
     setGridSelection(type, null);
@@ -11796,7 +11865,7 @@ function useGridSelection({
     },
     onPressESCKey: clearGridSelection
   });
-  p$2(() => clearGridSelection, [clearGridSelection]);
+  y$2(() => clearGridSelection, [clearGridSelection]);
   return onMouseDown;
 }
 const rowTitleTemplate = `alldayTitle`;
@@ -11812,8 +11881,8 @@ function AlldayGridRow({
   const dayGridLeftTheme = useTheme(weekDayGridLeftSelector);
   const [panelContainer, setPanelContainerRef] = useDOMNode();
   const { narrowWeekend = false, startDayOfWeek = Day$2.SUN } = options;
-  const maxTop = F$2(() => Math.max(0, ...events.map(({ top }) => top)), [events]);
-  const gridPositionFinder = F$2(
+  const maxTop = T$1(() => Math.max(0, ...events.map(({ top }) => top)), [events]);
+  const gridPositionFinder = T$1(
     () => createGridPositionFinder({
       container: panelContainer,
       rowsCount: 1,
@@ -11824,8 +11893,8 @@ function AlldayGridRow({
     [panelContainer, weekDates.length, narrowWeekend, startDayOfWeek]
   );
   const { clickedIndex, isClickedCount, onClickExceedCount, onClickCollapseButton } = useGridRowHeightController(maxTop, "allday");
-  const horizontalEvents = F$2(
-    () => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
+  const horizontalEvents = T$1(
+    () => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ _$3(HorizontalEvent, {
       key: `allday-DayEvent-${uiModel.cid()}`,
       uiModel,
       eventHeight: EVENT_HEIGHT,
@@ -11847,19 +11916,19 @@ function AlldayGridRow({
     }
     startGridSelection(e2);
   };
-  return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3(k$3, null, /* @__PURE__ */ _$3("div", {
     className: cls("panel-title"),
     style: dayGridLeftTheme
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: rowTitleTemplate,
     param: "alldayTitle"
-  })), /* @__PURE__ */ y$3("div", {
+  })), /* @__PURE__ */ _$3("div", {
     className: cls("allday-panel"),
     ref: setPanelContainerRef,
     onMouseDown
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: cls("panel-grid-wrapper")
-  }, /* @__PURE__ */ y$3(GridCells, {
+  }, /* @__PURE__ */ _$3(GridCells, {
     uiModels: events,
     weekDates,
     narrowWeekend,
@@ -11868,16 +11937,16 @@ function AlldayGridRow({
     isClickedCount,
     onClickExceedCount,
     onClickCollapseButton
-  })), /* @__PURE__ */ y$3("div", {
+  })), /* @__PURE__ */ _$3("div", {
     className: cls(`panel-allday-events`)
-  }, horizontalEvents), /* @__PURE__ */ y$3(ResizingEventShadow, {
+  }, horizontalEvents), /* @__PURE__ */ _$3(ResizingEventShadow, {
     weekDates,
     gridPositionFinder,
     gridColWidthMap
-  }), /* @__PURE__ */ y$3(MovingEventShadow$2, {
+  }), /* @__PURE__ */ _$3(MovingEventShadow$2, {
     rowStyleInfo,
     gridPositionFinder
-  }), /* @__PURE__ */ y$3(AlldayGridSelection, {
+  }), /* @__PURE__ */ _$3(AlldayGridSelection, {
     weekDates,
     narrowWeekend
   })));
@@ -11890,12 +11959,12 @@ function OtherGridRow({
   options = {}
 }) {
   const dayGridLeftTheme = useTheme(weekDayGridLeftSelector);
-  const maxTop = F$2(() => Math.max(0, ...events.map(({ top }) => top)), [events]);
+  const maxTop = T$1(() => Math.max(0, ...events.map(({ top }) => top)), [events]);
   const { narrowWeekend = false } = options;
   const rowTitleTemplate2 = `${category}Title`;
   const { clickedIndex, isClickedCount, onClickExceedCount, onClickCollapseButton } = useGridRowHeightController(maxTop, category);
-  const horizontalEvents = F$2(
-    () => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
+  const horizontalEvents = T$1(
+    () => events.filter(isWithinHeight(height, EVENT_HEIGHT + WEEK_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ _$3(HorizontalEvent, {
       key: `${category}-DayEvent-${uiModel.cid()}`,
       uiModel,
       eventHeight: EVENT_HEIGHT,
@@ -11903,17 +11972,17 @@ function OtherGridRow({
     })),
     [category, events, height]
   );
-  return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3(k$3, null, /* @__PURE__ */ _$3("div", {
     className: cls("panel-title"),
     style: dayGridLeftTheme
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: rowTitleTemplate2,
     param: category
-  })), /* @__PURE__ */ y$3("div", {
+  })), /* @__PURE__ */ _$3("div", {
     className: cls("allday-panel")
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: cls("panel-grid-wrapper")
-  }, /* @__PURE__ */ y$3(GridCells, {
+  }, /* @__PURE__ */ _$3(GridCells, {
     uiModels: events,
     weekDates,
     narrowWeekend,
@@ -11922,7 +11991,7 @@ function OtherGridRow({
     isClickedCount,
     onClickExceedCount,
     onClickCollapseButton
-  })), /* @__PURE__ */ y$3("div", {
+  })), /* @__PURE__ */ _$3("div", {
     className: cls(`panel-${category}-events`)
   }, horizontalEvents)));
 }
@@ -11948,133 +12017,133 @@ function EventDetailSectionDetail({ event, userData }) {
       return true;
     return false;
   });
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: `${classNames$j.sectionDetail}`,
     style: { maxHeight: "1000px", overflow: "auto", "font-size": "13px" }
-  }, (currentUserData == null ? void 0 : currentUserData.qr_code) && /* @__PURE__ */ y$3("div", {
+  }, (currentUserData == null ? void 0 : currentUserData.qr_code) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("img", {
+  }, /* @__PURE__ */ _$3("img", {
     style: { maxWidth: "50%", aspectRatio: 1, margin: "auto", display: "block", marginTop: "10px", marginBottom: "10px" },
     src: currentUserData == null ? void 0 : currentUserData.qr_code
-  }))), (currentUserData == null ? void 0 : currentUserData.image_file) && /* @__PURE__ */ y$3("div", {
+  }))), (currentUserData == null ? void 0 : currentUserData.image_file) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("img", {
+  }, /* @__PURE__ */ _$3("img", {
     style: { maxWidth: "100%", aspectRatio: 1, margin: "auto", display: "block", marginTop: "10px", marginBottom: "10px" },
     src: currentUserData == null ? void 0 : currentUserData.image_file
-  }))), /* @__PURE__ */ y$3("div", {
+  }))), /* @__PURE__ */ _$3("div", {
     className: "row"
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: "col"
-  }, (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ y$3("div", {
+  }, (currentUserData == null ? void 0 : currentUserData.register_by_timestamp) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-regular fa-calendar"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Register By:"), " ", currentUserData == null ? void 0 : currentUserData.register_by_timestamp)), (currentUserData == null ? void 0 : currentUserData.registration_count) >= 0 && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " Register By:"), " ", currentUserData == null ? void 0 : currentUserData.register_by_timestamp)), (currentUserData == null ? void 0 : currentUserData.registration_count) >= 0 && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-solid fa-rotate"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Registration Count:"), " ", currentUserData == null ? void 0 : currentUserData.registration_count))), /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " Registration Count:"), " ", currentUserData == null ? void 0 : currentUserData.registration_count))), /* @__PURE__ */ _$3("div", {
     className: "col"
-  }, (currentUserData == null ? void 0 : currentUserData.slots_total) && /* @__PURE__ */ y$3("div", {
+  }, (currentUserData == null ? void 0 : currentUserData.slots_total) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-regular fa-square-plus"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Slots Total:"), " ", currentUserData == null ? void 0 : currentUserData.slots_total)), (currentUserData == null ? void 0 : currentUserData.slots_remain) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " Slots Total:"), " ", currentUserData == null ? void 0 : currentUserData.slots_total)), (currentUserData == null ? void 0 : currentUserData.slots_remain) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-solid fa-plus-minus"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Slots Remain:"), " ", currentUserData == null ? void 0 : currentUserData.slots_remain)))), (currentUserData == null ? void 0 : currentUserData.category_relation) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " Slots Remain:"), " ", currentUserData == null ? void 0 : currentUserData.slots_remain)))), (currentUserData == null ? void 0 : currentUserData.category_relation) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-regular fa-rectangle-list"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Category:"), " ", (_a = currentUserData == null ? void 0 : currentUserData.category_relation) == null ? void 0 : _a.title)), (currentUserData == null ? void 0 : currentUserData.attendance_type) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " Category:"), " ", (_a = currentUserData == null ? void 0 : currentUserData.category_relation) == null ? void 0 : _a.title)), (currentUserData == null ? void 0 : currentUserData.attendance_type) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-solid fa-water"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Attendance Type:"), " ", currentUserData == null ? void 0 : currentUserData.attendance_type)), (currentUserData == null ? void 0 : currentUserData.qr_content) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " Attendance Type:"), " ", currentUserData == null ? void 0 : currentUserData.attendance_type)), (currentUserData == null ? void 0 : currentUserData.qr_content) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-solid fa-qrcode"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " QR Code: "), " ", currentUserData == null ? void 0 : currentUserData.qr_content)), eventId && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " QR Code: "), " ", currentUserData == null ? void 0 : currentUserData.qr_content)), eventId && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-solid fa-link"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Short url: "), " cpfv://event/", eventId)), (currentUserData == null ? void 0 : currentUserData.description) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " Short url: "), " cpfv://event/", eventId)), (currentUserData == null ? void 0 : currentUserData.description) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-solid fa-circle-info"
-  }), /* @__PURE__ */ y$3("b", null, " Description:"), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("b", null, " Description:"), /* @__PURE__ */ _$3("div", {
     dangerouslySetInnerHTML: { __html: currentUserData == null ? void 0 : currentUserData.description }
-  }))), (currentUserData == null ? void 0 : currentUserData.pn_temp_count) && /* @__PURE__ */ y$3("div", {
+  }))), (currentUserData == null ? void 0 : currentUserData.pn_temp_count) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa fa-flag"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " PN Temp Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_temp_count)), (currentUserData == null ? void 0 : currentUserData.pn_actual_count) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " PN Temp Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_temp_count)), (currentUserData == null ? void 0 : currentUserData.pn_actual_count) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa fa-flag"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " PN Actual Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_actual_count)), (currentUserData == null ? void 0 : currentUserData.first_pn_timestamp) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " PN Actual Count: "), " ", currentUserData == null ? void 0 : currentUserData.pn_actual_count)), (currentUserData == null ? void 0 : currentUserData.first_pn_timestamp) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-regular fa-calendar"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " First PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.first_pn_timestamp)), (currentUserData == null ? void 0 : currentUserData.last_pn_timestamp) && /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("b", null, " First PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.first_pn_timestamp)), (currentUserData == null ? void 0 : currentUserData.last_pn_timestamp) && /* @__PURE__ */ _$3("div", {
     className: classNames$j.detailItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: "fa-regular fa-calendar"
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$j.content
-  }, /* @__PURE__ */ y$3("b", null, " Last PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.last_pn_timestamp)));
+  }, /* @__PURE__ */ _$3("b", null, " Last PN Timestamp: "), " ", currentUserData == null ? void 0 : currentUserData.last_pn_timestamp)));
 }
 const classNames$i = {
   sectionHeader: cls("popup-section", "section-header"),
   content: cls("content"),
   eventTitle: cls("event-title")
 };
-function EventDetailSectionHeader({ event, userData, backpackUrl, templateCsvUrl }) {
+function EventDetailSectionHeader({ event, userData, backpackUrl, templateCsvUrl, canEdit, canDelete }) {
   event == null ? void 0 : event.id;
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: "row"
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: "col-12"
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: classNames$i.sectionHeader
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: classNames$i.eventTitle
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "popupDetailTitle",
     param: event,
     as: "span"
-  })), /* @__PURE__ */ y$3("div", {
+  })), /* @__PURE__ */ _$3("div", {
     className: classNames$i.content
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "popupDetailDate",
     param: event,
     as: "span"
@@ -12102,7 +12171,7 @@ var FormPopupArrowDirection = /* @__PURE__ */ ((FormPopupArrowDirection2) => {
   FormPopupArrowDirection2["bottom"] = "bottom";
   return FormPopupArrowDirection2;
 })(FormPopupArrowDirection || {});
-const FloatingLayerContext = F$3(null);
+const FloatingLayerContext = Q$2(null);
 function FloatingLayerProvider({ children }) {
   const [containerRef, containerRefCallback] = useDOMNode();
   const [seeMorePopupSlotRef, seeMorePopupSlotRefCallback] = useDOMNode();
@@ -12114,25 +12183,25 @@ function FloatingLayerProvider({ children }) {
     formPopupSlot: formPopupSlotRef,
     detailPopupSlot: detailPopupSlotRef
   };
-  return /* @__PURE__ */ y$3(FloatingLayerContext.Provider, {
+  return /* @__PURE__ */ _$3(FloatingLayerContext.Provider, {
     value: floatingLayer
-  }, children, /* @__PURE__ */ y$3("div", {
+  }, children, /* @__PURE__ */ _$3("div", {
     ref: containerRefCallback,
     className: cls("floating-layer")
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     ref: seeMorePopupSlotRefCallback,
     className: SEE_MORE_POPUP_SLOT_CLASS_NAME
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     ref: formPopupSlotRefCallback,
     className: EVENT_FORM_POPUP_SLOT_CLASS_NAME
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     ref: detailPopupSlotRefCallback,
     className: EVENT_DETAIL_POPUP_SLOT_CLASS_NAME
   })));
 }
 const useFloatingLayer = (floatingLayerType) => {
   var _a;
-  const floatingLayers = q$2(FloatingLayerContext);
+  const floatingLayers = x$2(FloatingLayerContext);
   if (isUndefined_1(floatingLayers)) {
     throw new Error("FloatingLayerProvider is not found");
   }
@@ -13218,14 +13287,14 @@ var sweetalert_min = { exports: {} };
 var swal = /* @__PURE__ */ getDefaultExportFromCjs(sweetalert_min.exports);
 var jquery = { exports: {} };
 /*!
- * jQuery JavaScript Library v3.7.0
+ * jQuery JavaScript Library v3.7.1
  * https://jquery.com/
  *
  * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2023-05-11T18:29Z
+ * Date: 2023-08-28T13:37Z
  */
 (function(module) {
   (function(global2, factory) {
@@ -13287,7 +13356,7 @@ var jquery = { exports: {} };
       }
       return typeof obj === "object" || typeof obj === "function" ? class2type[toString.call(obj)] || "object" : typeof obj;
     }
-    var version = "3.7.0", rhtmlSuffix = /HTML$/i, jQuery = function(selector, context) {
+    var version = "3.7.1", rhtmlSuffix = /HTML$/i, jQuery = function(selector, context) {
       return new jQuery.fn.init(selector, context);
     };
     jQuery.fn = jQuery.prototype = {
@@ -13440,9 +13509,14 @@ var jquery = { exports: {} };
           while (node = elem[i2++]) {
             ret += jQuery.text(node);
           }
-        } else if (nodeType === 1 || nodeType === 9 || nodeType === 11) {
+        }
+        if (nodeType === 1 || nodeType === 11) {
           return elem.textContent;
-        } else if (nodeType === 3 || nodeType === 4) {
+        }
+        if (nodeType === 9) {
+          return elem.documentElement.textContent;
+        }
+        if (nodeType === 3 || nodeType === 4) {
           return elem.nodeValue;
         }
         return ret;
@@ -13762,7 +13836,7 @@ var jquery = { exports: {} };
         documentElement2 = document3.documentElement;
         documentIsHTML = !jQuery.isXMLDoc(document3);
         matches = documentElement2.matches || documentElement2.webkitMatchesSelector || documentElement2.msMatchesSelector;
-        if (preferredDoc != document3 && (subWindow = document3.defaultView) && subWindow.top !== subWindow) {
+        if (documentElement2.msMatchesSelector && preferredDoc != document3 && (subWindow = document3.defaultView) && subWindow.top !== subWindow) {
           subWindow.addEventListener("unload", unloadHandler);
         }
         support.getById = assert(function(el) {
@@ -14637,6 +14711,7 @@ var jquery = { exports: {} };
       find.compile = compile;
       find.select = select;
       find.setDocument = setDocument;
+      find.tokenize = tokenize;
       find.escape = jQuery.escapeSelector;
       find.getText = jQuery.text;
       find.isXML = jQuery.isXMLDoc;
@@ -16766,7 +16841,7 @@ var jquery = { exports: {} };
             tr = document2.createElement("tr");
             trChild = document2.createElement("div");
             table.style.cssText = "position:absolute;left:-11111px;border-collapse:separate";
-            tr.style.cssText = "border:1px solid";
+            tr.style.cssText = "box-sizing:content-box;border:1px solid";
             tr.style.height = "1px";
             trChild.style.height = "9px";
             trChild.style.display = "block";
@@ -19204,7 +19279,7 @@ var jquery = { exports: {} };
         return arguments.length === 1 ? this.off(selector, "**") : this.off(types, selector || "**", fn2);
       },
       hover: function(fnOver, fnOut) {
-        return this.mouseenter(fnOver).mouseleave(fnOut || fnOver);
+        return this.on("mouseenter", fnOver).on("mouseleave", fnOut || fnOver);
       }
     });
     jQuery.each(
@@ -19321,7 +19396,7 @@ function calculatePopupArrowPosition(eventRect, layoutRect, popupRect) {
   return { top, direction };
 }
 function EventDetailPopup() {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f;
   const { useFormPopup } = useStore(optionsSelector);
   const popupParams = useStore(eventDetailPopupParamSelector);
   const options = useStore(optionsSelector);
@@ -19331,18 +19406,18 @@ function EventDetailPopup() {
   const layoutContainer = useLayoutContainer();
   const detailPopupSlot = useFloatingLayer("detailPopupSlot");
   const eventBus = useEventBus();
-  const popupContainerRef = _$2(null);
-  const [style, setStyle] = h$2({});
-  const [arrowTop, setArrowTop] = h$2(0);
-  const [arrowDirection, setArrowDirection] = h$2(
+  const popupContainerRef = A$3(null);
+  const [style, setStyle] = d$2({});
+  const [arrowTop, setArrowTop] = d$2(0);
+  const [arrowDirection, setArrowDirection] = d$2(
     DetailPopupArrowDirection.left
   );
-  const popupArrowClassName = F$2(() => {
+  const popupArrowClassName = T$1(() => {
     const right = arrowDirection === DetailPopupArrowDirection.right;
     const left = arrowDirection === DetailPopupArrowDirection.left;
     return cls("popup-arrow", { right, left });
   }, [arrowDirection]);
-  y$2(() => {
+  _$2(() => {
     if (popupContainerRef.current && eventRect && layoutContainer) {
       const layoutRect = layoutContainer.getBoundingClientRect();
       const popupRect = popupContainerRef.current.getBoundingClientRect();
@@ -19410,7 +19485,22 @@ function EventDetailPopup() {
             "X-CSRF-TOKEN": token2
           }
         }).then((resp) => {
+          if (!resp.ok) {
+            swal({
+              title: "Error",
+              text: "Failed to delete item. Please try again.",
+              icon: "error"
+            });
+            return;
+          }
           eventBus.fire("beforeDeleteEvent", event.toEventObject());
+        }).catch((error) => {
+          console.debug({ error });
+          swal({
+            title: "Error",
+            text: "Failed to delete item. Please try again.",
+            icon: "error"
+          });
         });
       }
     });
@@ -19420,95 +19510,103 @@ function EventDetailPopup() {
   const token = (_b = options == null ? void 0 : options.allOptions) == null ? void 0 : _b.token;
   const backpackUrl = (_c = options == null ? void 0 : options.allOptions) == null ? void 0 : _c.backpackUrl;
   const templateCsvUrl = (_d = options == null ? void 0 : options.allOptions) == null ? void 0 : _d.templateCsvUrl;
+  const canEdit = (_e = options == null ? void 0 : options.allOptions) == null ? void 0 : _e.canEdit;
+  const canDelete = (_f = options == null ? void 0 : options.allOptions) == null ? void 0 : _f.canDelete;
   const editUrl = `${backpackUrl}/collab-event/${event.id}/edit`;
   const deleteURl = `${backpackUrl}/collab-event/${event.id}`;
   const eventId = event == null ? void 0 : event.id;
-  return z(
-    /* @__PURE__ */ y$3("div", {
+  return $$1(
+    /* @__PURE__ */ _$3("div", {
       role: "dialog",
       className: classNames$h.popupContainer,
       ref: popupContainerRef,
       style
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$h.detailContainer
-    }, /* @__PURE__ */ y$3(EventDetailSectionHeader, {
+    }, /* @__PURE__ */ _$3(EventDetailSectionHeader, {
       event,
       userData,
       backpackUrl,
-      templateCsvUrl
-    }), /* @__PURE__ */ y$3(EventDetailSectionDetail, {
+      templateCsvUrl,
+      canEdit,
+      canDelete
+    }), /* @__PURE__ */ _$3(EventDetailSectionDetail, {
       event,
       userData,
       backpackUrl
-    }), !isReadOnly && /* @__PURE__ */ y$3("div", {
+    }), !isReadOnly && /* @__PURE__ */ _$3("div", {
       className: classNames$h.sectionButton
-    }, /* @__PURE__ */ y$3("a", {
+    }, /* @__PURE__ */ _$3("a", {
       href: editUrl
-    }, /* @__PURE__ */ y$3("button", {
+    }, /* @__PURE__ */ _$3("button", {
       type: "button",
       className: classNames$h.editButton,
-      onClick: onClickEditButton
-    }, /* @__PURE__ */ y$3("span", {
+      onClick: onClickEditButton,
+      disabled: !canEdit,
+      style: { opacity: canEdit ? 1 : 0.5, cursor: canEdit ? "pointer" : "not-allowed" }
+    }, /* @__PURE__ */ _$3("span", {
       className: classNames$h.editIcon
-    }), /* @__PURE__ */ y$3("span", {
+    }), /* @__PURE__ */ _$3("span", {
       className: classNames$h.content
-    }, /* @__PURE__ */ y$3(Template, {
+    }, /* @__PURE__ */ _$3(Template, {
       template: "popupEdit",
       as: "span"
-    })))), /* @__PURE__ */ y$3("div", {
+    })))), /* @__PURE__ */ _$3("div", {
       className: classNames$h.verticalLine
-    }), /* @__PURE__ */ y$3("button", {
+    }), /* @__PURE__ */ _$3("button", {
       type: "button",
       className: classNames$h.deleteButton,
-      onClick: () => onClickDeleteButton(deleteURl, token)
-    }, /* @__PURE__ */ y$3("span", {
+      onClick: () => onClickDeleteButton(deleteURl, token),
+      disabled: !canDelete,
+      style: { opacity: canDelete ? 1 : 0.5, cursor: canDelete ? "pointer" : "not-allowed" }
+    }, /* @__PURE__ */ _$3("span", {
       className: classNames$h.deleteIcon
-    }), /* @__PURE__ */ y$3("span", {
+    }), /* @__PURE__ */ _$3("span", {
       className: classNames$h.content
-    }, /* @__PURE__ */ y$3(Template, {
+    }, /* @__PURE__ */ _$3(Template, {
       template: "popupDelete",
       as: "span"
-    })))), /* @__PURE__ */ y$3("div", {
+    })))), /* @__PURE__ */ _$3("div", {
       className: "row"
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: "d-print-none with-border col d-flex justify-content-center align-items-center",
       style: { minWidth: "155px" }
-    }, /* @__PURE__ */ y$3("a", {
+    }, /* @__PURE__ */ _$3("a", {
       href: backpackUrl + '/collab-registration?event=%5B"' + eventId + '"%5D',
       className: "btn btn-primary",
       "data-style": "zoom-in",
       style: { width: "100%" }
-    }, /* @__PURE__ */ y$3("span", {
+    }, /* @__PURE__ */ _$3("span", {
       class: "ladda-label"
-    }, "See Registrations"))), /* @__PURE__ */ y$3("div", {
+    }, "See Registrations"))), /* @__PURE__ */ _$3("div", {
       className: "d-print-none with-border d-flex col d-flex justify-content-center align-items-center",
       style: { minWidth: "155px" }
-    }, /* @__PURE__ */ y$3("a", {
+    }, /* @__PURE__ */ _$3("a", {
       href: backpackUrl + "/registrationImportView?event_id=" + eventId,
       className: "btn btn-primary",
       "data-style": "zoom-in",
       style: { width: "100%" }
-    }, /* @__PURE__ */ y$3("span", {
+    }, /* @__PURE__ */ _$3("span", {
       class: "ladda-label"
-    }, "Bulk Upload (CSV)")))), /* @__PURE__ */ y$3("div", {
+    }, "Bulk Upload (CSV)")))), /* @__PURE__ */ _$3("div", {
       className: "d-print-none with-border d-flex justify-content-center align-items-center",
       style: { minWidth: "155px", marginTop: "10px", marginBottom: "10px" }
-    }, /* @__PURE__ */ y$3("a", {
+    }, /* @__PURE__ */ _$3("a", {
       href: templateCsvUrl,
       class: "btn btn-primary",
       "data-style": "zoom-in",
       style: { width: "100%" }
-    }, /* @__PURE__ */ y$3("span", {
+    }, /* @__PURE__ */ _$3("span", {
       className: "ladda-label"
-    }, "Download Bulk Upload Template (CSV)")))), /* @__PURE__ */ y$3("div", {
+    }, "Download Bulk Upload Template (CSV)")))), /* @__PURE__ */ _$3("div", {
       className: classNames$h.topLine,
       style: { background: calendarColor.backgroundColor }
-    }), /* @__PURE__ */ y$3("div", {
+    }), /* @__PURE__ */ _$3("div", {
       className: popupArrowClassName
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$h.border,
       style: { top: arrowTop }
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$h.fill
     })))),
     detailPopupSlot
@@ -19521,13 +19619,13 @@ const classNames$g = {
   content: cls("content")
 };
 function DropdownMenuItem({ index, name, backgroundColor, onClick }) {
-  return /* @__PURE__ */ y$3("li", {
+  return /* @__PURE__ */ _$3("li", {
     className: classNames$g.dropdownMenuItem,
     onClick: (e2) => onClick(e2, index)
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$g.dotIcon,
     style: { backgroundColor }
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$g.content
   }, name));
 }
@@ -19537,9 +19635,9 @@ function CalendarDropdownMenu({ calendars, setOpened, onChangeIndex }) {
     setOpened(false);
     onChangeIndex(index);
   };
-  return /* @__PURE__ */ y$3("ul", {
+  return /* @__PURE__ */ _$3("ul", {
     className: classNames$g.dropdownMenu
-  }, calendars.map(({ name, backgroundColor = "000" }, index) => /* @__PURE__ */ y$3(DropdownMenuItem, {
+  }, calendars.map(({ name, backgroundColor = "000" }, index) => /* @__PURE__ */ _$3(DropdownMenuItem, {
     key: `dropdown-${name}-${index}`,
     index,
     name,
@@ -19552,13 +19650,13 @@ function PopupSection({
   classNames: classNames2 = [],
   onClick = noop
 }) {
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("popup-section", ...classNames2),
     onClick
   }, children);
 }
 function useDropdownState() {
-  const [isOpened, setOpened] = h$2(false);
+  const [isOpened, setOpened] = d$2(false);
   const toggleDropdown = () => setOpened((prev) => !prev);
   return { isOpened, setOpened, toggleDropdown };
 }
@@ -19603,7 +19701,7 @@ function formStateReducer(state, action) {
   }
 }
 function useFormState(initCalendarId) {
-  return s$2(formStateReducer, __spreadValues({ calendarId: initCalendarId }, defaultFormState));
+  return h$2(formStateReducer, __spreadValues({ calendarId: initCalendarId }, defaultFormState));
 }
 const classNames$f = {
   popupSection: ["dropdown-section", "calendar-section"],
@@ -19616,20 +19714,20 @@ function CalendarSelector({ calendars, selectedCalendarId, formStateDispatch }) 
   const selectedCalendar = calendars.find((calendar) => calendar.id === selectedCalendarId);
   const { backgroundColor = "", name = "" } = selectedCalendar != null ? selectedCalendar : {};
   const changeIndex = (index) => formStateDispatch({ type: FormStateActionType.setCalendarId, calendarId: calendars[index].id });
-  return /* @__PURE__ */ y$3(PopupSection, {
+  return /* @__PURE__ */ _$3(PopupSection, {
     onClick: toggleDropdown,
     classNames: classNames$f.popupSection
-  }, /* @__PURE__ */ y$3("button", {
+  }, /* @__PURE__ */ _$3("button", {
     type: "button",
     className: classNames$f.popupSectionItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$f.dotIcon,
     style: { backgroundColor }
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$f.content
-  }, name), /* @__PURE__ */ y$3("span", {
+  }, name), /* @__PURE__ */ _$3("span", {
     className: cls("icon", "ic-dropdown-arrow", { open: isOpened })
-  })), isOpened && /* @__PURE__ */ y$3(CalendarDropdownMenu, {
+  })), isOpened && /* @__PURE__ */ _$3(CalendarDropdownMenu, {
     calendars,
     setOpened,
     onChangeIndex: changeIndex
@@ -19647,13 +19745,13 @@ function ClosePopupButton({ type, close }) {
       close();
     }
   };
-  return /* @__PURE__ */ y$3("button", {
+  return /* @__PURE__ */ _$3("button", {
     type: "button",
     className: classNames$e.closeButton,
     onClick: onClickHandler
-  }, type === "moreEvents" ? /* @__PURE__ */ y$3(Template, {
+  }, type === "moreEvents" ? /* @__PURE__ */ _$3(Template, {
     template: "monthMoreClose"
-  }) : /* @__PURE__ */ y$3("i", {
+  }) : /* @__PURE__ */ _$3("i", {
     className: classNames$e.closeIcon
   }));
 }
@@ -19661,10 +19759,10 @@ const classNames$d = {
   confirmButton: cls("popup-button", "popup-confirm")
 };
 function ConfirmPopupButton({ children }) {
-  return /* @__PURE__ */ y$3("button", {
+  return /* @__PURE__ */ _$3("button", {
     type: "submit",
     className: classNames$d.confirmButton
-  }, /* @__PURE__ */ y$3("span", null, children));
+  }, /* @__PURE__ */ _$3("span", null, children));
 }
 function useStringOnlyTemplate({
   template,
@@ -19690,12 +19788,12 @@ const classNames$c = {
   dateDash: cls("popup-date-dash"),
   content: cls("content")
 };
-const DateSelector = k$1(function DateSelector2({ start, end, isAllday: isAllday2 = false, formStateDispatch }, ref) {
+const DateSelector = D(function DateSelector2({ start, end, isAllday: isAllday2 = false, formStateDispatch }, ref) {
   const { usageStatistics } = useStore(optionsSelector);
-  const startPickerContainerRef = _$2(null);
-  const startPickerInputRef = _$2(null);
-  const endPickerContainerRef = _$2(null);
-  const endPickerInputRef = _$2(null);
+  const startPickerContainerRef = A$3(null);
+  const startPickerInputRef = A$3(null);
+  const endPickerContainerRef = A$3(null);
+  const endPickerInputRef = A$3(null);
   const startDatePlaceholder = useStringOnlyTemplate({
     template: "startDatePlaceholder",
     defaultValue: "Start Date"
@@ -19705,7 +19803,7 @@ const DateSelector = k$1(function DateSelector2({ start, end, isAllday: isAllday
     defaultValue: "End Date"
   });
   const toggleAllday = () => formStateDispatch({ type: FormStateActionType.setAllday, isAllday: !isAllday2 });
-  p$2(() => {
+  y$2(() => {
     if (startPickerContainerRef.current && startPickerInputRef.current && endPickerContainerRef.current && endPickerInputRef.current) {
       const startDate = new TZDate(start);
       const endDate = new TZDate(end);
@@ -19733,45 +19831,45 @@ const DateSelector = k$1(function DateSelector2({ start, end, isAllday: isAllday
       });
     }
   }, [start, end, isAllday2, usageStatistics, ref]);
-  return /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3(PopupSection, null, /* @__PURE__ */ _$3("div", {
     className: classNames$c.datePicker
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$c.dateIcon
-  }), /* @__PURE__ */ y$3("input", {
+  }), /* @__PURE__ */ _$3("input", {
     name: "start",
     className: classNames$c.content,
     placeholder: startDatePlaceholder,
     ref: startPickerInputRef
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     className: classNames$c.datePickerContainer,
     ref: startPickerContainerRef
-  })), /* @__PURE__ */ y$3("span", {
+  })), /* @__PURE__ */ _$3("span", {
     className: classNames$c.dateDash
-  }, "-"), /* @__PURE__ */ y$3("div", {
+  }, "-"), /* @__PURE__ */ _$3("div", {
     className: classNames$c.datePicker
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$c.dateIcon
-  }), /* @__PURE__ */ y$3("input", {
+  }), /* @__PURE__ */ _$3("input", {
     name: "end",
     className: classNames$c.content,
     placeholder: endDatePlaceholder,
     ref: endPickerInputRef
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     className: classNames$c.datePickerContainer,
     ref: endPickerContainerRef
-  })), /* @__PURE__ */ y$3("div", {
+  })), /* @__PURE__ */ _$3("div", {
     className: classNames$c.allday,
     onClick: toggleAllday
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: cls("icon", {
       "ic-checkbox-normal": !isAllday2,
       "ic-checkbox-checked": isAllday2
     })
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$c.content
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "popupIsAllday"
-  })), /* @__PURE__ */ y$3("input", {
+  })), /* @__PURE__ */ _$3("input", {
     name: "isAllday",
     type: "checkbox",
     className: cls("hidden-input"),
@@ -19792,19 +19890,19 @@ function StateDropdownMenu({ setOpened, setEventState }) {
     setOpened(false);
     setEventState(state);
   };
-  return /* @__PURE__ */ y$3("ul", {
+  return /* @__PURE__ */ _$3("ul", {
     className: classNames$b.dropdownMenu
-  }, EVENT_STATES.map((state) => /* @__PURE__ */ y$3("li", {
+  }, EVENT_STATES.map((state) => /* @__PURE__ */ _$3("li", {
     key: state,
     className: classNames$b.popupSectionItem,
     onClick: (e2) => onClickDropdown(e2, state)
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$b.icon
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$b.content
-  }, state === "Busy" ? /* @__PURE__ */ y$3(Template, {
+  }, state === "Busy" ? /* @__PURE__ */ _$3(Template, {
     template: "popupStateBusy"
-  }) : /* @__PURE__ */ y$3(Template, {
+  }) : /* @__PURE__ */ _$3(Template, {
     template: "popupStateFree"
   })))));
 }
@@ -19818,23 +19916,23 @@ const classNames$a = {
 function EventStateSelector({ eventState = "Busy", formStateDispatch }) {
   const { isOpened, setOpened, toggleDropdown } = useDropdownState();
   const handleChangeEventState = (state) => formStateDispatch({ type: FormStateActionType.setState, state });
-  return /* @__PURE__ */ y$3(PopupSection, {
+  return /* @__PURE__ */ _$3(PopupSection, {
     onClick: toggleDropdown,
     classNames: classNames$a.popupSection
-  }, /* @__PURE__ */ y$3("button", {
+  }, /* @__PURE__ */ _$3("button", {
     type: "button",
     className: classNames$a.popupSectionItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$a.stateIcon
-  }), /* @__PURE__ */ y$3("span", {
+  }), /* @__PURE__ */ _$3("span", {
     className: classNames$a.content
-  }, eventState === "Busy" ? /* @__PURE__ */ y$3(Template, {
+  }, eventState === "Busy" ? /* @__PURE__ */ _$3(Template, {
     template: "popupStateBusy"
-  }) : /* @__PURE__ */ y$3(Template, {
+  }) : /* @__PURE__ */ _$3(Template, {
     template: "popupStateFree"
-  })), /* @__PURE__ */ y$3("span", {
+  })), /* @__PURE__ */ _$3("span", {
     className: classNames$a.arrowIcon
-  })), isOpened && /* @__PURE__ */ y$3(StateDropdownMenu, {
+  })), isOpened && /* @__PURE__ */ _$3(StateDropdownMenu, {
     setOpened,
     setEventState: handleChangeEventState
   }));
@@ -19852,11 +19950,11 @@ function LocationInputBox({ location: location2, formStateDispatch }) {
   const handleLocationChange = (e2) => {
     formStateDispatch({ type: FormStateActionType.setLocation, location: e2.currentTarget.value });
   };
-  return /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3(PopupSection, null, /* @__PURE__ */ _$3("div", {
     className: classNames$9.popupSectionItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$9.locationIcon
-  }), /* @__PURE__ */ y$3("input", {
+  }), /* @__PURE__ */ _$3("input", {
     name: "location",
     className: classNames$9.content,
     placeholder: locationPlaceholder,
@@ -19879,24 +19977,24 @@ function TitleInputBox({ title, isPrivate = false, formStateDispatch }) {
   const handleInputChange = (e2) => {
     formStateDispatch({ type: FormStateActionType.setTitle, title: e2.currentTarget.value });
   };
-  return /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3(PopupSection, null, /* @__PURE__ */ _$3("div", {
     className: classNames$8.popupSectionItem
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: classNames$8.titleIcon
-  }), /* @__PURE__ */ y$3("input", {
+  }), /* @__PURE__ */ _$3("input", {
     name: "title",
     className: classNames$8.content,
     placeholder: titlePlaceholder,
     value: title,
     onChange: handleInputChange,
     required: true
-  })), /* @__PURE__ */ y$3("button", {
+  })), /* @__PURE__ */ _$3("button", {
     type: "button",
     className: classNames$8.privateButton,
     onClick: togglePrivate
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: cls("icon", { "ic-private": isPrivate, "ic-public": !isPrivate })
-  }), /* @__PURE__ */ y$3("input", {
+  }), /* @__PURE__ */ _$3("input", {
     name: "isPrivate",
     type: "checkbox",
     className: cls("hidden-input"),
@@ -19955,20 +20053,20 @@ function EventFormPopup() {
   const eventBus = useEventBus();
   const formPopupSlot = useFloatingLayer("formPopupSlot");
   const [formState, formStateDispatch] = useFormState((_a = calendars[0]) == null ? void 0 : _a.id);
-  const datePickerRef = _$2(null);
-  const popupContainerRef = _$2(null);
-  const [style, setStyle] = h$2({});
-  const [arrowLeft, setArrowLeft] = h$2(0);
-  const [arrowDirection, setArrowDirection] = h$2(
+  const datePickerRef = A$3(null);
+  const popupContainerRef = A$3(null);
+  const [style, setStyle] = d$2({});
+  const [arrowLeft, setArrowLeft] = d$2(0);
+  const [arrowDirection, setArrowDirection] = d$2(
     FormPopupArrowDirection.bottom
   );
   const layoutContainer = useLayoutContainer();
-  const popupArrowClassName = F$2(() => {
+  const popupArrowClassName = T$1(() => {
     const top = arrowDirection === FormPopupArrowDirection.top;
     const bottom = arrowDirection === FormPopupArrowDirection.bottom;
     return cls("popup-arrow", { top, bottom });
   }, [arrowDirection]);
-  y$2(() => {
+  _$2(() => {
     if (popupContainerRef.current && popupArrowPointPosition && layoutContainer) {
       const layoutRect = layoutContainer.getBoundingClientRect();
       const popupRect = popupContainerRef.current.getBoundingClientRect();
@@ -19983,7 +20081,7 @@ function EventFormPopup() {
       setArrowDirection(direction);
     }
   }, [layoutContainer, popupArrowPointPosition]);
-  p$2(() => {
+  y$2(() => {
     if (isPresent(popupParams) && isPresent(event)) {
       formStateDispatch({
         type: FormStateActionType.init,
@@ -19998,7 +20096,7 @@ function EventFormPopup() {
       });
     }
   }, [calendars, event, formStateDispatch, popupParams]);
-  p$2(() => {
+  y$2(() => {
     if (isNil(popupParams)) {
       formStateDispatch({ type: FormStateActionType.reset });
     }
@@ -20024,49 +20122,49 @@ function EventFormPopup() {
     }
     hideAllPopup();
   };
-  return z(
-    /* @__PURE__ */ y$3("div", {
+  return $$1(
+    /* @__PURE__ */ _$3("div", {
       role: "dialog",
       className: classNames$7.popupContainer,
       ref: popupContainerRef,
       style
-    }, /* @__PURE__ */ y$3("form", {
+    }, /* @__PURE__ */ _$3("form", {
       onSubmit
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$7.formContainer
-    }, (calendars == null ? void 0 : calendars.length) ? /* @__PURE__ */ y$3(CalendarSelector, {
+    }, (calendars == null ? void 0 : calendars.length) ? /* @__PURE__ */ _$3(CalendarSelector, {
       selectedCalendarId: formState.calendarId,
       calendars,
       formStateDispatch
-    }) : /* @__PURE__ */ y$3(PopupSection, null), /* @__PURE__ */ y$3(TitleInputBox, {
+    }) : /* @__PURE__ */ _$3(PopupSection, null), /* @__PURE__ */ _$3(TitleInputBox, {
       title: formState.title,
       isPrivate: formState.isPrivate,
       formStateDispatch
-    }), /* @__PURE__ */ y$3(LocationInputBox, {
+    }), /* @__PURE__ */ _$3(LocationInputBox, {
       location: formState.location,
       formStateDispatch
-    }), /* @__PURE__ */ y$3(DateSelector, {
+    }), /* @__PURE__ */ _$3(DateSelector, {
       start,
       end,
       isAllday: formState.isAllday,
       formStateDispatch,
       ref: datePickerRef
-    }), /* @__PURE__ */ y$3(EventStateSelector, {
+    }), /* @__PURE__ */ _$3(EventStateSelector, {
       eventState: formState.state,
       formStateDispatch
-    }), /* @__PURE__ */ y$3(ClosePopupButton, {
+    }), /* @__PURE__ */ _$3(ClosePopupButton, {
       type: "form",
       close
-    }), /* @__PURE__ */ y$3(PopupSection, null, /* @__PURE__ */ y$3(ConfirmPopupButton, null, isCreationPopup ? /* @__PURE__ */ y$3(Template, {
+    }), /* @__PURE__ */ _$3(PopupSection, null, /* @__PURE__ */ _$3(ConfirmPopupButton, null, isCreationPopup ? /* @__PURE__ */ _$3(Template, {
       template: "popupSave"
-    }) : /* @__PURE__ */ y$3(Template, {
+    }) : /* @__PURE__ */ _$3(Template, {
       template: "popupUpdate"
-    })))), /* @__PURE__ */ y$3("div", {
+    })))), /* @__PURE__ */ _$3("div", {
       className: popupArrowClassName
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$7.popupArrowBorder,
       style: { left: arrowLeft }
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$7.popupArrowFill
     }))))),
     formPopupSlot
@@ -20085,7 +20183,7 @@ function PopupOverlay() {
     (_a = shownPopupParam == null ? void 0 : shownPopupParam.close) == null ? void 0 : _a.call(shownPopupParam);
     hideAllPopup();
   };
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("popup-overlay"),
     style: { display: isPopupShown ? "block" : "none" },
     onClick
@@ -20103,9 +20201,9 @@ function SeeMoreEventsPopup() {
   const { moreView, moreViewTitle } = useMonthTheme();
   const seeMorePopupSlot = useFloatingLayer("seeMorePopupSlot");
   const eventBus = useEventBus();
-  const moreEventsPopupContainerRef = _$2(null);
+  const moreEventsPopupContainerRef = A$3(null);
   const isHidden = isNil(date2) || isNil(popupPosition) || isNil(seeMorePopupSlot);
-  p$2(() => {
+  y$2(() => {
     if (!isHidden && moreEventsPopupContainerRef.current) {
       eventBus.fire("clickMoreEventsBtn", {
         date: date2.toDate(),
@@ -20130,27 +20228,27 @@ function SeeMoreEventsPopup() {
   const moreViewListStyle = {
     height: `calc(100% - ${MONTH_MORE_VIEW_HEADER_HEIGHT + MONTH_MORE_VIEW_HEADER_MARGIN_BOTTOM + MONTH_MORE_VIEW_HEADER_PADDING_TOP}px)`
   };
-  return z(
-    /* @__PURE__ */ y$3("div", {
+  return $$1(
+    /* @__PURE__ */ _$3("div", {
       role: "dialog",
       className: classNames$6.container,
       style: popupPosition,
       ref: moreEventsPopupContainerRef
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$6.seeMore,
       style: moreView
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: classNames$6.header,
       style
-    }, /* @__PURE__ */ y$3(Template, {
+    }, /* @__PURE__ */ _$3(Template, {
       template: "monthMoreTitleDate",
       param: moreTitle
-    }), /* @__PURE__ */ y$3(ClosePopupButton, {
+    }), /* @__PURE__ */ _$3(ClosePopupButton, {
       type: "moreEvents"
-    })), /* @__PURE__ */ y$3("div", {
+    })), /* @__PURE__ */ _$3("div", {
       className: classNames$6.list,
       style: moreViewListStyle
-    }, events.map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
+    }, events.map((uiModel) => /* @__PURE__ */ _$3(HorizontalEvent, {
       key: `see-more-event-item-${uiModel.cid()}`,
       uiModel,
       eventHeight: MONTH_EVENT_HEIGHT,
@@ -20180,8 +20278,8 @@ function Layout({
   const { backgroundColor } = useTheme(commonThemeSelector);
   const [container, containerRefCallback] = useDOMNode();
   const { setLastPanelType, updateLayoutHeight } = useDispatch("weekViewLayout");
-  const layoutClassName = F$2(() => `${cls("layout")} ${className2}`, [className2]);
-  y$2(() => {
+  const layoutClassName = T$1(() => `${cls("layout")} ${className2}`, [className2]);
+  _$2(() => {
     if (container) {
       const onResizeWindow = () => updateLayoutHeight(container.offsetHeight);
       onResizeWindow();
@@ -20190,22 +20288,22 @@ function Layout({
     }
     return noop;
   }, [container, updateLayoutHeight]);
-  y$2(() => {
+  _$2(() => {
     if (container && autoAdjustPanels) {
-      const childArray = P$2(children);
+      const childArray = H$2(children);
       const lastChild = childArray[childArray.length - 1];
       if (!isString_1(lastChild) && !isNumber_1(lastChild) && !isNil(lastChild)) {
         setLastPanelType(lastChild.props.name);
       }
     }
   }, [children, setLastPanelType, autoAdjustPanels, container]);
-  return /* @__PURE__ */ y$3(LayoutContainerProvider, {
+  return /* @__PURE__ */ _$3(LayoutContainerProvider, {
     value: container
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     ref: containerRefCallback,
     className: layoutClassName,
     style: __spreadProps(__spreadValues({}, getLayoutStylesFromInfo(width, height)), { backgroundColor })
-  }, container ? children : null), /* @__PURE__ */ y$3(EventFormPopup, null), /* @__PURE__ */ y$3(EventDetailPopup, null), /* @__PURE__ */ y$3(SeeMoreEventsPopup, null), /* @__PURE__ */ y$3(PopupOverlay, null));
+  }, container ? children : null), /* @__PURE__ */ _$3(EventFormPopup, null), /* @__PURE__ */ _$3(EventDetailPopup, null), /* @__PURE__ */ _$3(SeeMoreEventsPopup, null), /* @__PURE__ */ _$3(PopupOverlay, null));
 }
 function getDefaultStyle(height, border) {
   return {
@@ -20217,15 +20315,15 @@ function getDefaultStyle(height, border) {
   };
 }
 function PanelResizer({ name, height }) {
-  const border = useTheme(T$1((theme) => theme.week.panelResizer.border, []));
+  const border = useTheme(q$2((theme) => theme.week.panelResizer.border, []));
   const style = getDefaultStyle(height, border);
   const defaultGuideStyle = __spreadProps(__spreadValues({}, style), {
     display: "none",
     border: "none",
     backgroundColor: "#999"
   });
-  const [guideStyle, setGuideStyle] = h$2(defaultGuideStyle);
-  const startPos = _$2(null);
+  const [guideStyle, setGuideStyle] = d$2(defaultGuideStyle);
+  const startPos = A$3(null);
   const { updateDayGridRowHeightByDiff } = useDispatch("weekViewLayout");
   const onMouseDown = useDrag(DRAGGING_TYPE_CONSTANTS.panelResizer, {
     onDragStart: (e2) => {
@@ -20246,13 +20344,13 @@ function PanelResizer({ name, height }) {
       }
     }
   });
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     style: { position: "relative" }
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: cls("panel-resizer"),
     style,
     onMouseDown
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     className: cls("panel-resizer-guide"),
     style: guideStyle
   }));
@@ -20289,7 +20387,7 @@ function getPanelStyle({
   }
   return __spreadProps(__spreadValues({}, style), { minHeight, maxHeight, minWidth, maxWidth });
 }
-const Panel = k$1(function Panel2({
+const Panel = D(function Panel2({
   name,
   initialWidth = DEFAULT_PANEL_HEIGHT,
   initialHeight = DEFAULT_PANEL_HEIGHT,
@@ -20308,13 +20406,13 @@ const Panel = k$1(function Panel2({
 }, ref) {
   const { updateDayGridRowHeight } = useDispatch("weekViewLayout");
   const { height: dayGridRowHeight } = useStore(
-    T$1((state) => {
+    q$2((state) => {
       var _a;
       return (_a = state.weekViewLayout.dayGridRows[name]) != null ? _a : {};
     }, [name])
   );
   const height = dayGridRowHeight != null ? dayGridRowHeight : initialHeight;
-  y$2(() => {
+  _$2(() => {
     updateDayGridRowHeight({ rowName: name, height: initialHeight });
   }, [initialHeight, name, updateDayGridRowHeight]);
   const styles = getPanelStyle({
@@ -20329,17 +20427,17 @@ const Panel = k$1(function Panel2({
     minWidth,
     maxWidth
   });
-  const isResizable = F$2(() => {
+  const isResizable = T$1(() => {
     if (isNil(resizable) || isBoolean_1(resizable)) {
       return !!resizable;
     }
     return resizable.includes(name);
   }, [resizable, name]);
-  return /* @__PURE__ */ y$3(_$3, null, /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3(k$3, null, /* @__PURE__ */ _$3("div", {
     className: cls("panel", name),
     style: styles,
     ref
-  }, children), isResizable ? /* @__PURE__ */ y$3(PanelResizer, {
+  }, children), isResizable ? /* @__PURE__ */ _$3(PanelResizer, {
     name,
     width: resizerWidth,
     height: resizerHeight
@@ -20470,8 +20568,8 @@ function TimeEvent({
   const { setDraggingEventUIModel } = useDispatch("dnd");
   const { setSelectedDuplicateEventCid } = useDispatch("weekViewLayout");
   const eventBus = useEventBus();
-  const eventContainerRef = _$2(null);
-  const [isDraggingTarget, setIsDraggingTarget] = h$2(false);
+  const eventContainerRef = A$3(null);
+  const [isDraggingTarget, setIsDraggingTarget] = d$2(false);
   const { model, goingDurationHeight, modelDurationHeight, comingDurationHeight, croppedEnd } = uiModel;
   const { id, calendarId, customStyle } = model;
   const hasNextStartTime = isPresent(nextStartTime);
@@ -20486,7 +20584,7 @@ function TimeEvent({
       setIsDraggingTarget(false);
     }
   });
-  p$2(() => {
+  y$2(() => {
     if (!isResizingGuide) {
       eventBus.fire("afterRenderEvent", uiModel.model.toEventObject());
     }
@@ -20550,7 +20648,7 @@ function TimeEvent({
     hasNextStartTime
   });
   const shouldShowResizeHandle = isDraggable && !croppedEnd;
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     "data-testid": `${isGuide ? "guide-" : ""}time-event-${model.title}-${uiModel.cid()}`,
     "data-calendar-id": calendarId,
     "data-event-id": id,
@@ -20558,54 +20656,54 @@ function TimeEvent({
     style: __spreadValues(__spreadValues({}, containerStyle), customStyle),
     onMouseDown: handleMoveStart,
     ref: eventContainerRef
-  }, goingDurationHeight ? /* @__PURE__ */ y$3("div", {
+  }, goingDurationHeight ? /* @__PURE__ */ _$3("div", {
     className: classNames$5.travelTime,
     style: goingDurationStyle
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "goingDuration",
     param: model
-  })) : null, modelDurationHeight ? /* @__PURE__ */ y$3("div", {
+  })) : null, modelDurationHeight ? /* @__PURE__ */ _$3("div", {
     className: classNames$5.content,
     style: modelDurationStyle
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "time",
     param: __spreadProps(__spreadValues({}, model.toEventObject()), {
       start: hasNextStartTime ? nextStartTime : model.start
     })
-  })) : null, comingDurationHeight ? /* @__PURE__ */ y$3("div", {
+  })) : null, comingDurationHeight ? /* @__PURE__ */ _$3("div", {
     className: classNames$5.travelTime,
     style: comingDurationStyle
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "comingDuration",
     param: model
-  })) : null, shouldShowResizeHandle ? /* @__PURE__ */ y$3("div", {
+  })) : null, shouldShowResizeHandle ? /* @__PURE__ */ _$3("div", {
     className: classNames$5.resizeHandleX,
     onMouseDown: handleResizeStart
   }) : null);
 }
 function GridSelection({ top, height, text: text2 }) {
   const { backgroundColor, border } = useTheme(
-    T$1((theme) => theme.common.gridSelection, [])
+    q$2((theme) => theme.common.gridSelection, [])
   );
-  const color = useTheme(T$1((theme) => theme.week.gridSelection.color, []));
+  const color = useTheme(q$2((theme) => theme.week.gridSelection.color, []));
   const style = {
     top: toPercent(top),
     height: toPercent(height),
     backgroundColor,
     border
   };
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("time", "grid-selection"),
     style,
     "data-testid": `time-grid-selection-${top}-${height}`
-  }, text2.length > 0 ? /* @__PURE__ */ y$3("span", {
+  }, text2.length > 0 ? /* @__PURE__ */ _$3("span", {
     className: cls("grid-selection-label"),
     style: { color }
   }, text2) : null);
 }
 function GridSelectionByColumn({ columnIndex, timeGridRows }) {
   const gridSelectionData = useStore(
-    T$1(
+    q$2(
       (state) => timeGridSelectionHelper.calculateSelection(
         state.gridSelection.timeGrid,
         columnIndex,
@@ -20614,7 +20712,7 @@ function GridSelectionByColumn({ columnIndex, timeGridRows }) {
       [columnIndex, timeGridRows]
     )
   );
-  const gridSelectionProps = F$2(() => {
+  const gridSelectionProps = T$1(() => {
     if (!gridSelectionData) {
       return null;
     }
@@ -20639,7 +20737,7 @@ function GridSelectionByColumn({ columnIndex, timeGridRows }) {
   if (isNil(gridSelectionProps)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(GridSelection, __spreadValues({}, gridSelectionProps));
+  return /* @__PURE__ */ _$3(GridSelection, __spreadValues({}, gridSelectionProps));
 }
 function useTimeGridEventResize({
   gridPositionFinder,
@@ -20655,13 +20753,13 @@ function useTimeGridEventResize({
     clearDraggingEvent
   } = useDraggingEvent("timeGrid", "resize");
   const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
-  const [guideUIModel, setGuideUIModel] = h$2(null);
-  const clearStates = T$1(() => {
+  const [guideUIModel, setGuideUIModel] = d$2(null);
+  const clearStates = q$2(() => {
     setGuideUIModel(null);
     clearDraggingEvent();
     clearCurrentGridPos();
   }, [clearCurrentGridPos, clearDraggingEvent]);
-  const baseResizingInfo = F$2(() => {
+  const baseResizingInfo = T$1(() => {
     if (isNil(resizingStartUIModel)) {
       return null;
     }
@@ -20705,11 +20803,11 @@ function useTimeGridEventResize({
     };
   }, [resizingStartUIModel, timeGridData, totalUIModels]);
   const canCalculateGuideUIModel = isPresent(baseResizingInfo) && isPresent(resizingStartUIModel) && isPresent(currentGridPos);
-  const oneRowHeight = F$2(
+  const oneRowHeight = T$1(
     () => baseResizingInfo ? timeGridData.rows[0].height : 0,
     [baseResizingInfo, timeGridData.rows]
   );
-  p$2(() => {
+  y$2(() => {
     if (canCalculateGuideUIModel) {
       const { eventStartDateRowIndex, eventStartDateColumnIndex, eventEndDateColumnIndex } = baseResizingInfo;
       if (columnIndex === eventEndDateColumnIndex && eventStartDateColumnIndex === eventEndDateColumnIndex) {
@@ -20739,7 +20837,7 @@ function useTimeGridEventResize({
     timeGridData.rows,
     oneRowHeight
   ]);
-  p$2(() => {
+  y$2(() => {
     if (canCalculateGuideUIModel) {
       const { resizeTargetUIModelColumns, eventStartDateColumnIndex, eventEndDateColumnIndex } = baseResizingInfo;
       if ((columnIndex === eventStartDateColumnIndex || columnIndex === eventEndDateColumnIndex) && eventStartDateColumnIndex !== eventEndDateColumnIndex) {
@@ -20802,7 +20900,7 @@ function ResizingGuideByColumn({
   if (isNil(guideUIModel)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(TimeEvent, {
+  return /* @__PURE__ */ _$3(TimeEvent, {
     uiModel: guideUIModel,
     isResizingGuide: true
   });
@@ -20817,10 +20915,10 @@ function VerticalEvents({
   minEventHeight
 }) {
   const style = { marginRight: 8 };
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: classNames$4.events,
     style
-  }, eventUIModels.map((eventUIModel) => /* @__PURE__ */ y$3(TimeEvent, {
+  }, eventUIModels.map((eventUIModel) => /* @__PURE__ */ _$3(TimeEvent, {
     key: `${eventUIModel.valueOf()}-${eventUIModel.cid()}`,
     uiModel: eventUIModel,
     minHeight: minEventHeight
@@ -20850,7 +20948,7 @@ function getBackgroundColor({
   }
   return defaultBackgroundColor;
 }
-const Column = x$1(function Column2({
+const Column = M(function Column2({
   columnDate,
   columnWidth,
   columnIndex,
@@ -20860,7 +20958,7 @@ const Column = x$1(function Column2({
   isLastColumn
 }) {
   const { rows: timeGridRows } = timeGridData;
-  const borderRight = useTheme(T$1((theme) => theme.week.timeGrid.borderRight, []));
+  const borderRight = useTheme(q$2((theme) => theme.week.timeGrid.borderRight, []));
   const backgroundColorTheme = useTheme(backgroundColorSelector$1);
   const [, getNow] = usePrimaryTimezone();
   const today = getNow();
@@ -20872,19 +20970,19 @@ const Column = x$1(function Column2({
   };
   const uiModelsByColumn = totalUIModels[columnIndex];
   const minEventHeight = timeGridRows[0].height;
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: classNames$4.column,
     style,
     "data-testid": `timegrid-column-${columnDate.getDay()}`
-  }, /* @__PURE__ */ y$3(VerticalEvents, {
+  }, /* @__PURE__ */ _$3(VerticalEvents, {
     eventUIModels: uiModelsByColumn,
     minEventHeight
-  }), /* @__PURE__ */ y$3(ResizingGuideByColumn, {
+  }), /* @__PURE__ */ _$3(ResizingGuideByColumn, {
     gridPositionFinder,
     totalUIModels,
     columnIndex,
     timeGridData
-  }), /* @__PURE__ */ y$3(GridSelectionByColumn, {
+  }), /* @__PURE__ */ _$3(GridSelectionByColumn, {
     columnIndex,
     timeGridRows
   }));
@@ -20895,15 +20993,15 @@ function gridLineBorderSelector(theme) {
     hourLineBorder: theme.week.timeGridHourLine.borderBottom
   };
 }
-const GridLines = x$1(function GridLines2({
+const GridLines = M(function GridLines2({
   timeGridRows
 }) {
   const { halfHourLineBorder, hourLineBorder } = useTheme(gridLineBorderSelector);
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("gridlines")
   }, timeGridRows.map((time, index) => {
     const isUpperLine = index % 2 === 0;
-    return /* @__PURE__ */ y$3("div", {
+    return /* @__PURE__ */ _$3("div", {
       key: `gridline-${time.startTime}-${time.endTime}`,
       className: cls("gridline-half"),
       style: {
@@ -20960,8 +21058,8 @@ function useTimeGridEventMove({
     "move"
   );
   const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
-  const initGridPosRef = _$2(null);
-  p$2(() => {
+  const initGridPosRef = A$3(null);
+  y$2(() => {
     if (isPresent(initX) && isPresent(initY)) {
       initGridPosRef.current = gridPositionFinder({
         clientX: initX,
@@ -20969,7 +21067,7 @@ function useTimeGridEventMove({
       });
     }
   }, [gridPositionFinder, initX, initY]);
-  const gridDiff = F$2(() => {
+  const gridDiff = T$1(() => {
     if (isNil(initGridPosRef.current) || isNil(currentGridPos)) {
       return null;
     }
@@ -20978,18 +21076,18 @@ function useTimeGridEventMove({
       rowDiff: currentGridPos.rowIndex - initGridPosRef.current.rowIndex
     };
   }, [currentGridPos]);
-  const startDateTime = F$2(() => {
+  const startDateTime = T$1(() => {
     if (isNil(draggingEvent)) {
       return null;
     }
     return draggingEvent.getStarts();
   }, [draggingEvent]);
-  const clearState = T$1(() => {
+  const clearState = q$2(() => {
     clearCurrentGridPos();
     clearDraggingEvent();
     initGridPosRef.current = null;
   }, [clearCurrentGridPos, clearDraggingEvent]);
-  const nextStartTime = F$2(() => {
+  const nextStartTime = T$1(() => {
     if (isNil(gridDiff) || isNil(startDateTime)) {
       return null;
     }
@@ -20998,7 +21096,7 @@ function useTimeGridEventMove({
       gridDiff.rowDiff * MS_PER_THIRTY_MINUTES + gridDiff.columnDiff * MS_PER_DAY
     );
   }, [gridDiff, startDateTime]);
-  const movingEvent = F$2(() => {
+  const movingEvent = T$1(() => {
     if (isNil(draggingEvent) || isNil(currentGridPos) || isNil(gridDiff)) {
       return null;
     }
@@ -21049,7 +21147,7 @@ function MovingEventShadow$1({
   if (isNil(movingEvent)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(TimeEvent, {
+  return /* @__PURE__ */ _$3(TimeEvent, {
     uiModel: movingEvent,
     nextStartTime
   });
@@ -21077,7 +21175,7 @@ function NowIndicator({ top, columnWidth, columnCount, columnIndex }) {
   const { pastBorder, todayBorder, futureBorder, bulletBackgroundColor } = useTheme(nowIndicatorTheme);
   const layoutContainer = useLayoutContainer();
   const eventBus = useEventBus();
-  const indicatorRef = _$2(null);
+  const indicatorRef = A$3(null);
   const leftLine = {
     left: toPercent(columnWidth * columnIndex),
     width: toPercent(columnWidth * columnIndex)
@@ -21086,7 +21184,7 @@ function NowIndicator({ top, columnWidth, columnCount, columnIndex }) {
     left: toPercent(columnWidth * (columnIndex + 1)),
     width: toPercent(columnWidth * (columnCount - columnIndex + 1))
   };
-  p$2(() => {
+  y$2(() => {
     const scrollToNow = (behavior) => {
       var _a;
       const scrollArea = (_a = layoutContainer == null ? void 0 : layoutContainer.querySelector(`.${cls("panel")}.${cls("time")}`)) != null ? _a : null;
@@ -21104,28 +21202,28 @@ function NowIndicator({ top, columnWidth, columnCount, columnIndex }) {
     eventBus.on("scrollToNow", scrollToNow);
     return () => eventBus.off("scrollToNow", scrollToNow);
   }, [eventBus, layoutContainer]);
-  p$2(() => {
+  y$2(() => {
     eventBus.fire("scrollToNow", "smooth");
   }, [eventBus]);
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     ref: indicatorRef,
     className: classNames$3.line,
     style: { top: toPercent(top) },
     "data-testid": TEST_IDS.NOW_INDICATOR
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: classNames$3.left,
     style: { width: leftLine.width, borderTop: pastBorder }
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     className: classNames$3.marker,
     style: { left: leftLine.left, backgroundColor: bulletBackgroundColor }
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     className: classNames$3.today,
     style: {
       left: leftLine.left,
       width: toPercent(columnWidth),
       borderTop: todayBorder
     }
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     className: classNames$3.right,
     style: {
       left: rightLine.left,
@@ -21138,8 +21236,8 @@ const classNames$2 = {
   dayDifference: addTimeGridPrefix("day-difference")
 };
 function NowIndicatorLabel({ unit, top, now, zonedNow }) {
-  const color = useTheme(T$1((theme) => theme.week.nowIndicatorLabel.color, []));
-  const dateDifference = F$2(() => {
+  const color = useTheme(q$2((theme) => theme.week.nowIndicatorLabel.color, []));
+  const dateDifference = T$1(() => {
     return getDateDifference(zonedNow, now);
   }, [zonedNow, now]);
   const model = {
@@ -21147,13 +21245,13 @@ function NowIndicatorLabel({ unit, top, now, zonedNow }) {
     time: zonedNow,
     format: timeFormats[unit]
   };
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls(classNames$2.now),
     style: { top: toPercent(top), color },
     "data-testid": TEST_IDS.NOW_INDICATOR_LABEL
-  }, dateDifference !== 0 && /* @__PURE__ */ y$3("span", {
+  }, dateDifference !== 0 && /* @__PURE__ */ _$3("span", {
     className: cls(classNames$2.dayDifference)
-  }, `[${dateDifference > 0 ? "+" : "-"}${Math.abs(dateDifference)}]`), /* @__PURE__ */ y$3(Template, {
+  }, `[${dateDifference > 0 ? "+" : "-"}${Math.abs(dateDifference)}]`), /* @__PURE__ */ _$3(Template, {
     template: "timegridNowIndicatorLabel",
     param: model,
     as: "span"
@@ -21200,14 +21298,14 @@ function HourRows({ rowsInfo, isPrimary, borderRight, width, nowIndicatorState }
   const { pastTimeColor, futureTimeColor } = useTheme(timeColorSelector);
   const zonedNow = isPresent(nowIndicatorState) ? addMinutes(nowIndicatorState.now, (_a = rowsInfo[0].diffFromPrimaryTimezone) != null ? _a : 0) : null;
   const backgroundColor = isPrimary ? primaryTimezoneBackgroundColor : subTimezoneBackgroundColor;
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     role: "rowgroup",
     className: cls(classNames$1.hourRows),
     style: { width: toPercent(width), borderRight, backgroundColor }
   }, rowsInfo.map(({ date: date2, top, className: className2 }) => {
     const isPast = isPresent(zonedNow) && date2 < zonedNow;
     const color = isPast ? pastTimeColor : futureTimeColor;
-    return /* @__PURE__ */ y$3("div", {
+    return /* @__PURE__ */ _$3("div", {
       key: date2.getTime(),
       className: className2,
       style: {
@@ -21215,29 +21313,29 @@ function HourRows({ rowsInfo, isPrimary, borderRight, width, nowIndicatorState }
         color
       },
       role: "row"
-    }, /* @__PURE__ */ y$3(Template, {
+    }, /* @__PURE__ */ _$3(Template, {
       template: `timegridDisplay${isPrimary ? "Primary" : ""}Time`,
       param: { time: date2 },
       as: "span"
     }));
-  }), showNowIndicator && isPresent(nowIndicatorState) && isPresent(zonedNow) && /* @__PURE__ */ y$3(NowIndicatorLabel, {
+  }), showNowIndicator && isPresent(nowIndicatorState) && isPresent(zonedNow) && /* @__PURE__ */ _$3(NowIndicatorLabel, {
     unit: "hour",
     top: nowIndicatorState.top,
     now: nowIndicatorState.now,
     zonedNow
   }));
 }
-const TimeColumn = x$1(function TimeColumn2({ timeGridRows, nowIndicatorState }) {
+const TimeColumn = M(function TimeColumn2({ timeGridRows, nowIndicatorState }) {
   const showNowIndicator = useStore(showNowIndicatorOptionSelector);
   const timezones = useStore(timezonesSelector);
   const timezonesCollapsed = useStore(timezonesCollapsedOptionSelector);
   const tzConverter = useTZConverter();
   const { width, borderRight } = useTheme(weekTimeGridLeftSelector);
-  const rowsByHour = F$2(
+  const rowsByHour = T$1(
     () => timeGridRows.filter((_2, index) => index % 2 === 0 || index === timeGridRows.length - 1),
     [timeGridRows]
   );
-  const hourRowsPropsMapper = T$1(
+  const hourRowsPropsMapper = q$2(
     (row, index, diffFromPrimaryTimezone) => {
       const shouldHideRow = ({ top: rowTop, height: rowHeight }) => {
         if (!showNowIndicator || isNil(nowIndicatorState)) {
@@ -21271,7 +21369,7 @@ const TimeColumn = x$1(function TimeColumn2({ timeGridRows, nowIndicatorState })
   const primaryTimezoneHourRowsProps = rowsByHour.map(
     (row, index) => hourRowsPropsMapper(row, index)
   );
-  const otherTimezoneHourRowsProps = F$2(() => {
+  const otherTimezoneHourRowsProps = T$1(() => {
     if (otherTimezones.length === 0) {
       return [];
     }
@@ -21285,18 +21383,18 @@ const TimeColumn = x$1(function TimeColumn2({ timeGridRows, nowIndicatorState })
       );
     });
   }, [hourRowsPropsMapper, otherTimezones, primaryTimezone, rowsByHour, tzConverter]);
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls(classNames$1.timeColumn),
     style: { width },
     "data-testid": "timegrid-time-column"
-  }, !timezonesCollapsed && otherTimezoneHourRowsProps.map((rowsInfo) => /* @__PURE__ */ y$3(HourRows, {
+  }, !timezonesCollapsed && otherTimezoneHourRowsProps.map((rowsInfo) => /* @__PURE__ */ _$3(HourRows, {
     key: rowsInfo[0].diffFromPrimaryTimezone,
     rowsInfo,
     isPrimary: false,
     borderRight,
     width: hourRowsWidth,
     nowIndicatorState
-  })), /* @__PURE__ */ y$3(HourRows, {
+  })), /* @__PURE__ */ _$3(HourRows, {
     rowsInfo: primaryTimezoneHourRowsProps,
     isPrimary: true,
     borderRight,
@@ -21528,11 +21626,11 @@ function setRenderInfoOfUIModels(events, startColumnTime, endColumnTime, selecte
   return uiModels;
 }
 function useInterval(callback, delay) {
-  const savedCallback = _$2(callback);
-  p$2(() => {
+  const savedCallback = A$3(callback);
+  y$2(() => {
     savedCallback.current = callback;
   }, [callback]);
-  p$2(() => {
+  y$2(() => {
     const tick = () => savedCallback.current();
     const intervalDelay = delay != null ? delay : -1;
     if (intervalDelay > 0) {
@@ -21542,13 +21640,13 @@ function useInterval(callback, delay) {
   }, [delay]);
 }
 function useIsMounted() {
-  const isMountedRef = _$2(true);
-  p$2(() => {
+  const isMountedRef = A$3(true);
+  y$2(() => {
     return () => {
       isMountedRef.current = false;
     };
   }, []);
-  return T$1(() => isMountedRef.current, []);
+  return q$2(() => isMountedRef.current, []);
 }
 const classNames = {
   timegrid: cls(className),
@@ -21566,10 +21664,10 @@ function TimeGrid({ timeGridData, events }) {
   const [, getNow] = usePrimaryTimezone();
   const isMounted = useIsMounted();
   const { width: timeGridLeftWidth } = useTheme(weekTimeGridLeftSelector);
-  const [nowIndicatorState, setNowIndicatorState] = h$2(null);
+  const [nowIndicatorState, setNowIndicatorState] = d$2(null);
   const { columns, rows } = timeGridData;
   const lastColumnIndex = columns.length - 1;
-  const totalUIModels = F$2(
+  const totalUIModels = T$1(
     () => columns.map(
       ({ date: date2 }) => events.filter(isBetween(toStartOfDay(date2), toEndOfDay(date2))).map((uiModel) => uiModel.clone())
     ).map(
@@ -21583,7 +21681,7 @@ function TimeGrid({ timeGridData, events }) {
     ),
     [columns, rows, events, selectedDuplicateEventCid, collapseDuplicateEvents]
   );
-  const currentDateData = F$2(() => {
+  const currentDateData = T$1(() => {
     const now = getNow();
     const currentDateIndexInColumns = columns.findIndex((column) => isSameDate(column.date, now));
     if (currentDateIndexInColumns < 0) {
@@ -21604,7 +21702,7 @@ function TimeGrid({ timeGridData, events }) {
     };
   }, [columns, getNow, timeGridData.rows]);
   const [columnsContainer, setColumnsContainer] = useDOMNode();
-  const gridPositionFinder = F$2(
+  const gridPositionFinder = T$1(
     () => createGridPositionFinder({
       rowsCount: rows.length,
       columnsCount: columns.length,
@@ -21621,7 +21719,7 @@ function TimeGrid({ timeGridData, events }) {
     dateGetter: timeGridSelectionHelper.getDateFromCollection,
     dateCollection: timeGridData
   });
-  const updateTimeGridIndicator = T$1(() => {
+  const updateTimeGridIndicator = q$2(() => {
     if (isPresent(currentDateData)) {
       const { startTime, endTime } = currentDateData;
       const now = getNow();
@@ -21633,7 +21731,7 @@ function TimeGrid({ timeGridData, events }) {
       }
     }
   }, [currentDateData, getNow]);
-  y$2(() => {
+  _$2(() => {
     var _a;
     if (isMounted()) {
       if (((_a = currentDateData == null ? void 0 : currentDateData.currentDateIndex) != null ? _a : -1) >= 0) {
@@ -21644,24 +21742,24 @@ function TimeGrid({ timeGridData, events }) {
     }
   }, [currentDateData, isMounted, updateTimeGridIndicator]);
   useInterval(updateTimeGridIndicator, isPresent(currentDateData) ? MS_PER_MINUTES : null);
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: classNames.timegrid
-  }, /* @__PURE__ */ y$3("div", {
+  }, /* @__PURE__ */ _$3("div", {
     className: classNames.scrollArea
-  }, /* @__PURE__ */ y$3(TimeColumn, {
+  }, /* @__PURE__ */ _$3(TimeColumn, {
     timeGridRows: rows,
     nowIndicatorState
-  }), /* @__PURE__ */ y$3("div", {
+  }), /* @__PURE__ */ _$3("div", {
     className: cls("columns"),
     style: { left: timeGridLeftWidth },
     ref: setColumnsContainer,
     onMouseDown: passConditionalProp(!isReadOnly, onMouseDown)
-  }, /* @__PURE__ */ y$3(GridLines, {
+  }, /* @__PURE__ */ _$3(GridLines, {
     timeGridRows: rows
-  }), /* @__PURE__ */ y$3(MovingEventShadow$1, {
+  }), /* @__PURE__ */ _$3(MovingEventShadow$1, {
     gridPositionFinder,
     timeGridData
-  }), columns.map((column, index) => /* @__PURE__ */ y$3(Column, {
+  }), columns.map((column, index) => /* @__PURE__ */ _$3(Column, {
     key: column.date.toString(),
     timeGridData,
     columnDate: column.date,
@@ -21670,7 +21768,7 @@ function TimeGrid({ timeGridData, events }) {
     totalUIModels,
     gridPositionFinder,
     isLastColumn: index === lastColumnIndex
-  })), showNowIndicator && isPresent(currentDateData) && isPresent(nowIndicatorState) ? /* @__PURE__ */ y$3(NowIndicator, {
+  })), showNowIndicator && isPresent(currentDateData) && isPresent(nowIndicatorState) ? /* @__PURE__ */ _$3(NowIndicator, {
     top: nowIndicatorState.top,
     columnWidth: columns[0].width,
     columnCount: columns.length,
@@ -21683,17 +21781,17 @@ function TimezoneCollapseButton({ isCollapsed }) {
     "ic-arrow-right": isCollapsed,
     "ic-arrow-left": !isCollapsed
   });
-  return /* @__PURE__ */ y$3("button", {
+  return /* @__PURE__ */ _$3("button", {
     className: cls(addTimeGridPrefix("timezone-collapse-button")),
     "aria-expanded": !isCollapsed,
     onClick: () => eventBus.fire("clickTimezonesCollapseBtn", isCollapsed)
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: iconClassName,
     role: "img"
   }));
 }
 function TimezoneLabel({ label, offset, tooltip, width = 100, left }) {
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     title: tooltip,
     className: cls(addTimeGridPrefix("timezone-label")),
     style: {
@@ -21702,7 +21800,7 @@ function TimezoneLabel({ label, offset, tooltip, width = 100, left }) {
       left: toPercent(left)
     },
     role: "gridcell"
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: "timezoneDisplayLabel",
     param: { displayLabel: label, timezoneOffset: offset },
     as: "span"
@@ -21711,7 +21809,7 @@ function TimezoneLabel({ label, offset, tooltip, width = 100, left }) {
 function useTimezoneCollapseOptions() {
   const showTimezoneCollapseButton = useStore(showTimezoneCollapseButtonOptionSelector);
   const timezonesCollapsed = useStore(timezonesCollapsedOptionSelector);
-  return F$2(() => {
+  return T$1(() => {
     return {
       showTimezoneCollapseButton,
       timezonesCollapsed
@@ -21737,7 +21835,7 @@ function TimezoneLabels({ top }) {
   const subTimezones = restTimezones.reverse();
   const timezonesCount = timezonesCollapsed ? 1 : timezones.length;
   const timezoneLabelWidth = 100 / timezonesCount;
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     style: {
       top,
       width
@@ -21746,14 +21844,14 @@ function TimezoneLabels({ top }) {
     className: cls("timezone-labels-slot")
   }, !timezonesCollapsed && subTimezones.map((subTimezone, index) => {
     var _a;
-    return /* @__PURE__ */ y$3(TimezoneLabel, __spreadValues({
+    return /* @__PURE__ */ _$3(TimezoneLabel, __spreadValues({
       key: `subTimezone-${(_a = subTimezone.label) != null ? _a : subTimezone.offset}`,
       width: timezoneLabelWidth,
       left: timezoneLabelWidth * index
     }, subTimezone));
-  }), showTimezoneCollapseButton && /* @__PURE__ */ y$3(TimezoneCollapseButton, {
+  }), showTimezoneCollapseButton && /* @__PURE__ */ _$3(TimezoneCollapseButton, {
     isCollapsed: timezonesCollapsed
-  }), /* @__PURE__ */ y$3(TimezoneLabel, __spreadValues({
+  }), /* @__PURE__ */ _$3(TimezoneLabel, __spreadValues({
     width: timezoneLabelWidth,
     left: timezoneLabelWidth * subTimezones.length
   }, primaryTimezone)));
@@ -21782,7 +21880,7 @@ function getActivePanels(taskView, eventView) {
 function useEventsWithTimezone(events) {
   const primaryTimezoneName = useStore(primaryTimezoneSelector);
   const tzConverter = useTZConverter();
-  return F$2(() => {
+  return T$1(() => {
     if (primaryTimezoneName === "Local") {
       return events;
     }
@@ -21820,12 +21918,12 @@ function useEventsWithTimezone(events) {
   }, [events, primaryTimezoneName, tzConverter]);
 }
 function useCalendarData(calendar, ...filters) {
-  const filteredEvents = F$2(
+  const filteredEvents = T$1(
     () => calendar.events.filter(Collection.and(...filters)),
     [calendar.events, filters]
   );
   const filteredEventsWithTimezone = useEventsWithTimezone(filteredEvents);
-  return F$2(
+  return T$1(
     () => __spreadProps(__spreadValues({}, calendar), {
       events: filteredEventsWithTimezone
     }),
@@ -21857,8 +21955,8 @@ function timegridHeightSelector(state) {
 }
 function useTimezoneLabelsTop(timePanel) {
   const timeGridPanelHeight = useStore(timegridHeightSelector);
-  const [stickyTop, setStickyTop] = h$2(null);
-  y$2(() => {
+  const [stickyTop, setStickyTop] = d$2(null);
+  _$2(() => {
     if (isPresent(timeGridPanelHeight) && timePanel) {
       setStickyTop(timePanel.offsetTop);
     }
@@ -21870,7 +21968,7 @@ function useDayViewState() {
   const options = useStore(optionsSelector);
   const { dayGridRows: gridRowLayout, lastPanelType } = useStore(weekViewLayoutSelector);
   const { renderDate } = useStore(viewSelector);
-  return F$2(
+  return T$1(
     () => ({
       calendar,
       options,
@@ -21885,11 +21983,11 @@ function Day$1() {
   var _a, _b;
   const { calendar, options, gridRowLayout, lastPanelType, renderDate } = useDayViewState();
   const primaryTimezoneName = useStore(primaryTimezoneSelector);
-  const gridHeaderMarginLeft = useTheme(T$1((theme) => theme.week.dayGridLeft.width, []));
+  const gridHeaderMarginLeft = useTheme(q$2((theme) => theme.week.dayGridLeft.width, []));
   const [timePanel, setTimePanelRef] = useDOMNode();
   const weekOptions = options.week;
   const { narrowWeekend, startDayOfWeek, workweek, hourStart, hourEnd, eventView, taskView } = weekOptions;
-  const days = F$2(() => [renderDate], [renderDate]);
+  const days = T$1(() => [renderDate], [renderDate]);
   const dayNames = getDayNames(days, (_b = (_a = options.week) == null ? void 0 : _a.dayNames) != null ? _b : []);
   const { rowStyleInfo, cellWidthMap } = getRowStyleInfo(
     days.length,
@@ -21898,7 +21996,7 @@ function Day$1() {
     workweek
   );
   const calendarData = useCalendarData(calendar, options.eventFilter);
-  const dayGridEvents = F$2(() => {
+  const dayGridEvents = T$1(() => {
     const getFilterRange = () => {
       if (primaryTimezoneName === "Local") {
         return [toStartOfDay(days[0]), toEndOfDay(days[0])];
@@ -21914,7 +22012,7 @@ function Day$1() {
       weekEndDate
     });
   }, [calendarData, days, hourEnd, hourStart, narrowWeekend, primaryTimezoneName]);
-  const timeGridData = F$2(
+  const timeGridData = T$1(
     () => createTimeGridData(days, {
       hourStart,
       hourEnd,
@@ -21929,18 +22027,18 @@ function Day$1() {
       return null;
     }
     const rowType = key;
-    return /* @__PURE__ */ y$3(Panel, {
+    return /* @__PURE__ */ _$3(Panel, {
       key: rowType,
       name: rowType,
       resizable: rowType !== lastPanelType
-    }, rowType === "allday" ? /* @__PURE__ */ y$3(AlldayGridRow, {
+    }, rowType === "allday" ? /* @__PURE__ */ _$3(AlldayGridRow, {
       events: dayGridEvents[rowType],
       rowStyleInfo,
       gridColWidthMap: cellWidthMap,
       weekDates: days,
       height: (_a2 = gridRowLayout[rowType]) == null ? void 0 : _a2.height,
       options: weekOptions
-    }) : /* @__PURE__ */ y$3(OtherGridRow, {
+    }) : /* @__PURE__ */ _$3(OtherGridRow, {
       category: rowType,
       events: dayGridEvents[rowType],
       weekDates: days,
@@ -21951,41 +22049,41 @@ function Day$1() {
   });
   useTimeGridScrollSync(timePanel, timeGridData.rows.length);
   const stickyTop = useTimezoneLabelsTop(timePanel);
-  return /* @__PURE__ */ y$3(Layout, {
+  return /* @__PURE__ */ _$3(Layout, {
     className: cls("day-view"),
     autoAdjustPanels: true
-  }, /* @__PURE__ */ y$3(Panel, {
+  }, /* @__PURE__ */ _$3(Panel, {
     name: "day-view-day-names",
     initialHeight: WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER
-  }, /* @__PURE__ */ y$3(GridHeader, {
+  }, /* @__PURE__ */ _$3(GridHeader, {
     type: "week",
     dayNames,
     marginLeft: gridHeaderMarginLeft,
     rowStyleInfo
-  })), gridRows, activePanels.includes("time") ? /* @__PURE__ */ y$3(Panel, {
+  })), gridRows, activePanels.includes("time") ? /* @__PURE__ */ _$3(Panel, {
     name: "time",
     autoSize: 1,
     ref: setTimePanelRef
-  }, /* @__PURE__ */ y$3(TimeGrid, {
+  }, /* @__PURE__ */ _$3(TimeGrid, {
     events: dayGridEvents.time,
     timeGridData
-  }), /* @__PURE__ */ y$3(TimezoneLabels, {
+  }), /* @__PURE__ */ _$3(TimezoneLabels, {
     top: stickyTop
   })) : null);
 }
 function AccumulatedGridSelection({ rowIndex, weekDates, narrowWeekend }) {
   const gridSelectionDataByRow = useStore(
-    T$1(
+    q$2(
       (state) => state.gridSelection.accumulated.dayGridMonth.map(
         (gridSelection) => dayGridMonthSelectionHelper.calculateSelection(gridSelection, rowIndex, weekDates.length)
       ),
       [rowIndex, weekDates]
     )
   );
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("accumulated-grid-selection")
   }, gridSelectionDataByRow.map(
-    (gridSelectionData) => gridSelectionData ? /* @__PURE__ */ y$3(GridSelection$1, {
+    (gridSelectionData) => gridSelectionData ? /* @__PURE__ */ _$3(GridSelection$1, {
       type: "accumulated",
       gridSelectionData,
       weekDates,
@@ -22003,12 +22101,12 @@ function MoreEventsButton({ type, number, onClickButton, className: className2 }
     onClickButton();
   };
   const exceedButtonTemplate = `monthGrid${type === CellBarType.header ? "Header" : "Footer"}Exceed`;
-  return /* @__PURE__ */ y$3("button", {
+  return /* @__PURE__ */ _$3("button", {
     type: "button",
     onMouseDown: handleMouseDown,
     onClick: handleClick,
     className: className2
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: exceedButtonTemplate,
     param: number
   }));
@@ -22043,7 +22141,7 @@ function getDateColor({
 function useCellHeaderTheme() {
   const common = useCommonTheme();
   const month = useMonthTheme();
-  return F$2(() => ({ common, month }), [common, month]);
+  return T$1(() => ({ common, month }), [common, month]);
 }
 function CellHeader({
   type = CellBarType.header,
@@ -22072,16 +22170,16 @@ function CellHeader({
   if (isNil(height)) {
     return null;
   }
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls(`grid-cell-${type}`),
     style: { height }
-  }, /* @__PURE__ */ y$3("span", {
+  }, /* @__PURE__ */ _$3("span", {
     className: cls("grid-cell-date"),
     style: gridCellDateStyle
-  }, /* @__PURE__ */ y$3(Template, {
+  }, /* @__PURE__ */ _$3(Template, {
     template: monthGridTemplate,
     param: templateParam
-  })), exceedCount ? /* @__PURE__ */ y$3(MoreEventsButton, {
+  })), exceedCount ? /* @__PURE__ */ _$3(MoreEventsButton, {
     type,
     number: exceedCount,
     onClickButton: onClickExceedCount,
@@ -22160,8 +22258,8 @@ function getSeeMorePopupRect({
 function usePopupPosition(eventLength, parentContainer, layoutContainer) {
   const { width: moreViewWidth, height: moreViewHeight } = useTheme(monthMoreViewSelector);
   const [container, containerRefCallback] = useDOMNode();
-  const [popupPosition, setPopupPosition] = h$2(null);
-  p$2(() => {
+  const [popupPosition, setPopupPosition] = d$2(null);
+  y$2(() => {
     if (layoutContainer && parentContainer && container) {
       const popupSize = getSeeMorePopupSize({
         grid: parentContainer,
@@ -22194,7 +22292,7 @@ function GridCell({ date: date2, events = [], style, parentContainer, contentAre
     parentContainer,
     layoutContainer
   );
-  const onOpenSeeMorePopup = T$1(() => {
+  const onOpenSeeMorePopup = q$2(() => {
     if (popupPosition) {
       showSeeMorePopup({
         date: date2,
@@ -22208,31 +22306,31 @@ function GridCell({ date: date2, events = [], style, parentContainer, contentAre
     contentAreaHeight,
     MONTH_EVENT_HEIGHT + MONTH_EVENT_MARGIN_TOP
   );
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("daygrid-cell"),
     style: __spreadProps(__spreadValues({}, style), { backgroundColor: isWeekend(date2.getDay()) ? backgroundColor : "inherit" }),
     ref: containerRefCallback
-  }, /* @__PURE__ */ y$3(CellHeader, {
+  }, /* @__PURE__ */ _$3(CellHeader, {
     type: CellBarType.header,
     exceedCount,
     date: date2,
     onClickExceedCount: onOpenSeeMorePopup
-  }), /* @__PURE__ */ y$3(CellHeader, {
+  }), /* @__PURE__ */ _$3(CellHeader, {
     type: CellBarType.footer,
     exceedCount,
     date: date2,
     onClickExceedCount: onOpenSeeMorePopup
   }));
 }
-const GridRow = x$1(function GridRow2({
+const GridRow = M(function GridRow2({
   week,
   rowInfo,
   gridDateEventModelMap = {},
   contentAreaHeight
 }) {
   const [container, containerRefCallback] = useDOMNode();
-  const border = useTheme(T$1((theme) => theme.common.border, []));
-  return /* @__PURE__ */ y$3("div", {
+  const border = useTheme(q$2((theme) => theme.common.border, []));
+  return /* @__PURE__ */ _$3("div", {
     className: cls("weekday-grid"),
     style: { borderTop: border },
     ref: containerRefCallback
@@ -22240,7 +22338,7 @@ const GridRow = x$1(function GridRow2({
     const dayIndex = date2.getDay();
     const { width, left } = rowInfo[columnIndex];
     const ymd = toFormat(toStartOfDay(date2), "YYYYMMDD");
-    return /* @__PURE__ */ y$3(GridCell, {
+    return /* @__PURE__ */ _$3(GridCell, {
       key: `daygrid-cell-${dayIndex}`,
       date: date2,
       style: {
@@ -22255,7 +22353,7 @@ const GridRow = x$1(function GridRow2({
 });
 function GridSelectionByRow({ weekDates, narrowWeekend, rowIndex }) {
   const gridSelectionDataByRow = useStore(
-    T$1(
+    q$2(
       (state) => dayGridMonthSelectionHelper.calculateSelection(
         state.gridSelection.dayGridMonth,
         rowIndex,
@@ -22267,14 +22365,14 @@ function GridSelectionByRow({ weekDates, narrowWeekend, rowIndex }) {
   if (isNil(gridSelectionDataByRow)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(GridSelection$1, {
+  return /* @__PURE__ */ _$3(GridSelection$1, {
     type: "month",
     gridSelectionData: gridSelectionDataByRow,
     weekDates,
     narrowWeekend
   });
 }
-const MonthEvents = x$1(function MonthEvents2({
+const MonthEvents = M(function MonthEvents2({
   contentAreaHeight,
   eventHeight = EVENT_HEIGHT,
   events,
@@ -22282,13 +22380,13 @@ const MonthEvents = x$1(function MonthEvents2({
   className: className2
 }) {
   const { headerHeight } = useTheme(monthGridCellSelector);
-  const dayEvents = events.filter(isWithinHeight(contentAreaHeight, eventHeight + MONTH_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ y$3(HorizontalEvent, {
+  const dayEvents = events.filter(isWithinHeight(contentAreaHeight, eventHeight + MONTH_EVENT_MARGIN_TOP)).map((uiModel) => /* @__PURE__ */ _$3(HorizontalEvent, {
     key: `${name}-DayEvent-${uiModel.cid()}`,
     uiModel,
     eventHeight,
     headerHeight: headerHeight != null ? headerHeight : MONTH_CELL_BAR_HEIGHT
   }));
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: className2
   }, dayEvents);
 });
@@ -22306,7 +22404,7 @@ function useDayGridMonthEventMove({
     clearDraggingEvent
   } = useDraggingEvent("dayGrid", "move");
   const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
-  const movingEventUIModel = F$2(() => {
+  const movingEventUIModel = T$1(() => {
     var _a, _b;
     let shadowEventUIModel = null;
     if (movingEvent && (currentGridPos == null ? void 0 : currentGridPos.rowIndex) === rowIndex) {
@@ -22348,7 +22446,7 @@ function MovingEventShadow({ dateMatrix, gridPositionFinder, rowInfo, rowIndex }
   if (isNil(movingEvent)) {
     return null;
   }
-  return /* @__PURE__ */ y$3(HorizontalEvent, {
+  return /* @__PURE__ */ _$3(HorizontalEvent, {
     uiModel: movingEvent,
     movingLeft: movingEvent.left,
     eventHeight: EVENT_HEIGHT,
@@ -22378,13 +22476,13 @@ function useDayGridMonthEventResize({
     clearDraggingEvent
   } = useDraggingEvent("dayGrid", "resize");
   const [currentGridPos, clearCurrentGridPos] = useCurrentPointerPositionInGrid(gridPositionFinder);
-  const [guideProps, setGuideProps] = h$2(null);
-  const clearStates = T$1(() => {
+  const [guideProps, setGuideProps] = d$2(null);
+  const clearStates = q$2(() => {
     setGuideProps(null);
     clearCurrentGridPos();
     clearDraggingEvent();
   }, [clearCurrentGridPos, clearDraggingEvent]);
-  const baseResizingInfo = F$2(() => {
+  const baseResizingInfo = T$1(() => {
     if (isNil(resizingStartUIModel)) {
       return null;
     }
@@ -22412,7 +22510,7 @@ function useDayGridMonthEventResize({
     };
   }, [dateMatrix, renderedUIModels, resizingStartUIModel]);
   const canCalculateProps = isPresent(baseResizingInfo) && isPresent(resizingStartUIModel) && isPresent(currentGridPos);
-  p$2(() => {
+  y$2(() => {
     if (canCalculateProps && rowIndex === baseResizingInfo.eventStartDateRowIndex) {
       const { eventStartDateRowIndex, eventStartDateColumnIndex } = baseResizingInfo;
       const clonedUIModel = baseResizingInfo.resizeTargetUIModelRows[eventStartDateRowIndex][0].clone();
@@ -22428,14 +22526,14 @@ function useDayGridMonthEventResize({
       setGuideProps([clonedUIModel, height]);
     }
   }, [baseResizingInfo, canCalculateProps, cellWidthMap, currentGridPos, dateMatrix, rowIndex]);
-  p$2(() => {
+  y$2(() => {
     if (canCalculateProps && baseResizingInfo.eventStartDateRowIndex < rowIndex && rowIndex < currentGridPos.rowIndex) {
       const clonedUIModel = resizingStartUIModel.clone();
       clonedUIModel.setUIProps({ left: 0, exceedLeft: true, exceedRight: true });
       setGuideProps([clonedUIModel, "100%"]);
     }
   }, [baseResizingInfo, canCalculateProps, currentGridPos, resizingStartUIModel, rowIndex]);
-  p$2(() => {
+  y$2(() => {
     if (canCalculateProps && baseResizingInfo.eventStartDateRowIndex < currentGridPos.rowIndex && rowIndex === currentGridPos.rowIndex) {
       const clonedUIModel = resizingStartUIModel.clone();
       clonedUIModel.setUIProps({ left: 0, exceedLeft: true });
@@ -22449,7 +22547,7 @@ function useDayGridMonthEventResize({
     resizingStartUIModel,
     rowIndex
   ]);
-  p$2(() => {
+  y$2(() => {
     if (canCalculateProps && rowIndex > baseResizingInfo.eventStartDateRowIndex && rowIndex > currentGridPos.rowIndex) {
       setGuideProps(null);
     }
@@ -22490,9 +22588,9 @@ function ResizingGuideByRow({
     return null;
   }
   const [uiModel, resizingWidth] = resizingGuideProps;
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     className: cls("weekday-events")
-  }, /* @__PURE__ */ y$3(HorizontalEvent, {
+  }, /* @__PURE__ */ _$3(HorizontalEvent, {
     key: `resizing-event-${uiModel.cid()}`,
     uiModel,
     eventHeight: MONTH_EVENT_HEIGHT,
@@ -22504,9 +22602,9 @@ const TOTAL_PERCENT_HEIGHT = 100;
 function useCellContentAreaHeight(eventHeight) {
   const visibleEventCount = useStore(monthVisibleEventCountSelector);
   const { headerHeight: themeHeaderHeight, footerHeight: themeFooterHeight } = useTheme(monthGridCellSelector);
-  const ref = _$2(null);
-  const [cellContentAreaHeight, setCellContentAreaHeight] = h$2(0);
-  p$2(() => {
+  const ref = A$3(null);
+  const [cellContentAreaHeight, setCellContentAreaHeight] = d$2(0);
+  y$2(() => {
     if (ref.current) {
       const rowHeight = getSize(ref.current).height;
       const headerHeight = MONTH_CELL_PADDING_TOP + (themeHeaderHeight != null ? themeHeaderHeight : MONTH_CELL_BAR_HEIGHT);
@@ -22525,7 +22623,7 @@ function DayGridMonth({ dateMatrix = [], rowInfo = [], cellWidthMap = [] }) {
   const { eventFilter, month: monthOptions, isReadOnly } = useStore(optionsSelector);
   const { narrowWeekend, startDayOfWeek } = monthOptions;
   const rowHeight = TOTAL_PERCENT_HEIGHT / dateMatrix.length;
-  const gridPositionFinder = F$2(
+  const gridPositionFinder = T$1(
     () => createGridPositionFinder({
       container: gridContainer,
       rowsCount: dateMatrix.length,
@@ -22536,7 +22634,7 @@ function DayGridMonth({ dateMatrix = [], rowInfo = [], cellWidthMap = [] }) {
     [dateMatrix, gridContainer, narrowWeekend, startDayOfWeek]
   );
   const calendarData = useCalendarData(calendar, eventFilter);
-  const renderedEventUIModels = F$2(
+  const renderedEventUIModels = T$1(
     () => dateMatrix.map((week) => getRenderedEventUIModels(week, calendarData, narrowWeekend)),
     [calendarData, dateMatrix, narrowWeekend]
   );
@@ -22547,45 +22645,45 @@ function DayGridMonth({ dateMatrix = [], rowInfo = [], cellWidthMap = [] }) {
     dateGetter: dayGridMonthSelectionHelper.getDateFromCollection,
     selectionSorter: dayGridMonthSelectionHelper.sortSelection
   });
-  return /* @__PURE__ */ y$3("div", {
+  return /* @__PURE__ */ _$3("div", {
     ref: setGridContainerRef,
     onMouseDown: passConditionalProp(!isReadOnly, onMouseDown),
     className: cls("month-daygrid")
   }, dateMatrix.map((week, rowIndex) => {
     const { uiModels, gridDateEventModelMap } = renderedEventUIModels[rowIndex];
-    return /* @__PURE__ */ y$3("div", {
+    return /* @__PURE__ */ _$3("div", {
       key: `dayGrid-events-${rowIndex}`,
       className: cls("month-week-item"),
       style: { height: toPercent(rowHeight) },
       ref
-    }, /* @__PURE__ */ y$3("div", {
+    }, /* @__PURE__ */ _$3("div", {
       className: cls("weekday")
-    }, /* @__PURE__ */ y$3(GridRow, {
+    }, /* @__PURE__ */ _$3(GridRow, {
       gridDateEventModelMap,
       week,
       rowInfo,
       contentAreaHeight: cellContentAreaHeight
-    }), /* @__PURE__ */ y$3(MonthEvents, {
+    }), /* @__PURE__ */ _$3(MonthEvents, {
       name: "month",
       events: uiModels,
       contentAreaHeight: cellContentAreaHeight,
       eventHeight: MONTH_EVENT_HEIGHT,
       className: cls("weekday-events")
-    }), /* @__PURE__ */ y$3(GridSelectionByRow, {
+    }), /* @__PURE__ */ _$3(GridSelectionByRow, {
       weekDates: week,
       narrowWeekend,
       rowIndex
-    }), /* @__PURE__ */ y$3(AccumulatedGridSelection, {
+    }), /* @__PURE__ */ _$3(AccumulatedGridSelection, {
       rowIndex,
       weekDates: week,
       narrowWeekend
-    })), /* @__PURE__ */ y$3(ResizingGuideByRow, {
+    })), /* @__PURE__ */ _$3(ResizingGuideByRow, {
       dateMatrix,
       gridPositionFinder,
       rowIndex,
       cellWidthMap,
       renderedUIModels: renderedEventUIModels
-    }), /* @__PURE__ */ y$3(MovingEventShadow, {
+    }), /* @__PURE__ */ _$3(MovingEventShadow, {
       dateMatrix,
       gridPositionFinder,
       rowIndex,
@@ -22608,25 +22706,25 @@ function Month$1() {
   const dayNames = getMonthDayNames(options);
   const monthOptions = options.month;
   const { narrowWeekend, startDayOfWeek, workweek } = monthOptions;
-  const dateMatrix = F$2(
+  const dateMatrix = T$1(
     () => createDateMatrixOfMonth(renderDate, monthOptions),
     [monthOptions, renderDate]
   );
-  const { rowStyleInfo, cellWidthMap } = F$2(
+  const { rowStyleInfo, cellWidthMap } = T$1(
     () => getRowStyleInfo(dayNames.length, narrowWeekend, startDayOfWeek, workweek),
     [dayNames.length, narrowWeekend, startDayOfWeek, workweek]
   );
   const rowInfo = rowStyleInfo.map((cellStyleInfo, index) => __spreadProps(__spreadValues({}, cellStyleInfo), {
     date: dateMatrix[0][index]
   }));
-  return /* @__PURE__ */ y$3(Layout, {
+  return /* @__PURE__ */ _$3(Layout, {
     className: cls("month")
-  }, /* @__PURE__ */ y$3(GridHeader, {
+  }, /* @__PURE__ */ _$3(GridHeader, {
     type: "month",
     dayNames,
     options: monthOptions,
     rowStyleInfo
-  }), /* @__PURE__ */ y$3(DayGridMonth, {
+  }), /* @__PURE__ */ _$3(DayGridMonth, {
     dateMatrix,
     rowInfo,
     cellWidthMap
@@ -22637,7 +22735,7 @@ function useWeekViewState() {
   const calendar = useStore(calendarSelector);
   const { dayGridRows: gridRowLayout, lastPanelType } = useStore(weekViewLayoutSelector);
   const { renderDate } = useStore(viewSelector);
-  return F$2(
+  return T$1(
     () => ({
       options,
       calendar,
@@ -22651,12 +22749,12 @@ function useWeekViewState() {
 function Week$1() {
   var _a, _b;
   const { options, calendar, gridRowLayout, lastPanelType, renderDate } = useWeekViewState();
-  const gridHeaderMarginLeft = useTheme(T$1((theme) => theme.week.dayGridLeft.width, []));
+  const gridHeaderMarginLeft = useTheme(q$2((theme) => theme.week.dayGridLeft.width, []));
   const primaryTimezoneName = useStore(primaryTimezoneSelector);
   const [timePanel, setTimePanelRef] = useDOMNode();
   const weekOptions = options.week;
   const { narrowWeekend, startDayOfWeek, workweek, hourStart, hourEnd, eventView, taskView } = weekOptions;
-  const weekDates = F$2(() => getWeekDates(renderDate, weekOptions), [renderDate, weekOptions]);
+  const weekDates = T$1(() => getWeekDates(renderDate, weekOptions), [renderDate, weekOptions]);
   const dayNames = getDayNames(weekDates, (_b = (_a = options.week) == null ? void 0 : _a.dayNames) != null ? _b : []);
   const { rowStyleInfo, cellWidthMap } = getRowStyleInfo(
     weekDates.length,
@@ -22665,7 +22763,7 @@ function Week$1() {
     workweek
   );
   const calendarData = useCalendarData(calendar, options.eventFilter);
-  const eventByPanel = F$2(() => {
+  const eventByPanel = T$1(() => {
     const getFilterRange = () => {
       if (primaryTimezoneName === "Local") {
         return [toStartOfDay(first(weekDates)), toEndOfDay(last(weekDates))];
@@ -22681,7 +22779,7 @@ function Week$1() {
       weekEndDate
     });
   }, [calendarData, hourEnd, hourStart, narrowWeekend, primaryTimezoneName, weekDates]);
-  const timeGridData = F$2(
+  const timeGridData = T$1(
     () => createTimeGridData(weekDates, {
       hourStart,
       hourEnd,
@@ -22696,18 +22794,18 @@ function Week$1() {
       return null;
     }
     const rowType = key;
-    return /* @__PURE__ */ y$3(Panel, {
+    return /* @__PURE__ */ _$3(Panel, {
       name: rowType,
       key: rowType,
       resizable: rowType !== lastPanelType
-    }, rowType === "allday" ? /* @__PURE__ */ y$3(AlldayGridRow, {
+    }, rowType === "allday" ? /* @__PURE__ */ _$3(AlldayGridRow, {
       events: eventByPanel[rowType],
       rowStyleInfo,
       gridColWidthMap: cellWidthMap,
       weekDates,
       height: (_a2 = gridRowLayout[rowType]) == null ? void 0 : _a2.height,
       options: weekOptions
-    }) : /* @__PURE__ */ y$3(OtherGridRow, {
+    }) : /* @__PURE__ */ _$3(OtherGridRow, {
       category: rowType,
       events: eventByPanel[rowType],
       weekDates,
@@ -22716,29 +22814,29 @@ function Week$1() {
       gridColWidthMap: cellWidthMap
     }));
   });
-  const hasTimePanel = F$2(() => activePanels.includes("time"), [activePanels]);
+  const hasTimePanel = T$1(() => activePanels.includes("time"), [activePanels]);
   useTimeGridScrollSync(timePanel, timeGridData.rows.length);
   const stickyTop = useTimezoneLabelsTop(timePanel);
-  return /* @__PURE__ */ y$3(Layout, {
+  return /* @__PURE__ */ _$3(Layout, {
     className: cls("week-view"),
     autoAdjustPanels: true
-  }, /* @__PURE__ */ y$3(Panel, {
+  }, /* @__PURE__ */ _$3(Panel, {
     name: "week-view-day-names",
     initialHeight: WEEK_DAY_NAME_HEIGHT + WEEK_DAY_NAME_BORDER * 2
-  }, /* @__PURE__ */ y$3(GridHeader, {
+  }, /* @__PURE__ */ _$3(GridHeader, {
     type: "week",
     dayNames,
     marginLeft: gridHeaderMarginLeft,
     options: weekOptions,
     rowStyleInfo
-  })), dayGridRows, hasTimePanel ? /* @__PURE__ */ y$3(Panel, {
+  })), dayGridRows, hasTimePanel ? /* @__PURE__ */ _$3(Panel, {
     name: "time",
     autoSize: 1,
     ref: setTimePanelRef
-  }, /* @__PURE__ */ y$3(TimeGrid, {
+  }, /* @__PURE__ */ _$3(TimeGrid, {
     events: eventByPanel.time,
     timeGridData
-  }), /* @__PURE__ */ y$3(TimezoneLabels, {
+  }), /* @__PURE__ */ _$3(TimezoneLabels, {
     top: stickyTop
   })) : null);
 }
@@ -22749,8 +22847,8 @@ const views = {
 };
 function Main() {
   const { currentView } = useStore(viewSelector);
-  const CurrentViewComponent = F$2(() => views[currentView] || (() => null), [currentView]);
-  return /* @__PURE__ */ y$3(CurrentViewComponent, null);
+  const CurrentViewComponent = T$1(() => views[currentView] || (() => null), [currentView]);
+  return /* @__PURE__ */ _$3(CurrentViewComponent, null);
 }
 var n = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|^--/i, o = /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/, i = /[\s\n\\/='"\0<>]/, l = /^xlink:?./, a = /["&<]/;
 function s(e2) {
@@ -22817,7 +22915,7 @@ function m(r2, n2, a2, c2, _2, v2) {
   var w2, C2 = r2.type, O2 = r2.props, j2 = false;
   if ("function" == typeof C2) {
     if (j2 = true, !a2.shallow || !c2 && false !== a2.renderRootComponent) {
-      if (C2 === _$3) {
+      if (C2 === k$3) {
         var A2 = [];
         return d(A2, r2.props.children), m(A2, n2, a2, false !== a2.shallowHighOrder, _2, v2);
       }
@@ -22907,8 +23005,8 @@ function m(r2, n2, a2, c2, _2, v2) {
   if (D2)
     b2 && u(D2) && (D2 = "\n" + x2 + f(D2, x2)), N2 += D2;
   else if (null != $2 && d(q2 = [], $2).length) {
-    for (var B2 = b2 && ~N2.indexOf("\n"), G2 = false, J = 0; J < q2.length; J++) {
-      var K2 = q2[J];
+    for (var B2 = b2 && ~N2.indexOf("\n"), G2 = false, J2 = 0; J2 < q2.length; J2++) {
+      var K2 = q2[J2];
       if (null != K2 && false !== K2) {
         var Q2 = m(K2, n2, a2, true, "svg" === C2 || "foreignObject" !== C2 && _2, v2);
         if (b2 && !B2 && u(Q2) && (B2 = true), Q2)
@@ -22938,11 +23036,11 @@ function S(n2, o2, i2) {
   o2 = o2 || {};
   var l2 = l$3.__s;
   l$3.__s = true;
-  var a2, s2 = y$3(_$3, null);
+  var a2, s2 = _$3(k$3, null);
   return s2.__k = [n2], a2 = i2 && (i2.pretty || i2.voidElements || i2.sortAttributes || i2.shallow || i2.allAttributes || i2.xml || i2.attributeHook) ? m(n2, o2, i2) : F(n2, o2, false, void 0, s2), l$3.__c && l$3.__c(n2, k), l$3.__s = l2, k.length = 0, a2;
 }
 function w(e2) {
-  return null == e2 || "boolean" == typeof e2 ? null : "string" == typeof e2 || "number" == typeof e2 || "bigint" == typeof e2 ? y$3(null, null, e2) : e2;
+  return null == e2 || "boolean" == typeof e2 ? null : "string" == typeof e2 || "number" == typeof e2 || "bigint" == typeof e2 ? _$3(null, null, e2) : e2;
 }
 function C(e2, t2) {
   return "className" === e2 ? "class" : "htmlFor" === e2 ? "for" : "defaultValue" === e2 ? "value" : "defaultChecked" === e2 ? "checked" : "defaultSelected" === e2 ? "selected" : t2 && l.test(e2) ? e2.toLowerCase().replace(/^xlink:?/, "xlink:") : e2;
@@ -22969,7 +23067,7 @@ function F(r2, n2, l2, a2, f2) {
   var _2 = r2.type, p2 = r2.props;
   if ("function" == typeof _2) {
     var d2;
-    if (_2 === _$3)
+    if (_2 === k$3)
       d2 = p2.children;
     else {
       d2 = _2.prototype && "function" == typeof _2.prototype.render ? function(e2, r3) {
@@ -22987,7 +23085,7 @@ function F(r2, n2, l2, a2, f2) {
       var v2 = r2.__c;
       v2.getChildContext && (n2 = A({}, n2, v2.getChildContext()));
     }
-    var y2 = F(d2 = null != d2 && d2.type === _$3 && null == d2.key ? d2.props.children : d2, n2, l2, a2, r2);
+    var y2 = F(d2 = null != d2 && d2.type === k$3 && null == d2.key ? d2.props.children : d2, n2, l2, a2, r2);
     return l$3.diffed && l$3.diffed(r2), r2.__ = void 0, l$3.unmount && l$3.unmount(r2), y2;
   }
   var m2, b2, x2 = "<";
@@ -23109,13 +23207,13 @@ function sendHostname(appName, trackingId) {
 }
 var sendHostname_1 = sendHostname;
 function CalendarContainer({ theme, store, eventBus, children }) {
-  return /* @__PURE__ */ y$3(EventBusProvider, {
+  return /* @__PURE__ */ _$3(EventBusProvider, {
     value: eventBus
-  }, /* @__PURE__ */ y$3(ThemeProvider, {
+  }, /* @__PURE__ */ _$3(ThemeProvider, {
     store: theme
-  }, /* @__PURE__ */ y$3(StoreProvider, {
+  }, /* @__PURE__ */ _$3(StoreProvider, {
     store
-  }, /* @__PURE__ */ y$3(FloatingLayerProvider, null, children))));
+  }, /* @__PURE__ */ _$3(FloatingLayerProvider, null, children))));
 }
 const GA_TRACKING_ID = "UA-129951699-1";
 function extend$1(target, objects) {
@@ -23462,7 +23560,7 @@ class CalendarCore {
   }
   destroy() {
     if (this.container) {
-      hn(this.container);
+      bn(this.container);
     }
     this.store.clearListeners();
     this.theme.clearListeners();
@@ -23584,8 +23682,8 @@ class CalendarCore {
   }
   render() {
     if (isPresent(this.container)) {
-      B$3(
-        /* @__PURE__ */ y$3(CalendarContainer, {
+      G$2(
+        /* @__PURE__ */ _$3(CalendarContainer, {
           theme: this.theme,
           store: this.store,
           eventBus: this.eventBus
@@ -23597,7 +23695,7 @@ class CalendarCore {
   }
   renderToString() {
     return S(
-      /* @__PURE__ */ y$3(CalendarContainer, {
+      /* @__PURE__ */ _$3(CalendarContainer, {
         theme: this.theme,
         store: this.store,
         eventBus: this.eventBus
@@ -23764,7 +23862,7 @@ class Calendar$1 extends CalendarCore {
     this.render();
   }
   getComponent() {
-    return /* @__PURE__ */ y$3(Main, null);
+    return /* @__PURE__ */ _$3(Main, null);
   }
 }
 var Calendar = Vue.component("ToastUICalendar", {
