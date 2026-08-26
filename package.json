@@ -78,7 +78,7 @@
     "libs/*"
   ],
   "dependencies": {
-    "dompurify": "3.2.5",
+    "dompurify": "3.4.14",
     "jquery": "^3.7.0",
     "sweetalert": "^2.1.2",
     "tui-code-snippet": "^2.3.3"
